@@ -34,7 +34,7 @@ function permissions_by_term_menu() {
   );
 
   $items['401-unauthorized'] = array(
-    'title' => t("401: Unauthorized"),
+    'title' => "401: Unauthorized",
     'page callback' => 'page_user_not_allowed',
     'access arguments' => array('access content'),
   );
@@ -265,10 +265,10 @@ function permissions_by_term_submit($form, &$form_state) {
 * @param $args
 *   An array of arguments passed into the view.
 */
-function permissions_by_term_views_pre_view(&$view, &$display_id, &$args){
-    if($display_id == "page" && $view->name == "taxonomy_term"){
+function permissions_by_term_views_pre_view(&$view, &$display_id, &$args) {
+    if ($display_id == "page" && $view->name == "taxonomy_term") {
         global $user;
-        if(permissions_by_term_allowed($args['0'], $user) === false){
+        if (permissions_by_term_allowed($args['0'], $user) === FALSE) {
             drupal_goto($path = '401-unauthorized', array(), $http_response_code = 302);
         }
     }
