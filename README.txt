@@ -3,17 +3,13 @@ Permissions by Term
 
 DESCRIPTION
 -----------
-Restricts users from the view of the taxonomy term page, if you've replaced
-the listing of nodes, which are attached to a taxonomy term, by the view. To
-text this, replace drupal's default listing-page of nodes, which are attached
-to a taxonomy term (e.g. taxonomy/term/TERM-ID) by a view (project url of the
-widely used views-mdoule: http://drupal.org/project/views).
+Restricts users from accessing the nodes related to specific taxonomy terms per
+roles and users. Restriction also works for the view, which is replacing the
+page for taxonomy term related nodes from the Drupal core
+(taxonomy/term/TERM-ID).
 
-Permissions by Term module also disallows users to select taxonomy terms, for
-which they don't have access.
-
-Also user's, which are not allowed for a specific taxonomy term, aren't allowed
-to view the attached node.
+Permissions by Term module additionally disallows users to select taxonomy
+terms, for which they don't have access, on the node edit form.
 
 WHY THIS MODULE WAS CREATED AND HOW?
 ------------------------------------
