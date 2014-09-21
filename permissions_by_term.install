@@ -4,6 +4,7 @@
  * Install, update and uninstall functions for the permissions_by_term module.
  *
  */
+
 /**
  * Implements hook_schema().
  */
@@ -50,4 +51,3 @@ function permissions_by_term_schema() {
 
   return $schema;
 }
-
