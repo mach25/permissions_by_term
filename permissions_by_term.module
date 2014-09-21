@@ -239,7 +239,7 @@ function permissions_by_term_node_view($node, $view_mode, $langcode) {
   }
 }
 
-/*
+/**
  * permissions_by_term_allowed().
  */
 function permissions_by_term_allowed($tid, $user) {
@@ -255,7 +255,9 @@ function permissions_by_term_allowed($tid, $user) {
     return TRUE;
   }
 
-  // Permissions are enabled, check to see if this user or one of their roles is allowed.
+  /* Permissions are enabled, check to see if this user or one of their roles
+     is allowed.
+  */
   $user_roles = array_keys($user->roles);
 
   $i = 0;
