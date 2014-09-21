@@ -150,7 +150,6 @@ function permissions_by_term_form_alter(&$form, $form_state, $form_id) {
       }
     }
   }
-
 }
 
 /**
@@ -193,7 +192,7 @@ function permissions_by_term_submit($form, &$form_state) {
     foreach ($allowed_users as $name) {
       $users = user_load_multiple(array(), array('name' => $name));
       $u = array_shift($users);
-      $id = db_insert('permissions_by_term_user')
+      db_insert('permissions_by_term_user')
   ->fields(array(
         'tid' => $form_state['values']['tid'],
         'uid' => $u->uid,
@@ -254,7 +253,7 @@ function permissions_by_term_node_view($node, $view_mode, $langcode){
 
     $user_is_allowed_to_view = false;
 
-    foreach($node_wrapper->field_secured_areas->getIterator() as $delta =>  $term_wrapper){
+    foreach($node_wrapper->field_secured_areas->getIterator() as $term_wrapper){
 
         $term_secured_areas = $term_wrapper->value();
 
@@ -294,11 +293,9 @@ function permissions_by_term_allowed($tid, $user) {
           array(':tid' => $tid))->fetchField())) {
           return TRUE;
   }
-  // We need to convert user->roles to be useful for us.
-  $users_uid = implode(', ', array_keys($user->roles));
+
   // Permissions are enabled, check to see if this user or one of their roles
   // is allowed
-
   $user_roles = array_keys($user->roles);
 
   $i = 0;
