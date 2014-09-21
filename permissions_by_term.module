@@ -37,13 +37,6 @@ function permissions_by_term_menu() {
 }
 
 /**
- * Displays a page, if the user isn't allowed to visit it.
- */
-function page_user_not_allowed() {
-    return array('#markup' => '<p>' . t("You're not authorized to visit this page. Please contact the administrator, if you need authorization.") . '</p>');
-}
-
-/**
  * Implements hook_form_alter().
  *
  * @param array $form
@@ -139,7 +132,6 @@ function permissions_by_term_form_alter(&$form, $form_state, $form_id) {
         continue;
       if (!in_array('#language', $form[$field_name]))
          continue;
-
       $options = &$form[$field_name][$form[$field_name]['#language']]['#options'];
       if (!in_array($field_info['type'], $types) || !isset($options)) {
         continue;
