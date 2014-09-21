@@ -38,13 +38,6 @@ function permissions_by_term_menu() {
 
 /**
  * Implements hook_form_alter().
- *
- * @param array $form
- *   The form to alter.
- * @param array $form_state
- *   The form state of the current form.
- * @param array $form_id
- *   The form id of the current form.
  */
 function permissions_by_term_form_alter(&$form, $form_state, $form_id) {
   // This is the add / edit term form from the taxonomy page.
