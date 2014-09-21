@@ -207,7 +207,7 @@ function permissions_by_term_submit($form, &$form_state) {
   ->execute();
   if (!empty($form_state['values']['access']['role']) && $form_state['values']['op']==t('Save')) {
     foreach (array_keys(array_filter($form_state['values']['access']['role'])) as $rid) {
-      $id = db_insert('permissions_by_term_role')
+      db_insert('permissions_by_term_role')
         ->fields(array(
           'tid' => $form_state['values']['tid'],
           'rid' => $rid,
