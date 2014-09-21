@@ -271,7 +271,7 @@ function permissions_by_term_allowed($tid, $user) {
       return TRUE;
     }
 
-  $i++;
+    $i++;
 
   }
 
@@ -280,6 +280,7 @@ function permissions_by_term_allowed($tid, $user) {
 
 /**
  * Implements permissions_by_term_autocomplete_multiple().
+ * 
  * Returns Json array for Taxonomy Term Permissions autocomplete fields.
  * Supports multiple entries separated by a comma.
  */
