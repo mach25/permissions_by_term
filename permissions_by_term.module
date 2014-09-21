@@ -115,8 +115,8 @@ function permissions_by_term_form_alter(&$form, $form_state, $form_id) {
 
   // This is the node add / edit form. If a different selector is used from
   // another contributed module, we do nothing so as to not break the form.
-  if ((isset($form['type']) && isset($form['#node']) && (!variable_get('taxonomy_override_selector', FALSE)) && $form['type']['#value'] . '_node_form' == $form_id ) ||
-     (isset($form['#entity_type']) && isset($form['#bundle']))) {
+  if ((isset($form['type']) && isset($form['#node']) && (!variable_get('taxonomy_override_selector', FALSE)) && $form['type']['#value'] . '_node_form' == $form_id) ||
+       (isset($form['#entity_type']) && isset($form['#bundle']))) {
     // Field types we are looking for.
     $types = array('taxonomy_term_reference');
     foreach (element_children($form) as $field_name) {
