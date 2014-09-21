@@ -126,7 +126,6 @@ function permissions_by_term_form_alter(&$form, $form_state, $form_id) {
   if ((isset($form['type']) && isset($form['#node']) && (!variable_get('taxonomy_override_selector', FALSE)) && $form['type']['#value'] . '_node_form' == $form_id ) ||
       (isset($form['#entity_type']) && isset($form['#bundle']))) {
     $types = array('taxonomy_term_reference'); // Field types we are looking for
-
     foreach (element_children($form) as $field_name) {
       if (!$field_info = field_info_field($field_name))
         continue;
@@ -147,32 +146,6 @@ function permissions_by_term_form_alter(&$form, $form_state, $form_id) {
         global $user;
         if (!permissions_by_term_allowed($tid, $user)) {
           unset($options[$tid]);
-        }
-        // If the user doesn't have access to any of the terms in the
-        // vocabulary, remove the form item entirely.
-        if (count($options) <= 1) {
-          if (isset($vocabulary['#required'])) {
-            drupal_set_message(t("Your account doesn't have permission to
-                  use any of the terms in the %vocabulary vocabulary. Your
-                  account must be given permission to use at least one term in
-                  the %vocabulary vocabulary to be able to add or edit the
-                  %content-type content type.",
-                  array('%vocabulary' => $vocabulary['#title'],
-                    '%content-type' => node_get_types('name',
-                      $form['type']['#value']))), 'warning');
-            watchdog('permissions_by_term', '%user was blocked from accessing
-                the %content-type form as they do not have permission to use
-                any terms in the <a href="@vocabulary-url">%vocabulary</a>
-                vocabulary.', array('%user' => isset($user->name) ? $user->name : variable_get('anonymous', 'Anonymous'),
-                  '%content-type' => node_get_types('name', $form['type']['#value']),
-                  '@vocabulary-url' => url('admin/content/taxonomy/' . $vid),
-                  '%vocabulary' => $vocabulary['#title']),
-                WATCHDOG_WARNING, l(t('edit vocabulary'),
-                  'admin/content/taxonomy/' . $vid));
-            drupal_access_denied();
-            exit();
-          }
-          unset($form[$field_name]);
         }
       }
     }
