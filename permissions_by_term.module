@@ -225,7 +225,9 @@ function permissions_by_term_process_node(&$variables) {
       }
     }
   }
-  // Hide node display if teaser. So items, which are listed by a view can be hidden.
+  /* Hide node display if teaser view-mode. So items, which are listed by a view
+   * are hidden.
+   */
   if (isset($user_is_allowed_to_view) && $user_is_allowed_to_view === FALSE &&
     $variables['view_mode'] == "teaser") {
     // Hide node elements.
