@@ -4,9 +4,8 @@ Permissions by Term
 DESCRIPTION
 -----------
 Restricts users from accessing the nodes related to specific taxonomy terms per
-roles and users. Restriction also works for the view, which is replacing the
-page for taxonomy term related nodes from the Drupal core
-(taxonomy/term/TERM-ID).
+roles and users. Restriction also works for views, if teaser display mode is
+used.
 
 Permissions by Term module additionally disallows users to select taxonomy
 terms, for which they don't have access, on the node edit form.
@@ -24,8 +23,8 @@ HOW TO SETUP THE MODULES FUNCTIONALITY ON YOUR DRUPAL-SITE?
 taxonomy term vocabulary. In the top of the form you can see the term
 permissions. You can specify here, which roles and users can "use" this
 taxonomy term either by node editing or accessing the nodes on a view or
-on node display. Currently the views-functionality only works for views, which
-are replacing Drupal's default taxonomy term related nodes-listing.
+on node display. The module hides nodes on a view, if they are displayed by
+teaser display mode.
 3., To restrict the access to related nodes, you need to setup a field in your
 specific content type. This node has to be a "taxonomy term relation" and you
 have to use the following machine name: field_secured_areas. If you've done so,

@@ -226,12 +226,13 @@ function permissions_by_term_process_node(&$variables) {
     }
   }
   // Hide node display if teaser. So items, which are listed by a view can be hidden.
-  if(isset($user_is_allowed_to_view) && $user_is_allowed_to_view === false && $variables['view_mode'] == "teaser") {
-    // hide node elements
+  if (isset($user_is_allowed_to_view) && $user_is_allowed_to_view === FALSE &&
+    $variables['view_mode'] == "teaser") {
+    // Hide node elements.
     $variables['submitted'] = "";
     $variables["title"] = "";
-    foreach($variables as $key=>$value){
-      if(is_array($variables[$key])){
+    foreach ($variables as $key=>$value) {
+      if (is_array($variables[$key])) {
         $variables[$key] = "";
       }
     }
