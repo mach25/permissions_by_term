@@ -233,7 +233,7 @@ function permissions_by_term_process_node(&$variables) {
     // Hide node elements.
     $variables['submitted'] = "";
     $variables["title"] = "";
-    foreach ($variables as $key=>$value) {
+    foreach ($variables as $key => $value) {
       if (is_array($variables[$key])) {
         $variables[$key] = "";
       }
