@@ -24,7 +24,7 @@ taxonomy term vocabulary. In the top of the form you can see the term
 permissions. You can specify here, which roles and users can "use" this
 taxonomy term either by node editing or accessing the nodes on a view or
 on node display. The module hides nodes on a view, if they are displayed by
-teaser display mode.
+teaser view mode.
 3., To restrict the access to related nodes, you need to setup a field in your
 specific content type. This field has to be a "taxonomy term relation" and you
 have to use the following machine name: "field_secured_areas". If you've done
