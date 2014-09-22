@@ -26,7 +26,7 @@ taxonomy term either by node editing or accessing the nodes on a view or
 on node display. The module hides nodes on a view, if they are displayed by
 teaser display mode.
 3., To restrict the access to related nodes, you need to setup a field in your
-specific content type. This node has to be a "taxonomy term relation" and you
-have to use the following machine name: field_secured_areas. If you've done so,
-the module will check if the node's visitor has access to the taxonomy terms,
-which are assigned to this node.
+specific content type. This field has to be a "taxonomy term relation" and you
+have to use the following machine name: "field_secured_areas". If you've done
+so, the module will check if the node's visitor has access to the taxonomy
+terms, which are assigned to this node.
