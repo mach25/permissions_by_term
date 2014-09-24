@@ -295,7 +295,7 @@ function permissions_by_term_allowed($tid, $user) {
 
   while (isset($user_roles[$i])) {
 
-    if (db_query("SELECT uid FROM {permissions_by_term_user} WHERE tid = :tid AND uid = :uid",
+    if(db_query("SELECT uid FROM {permissions_by_term_user} WHERE tid = :tid AND uid = :uid",
         array(':tid' => $tid, ':uid' => $user->uid))->fetchField() ||
         db_query("SELECT rid FROM {permissions_by_term_role} WHERE tid = :tid AND rid IN (:user_roles)",
         array(':tid' => $tid, ':user_roles' => $user_roles[$i]))->fetchField()) {
