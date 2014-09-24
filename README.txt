@@ -19,7 +19,8 @@ on a views page with listed taxonomy terms.
 HOW TO SETUP THE MODULES FUNCTIONALITY ON YOUR DRUPAL-SITE?
 -----------------------------------------------------------
 1., Install the module.
-2., Create a vocabulary and go to the taxonomy term add/edit-form for this taxonomy term vocabulary. In the top of the form you can see the term
+2., Create a vocabulary and go to the taxonomy term add/edit-form for this
+taxonomy term vocabulary. In the top of the form you can see the term
 permissions. You can specify here, which roles and users can "use" this
 taxonomy term either by node editing or accessing the nodes on a view or
 on node display. The module hides nodes on a view, if they are displayed by
