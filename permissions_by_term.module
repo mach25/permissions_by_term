@@ -195,8 +195,8 @@ function permissions_by_term_submit($form, &$form_state) {
   ->execute();
   if (!empty($form_state['values']['access']['user']) &&
     $form_state['values']['op'] == t('Save')) {
-    $allowed_users =
-    drupal_explode_tags($form_state['values']['access']['user']);
+    $allowed_users
+    = drupal_explode_tags($form_state['values']['access']['user']);
     foreach ($allowed_users as $name) {
       $users = user_load_multiple(array(), array('name' => $name));
       $u = array_shift($users);
@@ -227,7 +227,7 @@ function permissions_by_term_submit($form, &$form_state) {
 
 
 /**
- * Implements hook_views_post_execute(&$view).
+ * Implements hook_views_post_execute().
  *
  * Hides nodes in a view.
  */
