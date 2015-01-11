@@ -233,7 +233,7 @@ function permissions_by_term_submit($form, &$form_state) {
  */
 function permissions_by_term_views_post_execute(&$view) {
   global $user;
-  foreach($view->result as $v) {
+  foreach ($view->result as $v) {
 
     $node = node_load($v->nid);
 
@@ -260,9 +260,9 @@ function permissions_by_term_views_post_execute(&$view) {
 
   $arr__new_results = array();
 
-  /// Hide the nodes.
-  foreach($view->result as $v){
-    if(!in_array($v->nid, $arr__nodes_to_hide_in_view)){
+  // Hide the nodes.
+  foreach ($view->result as $v) {
+    if (!in_array($v->nid, $arr__nodes_to_hide_in_view)) {
       $arr__new_results[] = $v;
     }
   }
@@ -277,20 +277,19 @@ function permissions_by_term_views_post_execute(&$view) {
  * Forwards user by drupal_access_denied(); to an access denied page, if a
  * single restricted node is called.
  */
-function permissions_by_term_node_access($node, $op, $account){
+function permissions_by_term_node_access($node, $op, $account) {
 
-  if(isset($node->nid)){
+  if (isset($node->nid)) {
     $node = node_load($node->nid);
     $secured_areas = field_get_items('node', $node, 'field_secured_areas');
-    if (!empty($secured_areas) ) {
+    if (!empty($secured_areas)) {
       global $user;
       foreach ($secured_areas as $term) {
 
         $term_secured_areas = $term;
 
         if (isset($term_secured_areas['tid']) &&
-          permissions_by_term_allowed($term_secured_areas['tid'], $user)
-          === TRUE) {
+          permissions_by_term_allowed($term_secured_areas['tid'], $user) === TRUE) {
           $user_is_allowed_to_view = TRUE;
         }
         if (!isset($user_is_allowed_to_view)) {
