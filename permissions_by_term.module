@@ -30,8 +30,8 @@ function permissions_by_term_permission() {
   return array(
     'show term permission form on term page' => array(
       'title' => t('Term permission form on term page'),
-      'description' => t('Enables the specific role to edit ') .
-      t('the term permissions on the term edit page.'),
+      'description' => t('Enables the specific role to edit') .
+      ' ' . t('the term permissions on the term edit page.'),
     ),
   );
 }
@@ -52,10 +52,12 @@ function permissions_by_term_menu() {
   return $items;
 }
 
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
 function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, $form_id) {
-  if(user_access('show term permission form on term page')) {
+  if (user_access('show term permission form on term page')) {
     // This is the add / edit term form from the taxonomy page.
-
     // Normally the term is an array, but when deleting terms it becomes an
     // object. So, we cast it to an object so we can consistently reference it.
     $term = (object) $form['#term'];
@@ -64,8 +66,8 @@ function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, 
       '#type' => 'fieldset',
       '#title' => t('Permissions'),
       '#description' => t('To limit selection of this term by user or roles,') .
-        t('add users or roles to the following lists. Leave empty to allow') .
-        t('selection by all users.'),
+      t('add users or roles to the following lists. Leave empty to allow') .
+      t('selection by all users.'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
       '#attributes' => array('id' => 'fieldset_term_access'),
