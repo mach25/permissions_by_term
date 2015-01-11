@@ -196,7 +196,7 @@ function permissions_by_term_submit($form, &$form_state) {
   if (!empty($form_state['values']['access']['user']) &&
     $form_state['values']['op'] == t('Save')) {
     $allowed_users
-    = drupal_explode_tags($form_state['values']['access']['user']);
+      = drupal_explode_tags($form_state['values']['access']['user']);
     foreach ($allowed_users as $name) {
       $users = user_load_multiple(array(), array('name' => $name));
       $u = array_shift($users);
@@ -231,11 +231,9 @@ function permissions_by_term_submit($form, &$form_state) {
  *
  * Hides nodes in a view.
  */
-function permissions_by_term_views_post_execute(&$view){
+function permissions_by_term_views_post_execute(&$view) {
   global $user;
-
-
-  foreach($view->result as $v){
+  foreach($view->result as $v) {
 
     $node = node_load($v->nid);
 
@@ -246,8 +244,7 @@ function permissions_by_term_views_post_execute(&$view){
     if (!empty($secured_areas)) {
       foreach ($secured_areas as $term) {
         if (isset($term['tid']) &&
-          permissions_by_term_allowed($term['tid'], $user)
-          === TRUE) {
+          permissions_by_term_allowed($term['tid'], $user) === TRUE) {
           $user_is_allowed_to_view = TRUE;
         }
 
