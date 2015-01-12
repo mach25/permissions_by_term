@@ -10,6 +10,7 @@
 function permissions_by_term_schema() {
   $schema = array();
 
+  // Specifications for tabe 'permissions_by_term_user'
   $schema['permissions_by_term_user'] = array(
     'fields' => array(
       'tid' => array(
@@ -29,6 +30,7 @@ function permissions_by_term_schema() {
     ),
   );
 
+  // Specifications for tabe 'permissions_by_term_role'
   $schema['permissions_by_term_role'] = array(
     'fields' => array(
       'tid' => array(
