@@ -83,8 +83,13 @@ function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, 
         ->execute()->fetchAll(PDO::FETCH_ASSOC);
 
       foreach ($result as $row) {
-        $u = user_load($row['uid']);
-        $allowed_users[] = $u->name;
+
+        $user = db_select('users', 'u')
+          ->condition('uid', $row['uid'])
+          ->fields('u', array('name'))
+          ->execute()->fetchObject();
+
+        $allowed_users[] = $user->name;
       }
     }
     $allowed_users = drupal_implode_tags($allowed_users);
