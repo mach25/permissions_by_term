@@ -65,9 +65,9 @@ function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, 
     $form['access'] = array(
       '#type' => 'fieldset',
       '#title' => t('Permissions'),
-      '#description' => t('To limit selection of this term by user or roles,' .
-      'add users or roles to the following lists. Leave empty to allow' .
-      'selection by all users.'),
+      '#description' => t('To limit selection of this term by user or roles,
+      add users or roles to the following lists. Leave empty to allow
+      selection by all users.'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
       '#attributes' => array('id' => 'fieldset_term_access'),
