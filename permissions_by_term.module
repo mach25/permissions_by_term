@@ -82,15 +82,10 @@ function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, 
         ->condition('tid', $term->tid)
         ->execute()->fetchAll(PDO::FETCH_ASSOC);
 
-      foreach ($result as $row) {
+      $allowed_users = db_query("SELECT u.name FROM {permissions_by_term_user} p
+                        JOIN {users} u ON p.uid = u.uid WHERE p.tid = :tid",
+                        array(':tid' => $term->tid))->fetchCol();
 
-        $user = db_select('users', 'u')
-          ->condition('uid', $row['uid'])
-          ->fields('u', array('name'))
-          ->execute()->fetchObject();
-
-        $allowed_users[] = $user->name;
-      }
     }
     $allowed_users = drupal_implode_tags($allowed_users);
     // Note that the autocomplete widget will only enable for users with the
@@ -179,11 +174,16 @@ function permissions_by_term_form_alter(&$form, $form_state, $form_id) {
  */
 function permissions_by_term_validate($form, &$form_state) {
   if (!empty($form_state['values']['access']['user'])) {
+
     $allowed_users = drupal_explode_tags($form_state['values']['access']['user']);
+
     foreach ($allowed_users as $name) {
-      $users = user_load_multiple(array(), array('name' => $name));
-      if (!(array_shift($users))) {
-        form_set_error('search_user', t('The user %user_name does not exist.',
+
+      $user = db_query("SELECT u.name FROM {users} u WHERE u.name = :uname",
+        array(':uname' => $name))->fetchCol();
+
+      if (empty($user)) {
+        form_set_error('access][user', t('The user %user_name does not exist.',
                 array('%user_name' => $name)));
       }
     }
@@ -202,16 +202,21 @@ function permissions_by_term_submit($form, &$form_state) {
     $form_state['values']['op'] == t('Save')) {
     $allowed_users
       = drupal_explode_tags($form_state['values']['access']['user']);
+
+    $query = db_insert('permissions_by_term_user')->fields(array('tid', 'uid'));
+
     foreach ($allowed_users as $name) {
-      $users = user_load_multiple(array(), array('name' => $name));
-      $u = array_shift($users);
-      db_insert('permissions_by_term_user')
-      ->fields(array(
+
+      $user = db_query("SELECT u.uid FROM {users} u WHERE u.name = :uname",
+        array(':uname' => $name))->fetchCol();
+
+      $query->values(array(
         'tid' => $form_state['values']['tid'],
-        'uid' => $u->uid,
-      ))
-      ->execute();
+        'uid' => $user['0'],
+      ));
+
     }
+    $query->execute();
   }
 
   // For each role, save the term ID and the role ID.
@@ -238,41 +243,50 @@ function permissions_by_term_submit($form, &$form_state) {
  */
 function permissions_by_term_views_post_execute(&$view) {
   global $user;
-  foreach ($view->result as $v) {
 
-    $node = node_load($v->nid);
+  foreach ($view->result as $view_result) {
+    if (array_key_exists('nid', $view_result) === TRUE) {
+      $view_contains_nodes = TRUE;
+    }
+  }
 
-    $arr__nodes_to_hide_in_view = array();
+  if ($view_contains_nodes === TRUE) {
+    foreach ($view->result as $v) {
 
-    $secured_areas = field_get_items('node', $node, 'field_secured_areas');
+      $node = node_load($v->nid);
 
-    if (!empty($secured_areas)) {
-      foreach ($secured_areas as $term) {
-        if (isset($term['tid']) &&
-          permissions_by_term_allowed($term['tid'], $user) === TRUE) {
-          $user_is_allowed_to_view = TRUE;
+      $arr__nodes_to_hide_in_view = array();
+
+      $secured_areas = field_get_items('node', $node, 'field_secured_areas');
+
+      if (!empty($secured_areas)) {
+        foreach ($secured_areas as $term) {
+          if (isset($term['tid']) &&
+            permissions_by_term_allowed($term['tid'], $user) === TRUE) {
+            $user_is_allowed_to_view = TRUE;
+          }
+
+          if (!isset($user_is_allowed_to_view)) {
+            $user_is_allowed_to_view = FALSE;
+            $arr__nodes_to_hide_in_view[] = $node->nid;
+          }
+
         }
+      }
 
-        if (!isset($user_is_allowed_to_view)) {
-          $user_is_allowed_to_view = FALSE;
-          $arr__nodes_to_hide_in_view[] = $node->nid;
-        }
+    }
 
+    $arr__new_results = array();
+
+    // Hide the nodes.
+    foreach ($view->result as $v) {
+      if (!in_array($v->nid, $arr__nodes_to_hide_in_view)) {
+        $arr__new_results[] = $v;
       }
     }
 
+    $view->result = $arr__new_results;
   }
-
-  $arr__new_results = array();
-
-  // Hide the nodes.
-  foreach ($view->result as $v) {
-    if (!in_array($v->nid, $arr__nodes_to_hide_in_view)) {
-      $arr__new_results[] = $v;
-    }
-  }
-
-  $view->result = $arr__new_results;
 
 }
 
@@ -284,7 +298,7 @@ function permissions_by_term_views_post_execute(&$view) {
  */
 function permissions_by_term_node_access($node, $op, $account) {
 
-  if (isset($node->nid)) {
+  if (isset($node->nid) && $op == 'view') {
     $node = node_load($node->nid);
     $secured_areas = field_get_items('node', $node, 'field_secured_areas');
     if (!empty($secured_areas)) {
@@ -303,7 +317,7 @@ function permissions_by_term_node_access($node, $op, $account) {
       }
     }
     if (isset($user_is_allowed_to_view) && $user_is_allowed_to_view === FALSE) {
-      drupal_access_denied();
+      define('NODE_ACCESS_DENY', 'deny');
     }
   }
 
@@ -351,10 +365,11 @@ function permissions_by_term_allowed($tid, $user) {
 }
 
 /**
- * Implements permissions_by_term_autocomplete_multiple().
+ * Page callback: Returns Json array for Taxonomy Term Permissions
+ * autocomplete fields. Supports multiple entries separated by a comma.
  *
- * Returns Json array for Taxonomy Term Permissions autocomplete fields.
- * Supports multiple entries separated by a comma.
+ * @param string $string
+ *  A comma-separated list of users.
  */
 function permissions_by_term_autocomplete_multiple($string) {
   // The user enters a comma-separated list of users.
