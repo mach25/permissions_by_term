@@ -317,7 +317,7 @@ function permissions_by_term_node_access($node, $op, $account) {
       }
     }
     if (isset($user_is_allowed_to_view) && $user_is_allowed_to_view === FALSE) {
-      define('NODE_ACCESS_DENY', 'deny');
+      define('PERMISSIONS_BY_TERM_NODE_ACCESS_DENY', 'deny');
     }
   }
 
@@ -369,7 +369,8 @@ function permissions_by_term_allowed($tid, $user) {
  * autocomplete fields. Supports multiple entries separated by a comma.
  *
  * @param string $string
- *  A comma-separated list of users.
+ *
+ *   A comma-separated list of users.
  */
 function permissions_by_term_autocomplete_multiple($string) {
   // The user enters a comma-separated list of users.
