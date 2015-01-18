@@ -365,11 +365,11 @@ function permissions_by_term_allowed($tid, $user) {
 }
 
 /**
- * Page callback: Returns Json array for Taxonomy Term Permissions
- * autocomplete fields. Supports multiple entries separated by a comma.
+ * Page callback: Returns Json array for autocomplete fields.
+ *
+ * Supports multiple entries separated by a comma.
  *
  * @param string $string
- *
  *   A comma-separated list of users.
  */
 function permissions_by_term_autocomplete_multiple($string) {
