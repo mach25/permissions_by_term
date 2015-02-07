@@ -187,8 +187,8 @@ function permissions_by_term_validate($form, &$form_state) {
 function permissions_by_term_submit($form, &$form_state) {
   // For each user, save the term ID and the user ID.
   db_delete('permissions_by_term_user')
-  ->condition('tid', $form_state['values']['tid'])
-  ->execute();
+    ->condition('tid', $form_state['values']['tid'])
+    ->execute();
   if (!empty($form_state['values']['access']['user']) &&
     $form_state['values']['op'] == t('Save')) {
     $allowed_users
@@ -212,8 +212,8 @@ function permissions_by_term_submit($form, &$form_state) {
 
   // For each role, save the term ID and the role ID.
   db_delete('permissions_by_term_role')
-  ->condition('tid', $form_state['values']['tid'])
-  ->execute();
+    ->condition('tid', $form_state['values']['tid'])
+    ->execute();
   if (!empty($form_state['values']['access']['role']) && $form_state['values']['op'] == t('Save')) {
     foreach (array_keys(array_filter($form_state['values']['access']['role'])) as $rid) {
       db_insert('permissions_by_term_role')
@@ -221,7 +221,7 @@ function permissions_by_term_submit($form, &$form_state) {
           'tid' => $form_state['values']['tid'],
           'rid' => $rid,
         ))
-      ->execute();
+        ->execute();
     }
   }
 }
@@ -332,8 +332,8 @@ function permissions_by_term_allowed($tid, $user) {
   }
 
   /* Permissions are enabled, check to see if this user or one of their roles
-     is allowed.
-  */
+  is allowed.
+   */
   $user_roles = array_keys($user->roles);
 
   $i = 0;
