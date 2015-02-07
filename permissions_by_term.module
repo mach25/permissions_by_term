@@ -77,11 +77,6 @@ function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, 
     // Pull in any stored users in the database.
     $allowed_users = array();
     if (!empty($form['tid']['#value'])) {
-      $result = db_select('permissions_by_term_user')
-        ->fields('permissions_by_term_user')
-        ->condition('tid', $term->tid)
-        ->execute()->fetchAll(PDO::FETCH_ASSOC);
-
       $allowed_users = db_query("SELECT u.name FROM {permissions_by_term_user} p
                         JOIN {users} u ON p.uid = u.uid WHERE p.tid = :tid",
                         array(':tid' => $term->tid))->fetchCol();
@@ -104,14 +99,10 @@ function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, 
 
     $allowed_roles = array();
     if (!empty($form['tid']['#value'])) {
-      $result = db_select('permissions_by_term_role')
+      $allowed_roles = db_select('permissions_by_term_role')
         ->fields('permissions_by_term_role')
         ->condition('tid', $term->tid)
-        ->execute()->fetchAll(PDO::FETCH_ASSOC);
-
-      foreach ($result as $row) {
-        $allowed_roles[] = $row['rid'];
-      }
+        ->execute()->fetchCol('rid');
     }
 
     // Now, lets do the Roles table.
@@ -239,7 +230,7 @@ function permissions_by_term_submit($form, &$form_state) {
 /**
  * Implements hook_views_post_execute().
  *
- * Hides nodes in a view.
+ * Hides nodes in every view on the site.
  */
 function permissions_by_term_views_post_execute(&$view) {
   global $user;
@@ -317,7 +308,7 @@ function permissions_by_term_node_access($node, $op, $account) {
       }
     }
     if (isset($user_is_allowed_to_view) && $user_is_allowed_to_view === FALSE) {
-      define('PERMISSIONS_BY_TERM_NODE_ACCESS_DENY', 'deny');
+      return NODE_ACCESS_DENY;
     }
   }
 
