@@ -28,4 +28,4 @@ on node display. The module hides nodes on a view.
 specific content type. This field has to be a "taxonomy term relation" and you
 have to use the following machine name: "field_secured_areas". If you've done
 so, the module will check if the node's visitor has access to the taxonomy
-terms, which are assigned to this node.
+terms, which are assigned to this node. 
