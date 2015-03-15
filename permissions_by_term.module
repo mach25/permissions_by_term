@@ -97,12 +97,44 @@ function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, 
       '#weight' => -10,
     );
 
+
     $allowed_roles = array();
     if (!empty($form['tid']['#value'])) {
-      $allowed_roles = db_select('permissions_by_term_role')
-        ->fields('permissions_by_term_role')
-        ->condition('tid', $term->tid)
-        ->execute()->fetchCol('rid');
+      $query = db_select('permissions_by_term_role', 'pbt')
+        ->fields('pbt', array('tid', 'rid'))
+        ->condition('pbt.tid', $term->tid);
+
+      // joins cannot be chained in Drupal oop db-queries.
+      $query->leftJoin('role', 'r', 'r.rid = pbt.rid');
+
+      $query->fields('r', array('name'));
+
+      $allowed_roles = $query->execute()->fetchAllAssoc('name');
+    }
+
+    // firstly fetch all translated allowed role names.
+    $arr__translated_allowed_role_names = array();
+    foreach($allowed_roles as $role){
+      $arr__translated_allowed_role_names[] = t($role->name);
+    }
+
+    // get all roles for the complete form and translate them.
+    $arr__all_translated_user_roles = array();
+    $array_key_counter = 1;
+    foreach(user_roles() as $user_role){
+      $arr__all_translated_user_roles[$array_key_counter] = t($user_role);
+      $array_key_counter++;
+    }
+
+    // generate the default values for the form.
+    $allowed_roles_positions = array();
+    if(!empty($arr__translated_allowed_role_names)){
+      foreach($arr__translated_allowed_role_names as $role_name){
+        $pos = array_search($role_name, $arr__all_translated_user_roles);
+        if(is_numeric($pos)){
+          $allowed_roles_positions[] = $pos;
+        }
+      }
     }
 
     // Now, lets do the Roles table.
@@ -110,8 +142,9 @@ function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, 
       '#type' => 'checkboxes',
       '#title' => t('Allowed roles'),
       '#description' => t('Select a role to allow all members of that role access to this term.'),
-      '#default_value' => $allowed_roles,
-      '#options' => user_roles(),
+      '#default_value' => $allowed_roles_positions,
+      '#options' => $arr__all_translated_user_roles,
+      //'#options' => user_roles(),
       '#multiple' => FALSE,
       '#weight' => 5,
     );
