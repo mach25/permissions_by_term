@@ -414,3 +414,4 @@ function permissions_by_term_autocomplete_multiple($string) {
   }
   drupal_json_output($matches);
 }
+
