@@ -154,7 +154,6 @@ function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, 
   }
 }
 
-
 /**
  * Implements hook_form_alter().
  */
