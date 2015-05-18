@@ -275,11 +275,10 @@ function permissions_by_term_views_post_execute(&$view) {
   }
 
   if ($view_contains_nodes === TRUE) {
+    $arr__nodes_to_hide_in_view = array();
     foreach ($view->result as $v) {
 
       $node = node_load($v->nid);
-
-      $arr__nodes_to_hide_in_view = array();
 
       $secured_areas = field_get_items('node', $node, 'field_secured_areas');
 
