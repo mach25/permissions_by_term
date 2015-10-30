@@ -121,8 +121,8 @@ function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, 
     // get all roles for the complete form and translate them.
     $arr__all_translated_user_roles = array();
     $array_key_counter = 1;
-    foreach(user_roles() as $user_role){
-      $arr__all_translated_user_roles[$array_key_counter] = t($user_role);
+    foreach(user_roles() as $user_role_id=>$user_role_name){
+      $arr__all_translated_user_roles[$user_role_id] = t($user_role_name);
       $array_key_counter++;
     }
 
