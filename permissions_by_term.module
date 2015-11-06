@@ -268,6 +268,8 @@ function permissions_by_term_submit($form, &$form_state) {
 function permissions_by_term_views_post_execute(&$view) {
   global $user;
 
+  $view_contains_nodes = FALSE;
+
   foreach ($view->result as $view_result) {
     if (array_key_exists('nid', $view_result) === TRUE) {
       $view_contains_nodes = TRUE;
