@@ -24,20 +24,6 @@ function permissions_by_term_help($path, $arg) {
 }
 
 /**
- * Implements hook_permission().
- */
-function permissions_by_term_permission() {
-  return array(
-    'show term permission form on term page' => array(
-      'title' => t('Term permission form on term page'),
-      'description' => t('Enables the specific role to edit
-      the term permissions on the term edit page.'),
-    ),
-  );
-}
-
-
-/**
  * Implements hook_menu().
  */
 function permissions_by_term_menu() {
@@ -53,145 +39,47 @@ function permissions_by_term_menu() {
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
- */
-function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, $form_id) {
-  if (user_access('show term permission form on term page')) {
-    // This is the add / edit term form from the taxonomy page.
-    // Normally the term is an array, but when deleting terms it becomes an
-    // object. So, we cast it to an object so we can consistently reference it.
-    $term = (object) $form['#term'];
-
-    $form['access'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Permissions'),
-      '#description' => t('To limit selection of this term by user or roles,
-      add users or roles to the following lists. Leave empty to allow
-      selection by all users.'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-      '#attributes' => array('id' => 'fieldset_term_access'),
-      '#weight' => -5,
-      '#tree' => TRUE,
-    );
-    // Pull in any stored users in the database.
-    $allowed_users = array();
-    if (!empty($form['tid']['#value'])) {
-      $allowed_users = db_query("SELECT u.name FROM {permissions_by_term_user} p
-                        JOIN {users} u ON p.uid = u.uid WHERE p.tid = :tid",
-                        array(':tid' => $term->tid))->fetchCol();
-
-    }
-    $allowed_users = drupal_implode_tags($allowed_users);
-    // Note that the autocomplete widget will only enable for users with the
-    // 'access profiles' permission. Other users will have to specify the name
-    // manually.
-    $form['access']['user'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Allowed users'),
-      '#description' => t('Enter a comma-seperated list of user names to give') .
-      t('them permission to use this term.'),
-      '#default_value' => $allowed_users,
-      '#size' => 60,
-      '#autocomplete_path' => 'permissions-by-term/autocomplete',
-      '#weight' => -10,
-    );
-
-
-    $allowed_roles = array();
-    if (!empty($form['tid']['#value'])) {
-      $query = db_select('permissions_by_term_role', 'pbt')
-        ->fields('pbt', array('tid', 'rid'))
-        ->condition('pbt.tid', $term->tid);
-
-      // joins cannot be chained in Drupal oop db-queries.
-      $query->leftJoin('role', 'r', 'r.rid = pbt.rid');
-
-      $query->fields('r', array('name'));
-
-      $allowed_roles = $query->execute()->fetchAllAssoc('name');
-    }
-
-    // firstly fetch all translated allowed role names.
-    $arr__translated_allowed_role_names = array();
-    foreach($allowed_roles as $role){
-      $arr__translated_allowed_role_names[] = t($role->name);
-    }
-
-    // get all roles for the complete form and translate them.
-    $arr__all_translated_user_roles = array();
-    $array_key_counter = 1;
-    foreach(user_roles() as $user_role_id=>$user_role_name){
-      $arr__all_translated_user_roles[$user_role_id] = t($user_role_name);
-      $array_key_counter++;
-    }
-
-    // generate the default values for the form.
-    $allowed_roles_positions = array();
-    if(!empty($arr__translated_allowed_role_names)){
-      foreach($arr__translated_allowed_role_names as $role_name){
-        $pos = array_search($role_name, $arr__all_translated_user_roles);
-        if(is_numeric($pos)){
-          $allowed_roles_positions[] = $pos;
-        }
-      }
-    }
-
-    // Now, lets do the Roles table.
-    $form['access']['role'] = array(
-      '#type' => 'checkboxes',
-      '#title' => t('Allowed roles'),
-      '#description' => t('Select a role to allow all members of that role access to this term.'),
-      '#default_value' => $allowed_roles_positions,
-      '#options' => $arr__all_translated_user_roles,
-      //'#options' => user_roles(),
-      '#multiple' => FALSE,
-      '#weight' => 5,
-    );
-
-    $form['#validate'][] = 'permissions_by_term_validate';
-    $form['#submit'][] = 'permissions_by_term_submit';
-  }
-}
-
-
-/**
  * Implements hook_form_alter().
  */
-function permissions_by_term_form_alter(&$form, $form_state, $form_id) {
+//function permissions_by_term_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
   // This is the node add / edit form. If a different selector is used from
   // another contributed module, we do nothing so as to not break the form.
-  if ((isset($form['type']) && isset($form['#node']) && (!variable_get('taxonomy_override_selector', FALSE)) && $form['type']['#value'] . '_node_form' == $form_id) ||
-       (isset($form['#entity_type']) && isset($form['#bundle']))) {
-    // Field types we are looking for.
-    $types = array('taxonomy_term_reference');
-    foreach (element_children($form) as $field_name) {
-      if (!$field_info = field_info_field($field_name)) {
-        continue;
-      }
-      if (!in_array('#language', $form[$field_name])) {
-        continue;
-      }
-      $options = &$form[$field_name][$form[$field_name]['#language']]['#options'];
-      if (!in_array($field_info['type'], $types) || !isset($options)) {
-        continue;
-      }
+  // @FIXME
+// // @FIXME
+// // This looks like another module's variable. You'll need to rewrite this call
+// // to ensure that it uses the correct configuration object.
+// if ((isset($form['type']) && isset($form['#node']) && (!variable_get('taxonomy_override_selector', FALSE)) && $form['type']['#value'] . '_node_form' == $form_id) ||
+//        (isset($form['#entity_type']) && isset($form['#bundle']))) {
+//     // Field types we are looking for.
+//     $types = array('taxonomy_term_reference');
+//     foreach (element_children($form) as $field_name) {
+//       if (!$field_info = field_info_field($field_name)) {
+//         continue;
+//       }
+//       if (!in_array('#language', $form[$field_name])) {
+//         continue;
+//       }
+//       $options = &$form[$field_name][$form[$field_name]['#language']]['#options'];
+//       if (!in_array($field_info['type'], $types) || !isset($options)) {
+//         continue;
+//       }
+//
+//       foreach ($options as $tid => $name) {
+//         if ($tid == "_none") {
+//           continue;
+//         }
+//
+//         // Now we have the term ID, check to see if the current user has
+//         // access to the term.
+//         $user = \Drupal::currentUser();
+//         if (!permissions_by_term_allowed($tid, $user)) {
+//           unset($options[$tid]);
+//         }
+//       }
+//     }
+//   }
 
-      foreach ($options as $tid => $name) {
-        if ($tid == "_none") {
-          continue;
-        }
-
-        // Now we have the term ID, check to see if the current user has
-        // access to the term.
-        global $user;
-        if (!permissions_by_term_allowed($tid, $user)) {
-          unset($options[$tid]);
-        }
-      }
-    }
-  }
-}
+//}
 
 /**
  * Validation handler for permissions_by_term_form_alter().
@@ -266,7 +154,7 @@ function permissions_by_term_submit($form, &$form_state) {
  * Hides nodes in every view on the site.
  */
 function permissions_by_term_views_post_execute(&$view) {
-  global $user;
+  $user = \Drupal::currentUser();
 
   $view_contains_nodes = FALSE;
 
@@ -280,7 +168,7 @@ function permissions_by_term_views_post_execute(&$view) {
     $arr__nodes_to_hide_in_view = array();
     foreach ($view->result as $v) {
 
-      $node = node_load($v->nid);
+      $node = \Drupal::entityManager()->getStorage('node')->load($v->nid);
 
       $secured_areas = field_get_items('node', $node, 'field_secured_areas');
 
@@ -324,10 +212,10 @@ function permissions_by_term_views_post_execute(&$view) {
 function permissions_by_term_node_access($node, $op, $account) {
 
   if (isset($node->nid) && $op == 'view') {
-    $node = node_load($node->nid);
+    $node = \Drupal::entityManager()->getStorage('node')->load($node->nid);
     $secured_areas = field_get_items('node', $node, 'field_secured_areas');
     if (!empty($secured_areas)) {
-      global $user;
+      $user = \Drupal::currentUser();
       foreach ($secured_areas as $term) {
 
         $term_secured_areas = $term;
@@ -412,7 +300,136 @@ function permissions_by_term_autocomplete_multiple($string) {
   $prefix = count($array) ? implode(', ', $array) . ', ' : '';
 
   foreach ($result as $user) {
-    $matches[$prefix . $user->name] = check_plain($user->name);
+    $matches[$prefix . $user->name] = \Drupal\Component\Utility\SafeMarkup::checkPlain($user->name);
   }
   drupal_json_output($matches);
 }
+
+
+
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+* Implements hook_form_FORM_ID_alter() on behalf of permissions_by_term.module.
+*/
+function permissions_by_term_form_taxonomy_term_tags_form_alter(&$form, FormStateInterface $form_state) {
+    drupal_set_message('permissions_by_term_form_taxonomy_term_tags_form_alter() executed.');
+
+
+    $form['test_label'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Test Label'),
+      '#description' => t(''),
+    );
+
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+
+  if (\Drupal::currentUser()->hasPermission('show term permission form on term page')) {
+    // This is the add / edit term form from the taxonomy page.
+    // Normally the term is an array, but when deleting terms it becomes an
+    // object. So, we cast it to an object so we can consistently reference it.
+    $term = (object) $form['#term'];
+
+    $form['access'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Permissions'),
+      '#description' => t('To limit selection of this term by user or roles,
+      add users or roles to the following lists. Leave empty to allow
+      selection by all users.'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#attributes' => array('id' => 'fieldset_term_access'),
+      '#weight' => -5,
+      '#tree' => TRUE,
+    );
+    // Pull in any stored users in the database.
+    $allowed_users = array();
+    if (!empty($form['tid']['#value'])) {
+      $allowed_users = db_query("SELECT ufd.name FROM {permissions_by_term_user} p
+                        JOIN {users_field_data} ufd ON p.uid = ufd.uid WHERE p.tid = :tid",
+        array(':tid' => $term->tid))->fetchCol();
+
+    }
+
+    // TODO: drupal_implode_tags() isn't available in D8 anymore.
+    //$allowed_users = drupal_implode_tags($allowed_users);
+    $allowed_users = array();
+
+    // Note that the autocomplete widget will only enable for users with the
+    // 'access profiles' permission. Other users will have to specify the name
+    // manually.
+    $form['access']['user'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Allowed users'),
+      '#description' => t('Enter a comma-seperated list of user names to give') .
+        t('them permission to use this term.'),
+      '#default_value' => $allowed_users,
+      '#size' => 60,
+      '#autocomplete_path' => 'permissions-by-term/autocomplete',
+      '#weight' => -10,
+    );
+
+
+    $allowed_roles = array();
+    if (!empty($form['tid']['#value'])) {
+      $query = db_select('permissions_by_term_role', 'pbt')
+        ->fields('pbt', array('tid', 'rid'))
+        ->condition('pbt.tid', $term->tid);
+
+      // joins cannot be chained in Drupal oop db-queries.
+      $query->leftJoin('user__roles', 'ur', 'ur.entity_id = pbt.rid');
+
+      $query->fields('ur', array('roles_target_id'));
+
+      $allowed_roles = $query->execute()->fetchAllAssoc('name');
+    }
+
+    // firstly fetch all translated allowed role names.
+    $arr__translated_allowed_role_names = array();
+    foreach($allowed_roles as $role){
+      $arr__translated_allowed_role_names[] = t($role->name);
+    }
+
+    // get all roles for the complete form and translate them.
+    $arr__all_translated_user_roles = array();
+    $array_key_counter = 1;
+    foreach(user_roles() as $user_role_id=>$user_role_name){
+      $arr__all_translated_user_roles[$user_role_id] = t($user_role_name->label());
+      $array_key_counter++;
+    }
+
+    // generate the default values for the form.
+    $allowed_roles_positions = array();
+    if(!empty($arr__translated_allowed_role_names)){
+      foreach($arr__translated_allowed_role_names as $role_name){
+        $pos = array_search($role_name, $arr__all_translated_user_roles);
+        if(is_numeric($pos)){
+          $allowed_roles_positions[] = $pos;
+        }
+      }
+    }
+
+    // Now, lets do the Roles table.
+    $form['access']['role'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Allowed roles'),
+      '#description' => t('Select a role to allow all members of that role access to this term.'),
+      '#default_value' => $allowed_roles_positions,
+      '#options' => $arr__all_translated_user_roles,
+      //'#options' => user_roles(),
+      '#multiple' => FALSE,
+      '#weight' => 5,
+    );
+
+    $form['#validate'][] = 'permissions_by_term_validate';
+    $form['#submit'][] = 'permissions_by_term_submit';
+  }
+
+}
+
+
