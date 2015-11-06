@@ -22,7 +22,6 @@ function permissions_by_term_help($path, $arg) {
       return $output;
   }
 }
-
 /**
  * Implements hook_menu().
  */
