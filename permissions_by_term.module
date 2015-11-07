@@ -374,7 +374,6 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
       '#weight' => -10,
     );
 
-
     $allowed_roles = array();
     if (!empty($form['tid']['#value'])) {
       $query = db_select('permissions_by_term_role', 'pbt')
