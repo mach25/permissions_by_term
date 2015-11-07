@@ -306,7 +306,6 @@ function permissions_by_term_autocomplete_multiple($string) {
 }
 
 
-
 use Drupal\Core\Form\FormStateInterface;
 
 /**
