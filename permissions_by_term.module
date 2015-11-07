@@ -90,7 +90,7 @@ function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, 
       '#type' => 'textfield',
       '#title' => t('Allowed users'),
       '#description' => t('Enter a comma-seperated list of user names to give') .
-      t('them permission to use this term.'),
+        ' ' . t('them permission to use this term.'),
       '#default_value' => $allowed_users,
       '#size' => 60,
       '#autocomplete_path' => 'permissions-by-term/autocomplete',
