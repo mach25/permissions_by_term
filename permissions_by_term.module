@@ -12,9 +12,10 @@ function permissions_by_term_help($path, $arg) {
     case 'admin/help#permissions_by_term':
       $output = '<p>' . t('This module allows taxonomy administrators the
         ability to restrict setting individual terms on nodes by user
-        or role. If a user is unable to set any terms for a required
-        vocabulary, they are blocked from adding or editing content with
-        that vocabulary.') . '</p>';
+        or role. Additionally it restricts the access to node view and removes
+        the nodes from views according user and role access settings. If a user
+        is unable to set any terms for a required vocabulary, they are blocked
+        from adding or editing content with that vocabulary.') . '</p>';
       $output .= '<p>' . t('To add permissions for a term, go to
         Administer >> Content Management >> Taxonomy, and add or
         edit a term. If the permissions are left blank, the term is
@@ -365,8 +366,9 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
     $form['access']['user'] = array(
       '#type' => 'textfield',
       '#title' => t('Allowed users'),
-      '#description' => t('Enter a comma-seperated list of user names to give') .
-        t('them permission to use this term.'),
+      '#description' => t("To limit access of this term and it's related nodes
+        (in node view and views) by user or roles, add users or roles to the
+        following lists. Leave empty to allow selection by all users."),
       '#default_value' => $allowed_users,
       '#size' => 60,
       '#autocomplete_path' => 'permissions-by-term/autocomplete',
