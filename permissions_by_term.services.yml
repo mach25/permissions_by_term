@@ -2,4 +2,7 @@ services:
   permissions_by_term.access:
     class: Drupal\permissions_by_term\AccessService
     arguments: ["@database"]
-
+  permissions_by_term.termSubscriber:
+    class: Drupal\permissions_by_term\TermSubscriberService
+    tags: 
+      - {name: event_subscriber}

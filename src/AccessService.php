@@ -35,7 +35,8 @@ class AccessService implements AccessServiceInterface {
   }
 
   /**
-   * Checks if the submitted users are existing.
+   * Checks if the submitted users are existing. If an user isn't existing,
+   * set an error message.
    *
    * @param array $aAllowedUsers An array with usernames.
    *
@@ -64,6 +65,22 @@ class AccessService implements AccessServiceInterface {
 
   public function saveTermPermissions() {
 
+    //$iTid = $this->oFormState->getValue('access')
+
+    $this->getUserPermissionsByTid(1);
+
   }
+
+  private function getUserPermissionsByTid($iTid) {
+
+    $result = $this->oDatabase->select('permissions_by_term_user')
+      ->condition('tid', $iTid)
+      ->fields(['tid', 'uid'])
+      ->execute();
+
+    $debug = true;
+
+  }
+
 
 }

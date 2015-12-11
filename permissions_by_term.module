@@ -98,7 +98,7 @@ function permissions_by_term_validate($form, FormState $oFormState) {
  * Submit handler for permissions_by_term_form_alter().
  */
 function permissions_by_term_submit($form, FormState $oFormState) {
-
+  /*
   $oDbConnection = \Drupal::database();
   $accessService = new AccessService($oDbConnection,
     $oFormState);
@@ -106,7 +106,7 @@ function permissions_by_term_submit($form, FormState $oFormState) {
 
   // omit the following code.
   return;
-
+  */
   // For each user, save the term ID and the user ID.
   db_delete('permissions_by_term_user')
     ->condition('tid', $form_state['values']['tid'])
@@ -409,7 +409,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
     );
 
     $form['#validate'][] = 'permissions_by_term_validate';
-    $form['#submit'][] = 'permissions_by_term_submit';
+    $form['actions']['submit']['#submit'][] = 'permissions_by_term_submit';
   }
 
 }
