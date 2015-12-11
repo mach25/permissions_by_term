@@ -8,7 +8,7 @@
 namespace Drupal\permissions_by_term;
 
 use Drupal\Core\Database\Driver\mysql\Connection;
-use Drupal\Core\Entity\EntityManager;
+use \Drupal\Component\Utility\Tags;
 use Drupal\Core\Form\FormState;
 
 /**
@@ -41,7 +41,10 @@ class AccessService implements AccessServiceInterface {
    *
    * @return null
    */
-  public function checkIfUsersExists($aAllowedUsers) {
+  public function checkIfUsersExists() {
+
+    $sAllowedUsers = $this->oFormState->getValue('access')['user'];
+    $aAllowedUsers = Tags::explode($sAllowedUsers);
 
     foreach ($aAllowedUsers as $sUserName) {
 
@@ -50,13 +53,16 @@ class AccessService implements AccessServiceInterface {
         ->execute();
 
       if (empty($aUserId)) {
-
         $this->oFormState->setErrorByName('access][user', t('The user %user_name does not exist.',
           array('%user_name' => $sUserName)));
-
       }
 
     }
+
+  }
+
+
+  public function saveTermPermissions() {
 
   }
 

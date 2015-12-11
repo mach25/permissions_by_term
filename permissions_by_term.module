@@ -4,8 +4,8 @@
  * Allows access to terms in a vocabulary to be limited by user or role.
  */
 
-use \Drupal\Component\Utility\Tags;
 use \Drupal\Core\Form\FormState;
+use \Drupal\permissions_by_term\AccessService;
 
 /**
  * Implements hook_help().
@@ -88,25 +88,25 @@ function permissions_by_term_menu() {
  * Validation handler for permissions_by_term_form_alter().
  */
 function permissions_by_term_validate($form, FormState $oFormState) {
-
-  $aUser = $oFormState->getValue('access')['user'];
-
-  if (!empty($aUser)) {
-
-    $allowed_users = Tags::explode($aUser);
-
     $oDbConnection = \Drupal::database();
-
-    $accessService = new \Drupal\permissions_by_term\AccessService($oDbConnection, $oFormState);
-    $accessService->checkIfUsersExists($allowed_users);
-  }
-
+    $accessService = new AccessService($oDbConnection,
+      $oFormState);
+    $accessService->checkIfUsersExists();
 }
 
 /**
  * Submit handler for permissions_by_term_form_alter().
  */
-function permissions_by_term_submit($form, &$form_state) {
+function permissions_by_term_submit($form, FormState $oFormState) {
+
+  $oDbConnection = \Drupal::database();
+  $accessService = new AccessService($oDbConnection,
+    $oFormState);
+  $accessService->saveTermPermissions();
+
+  // omit the following code.
+  return;
+
   // For each user, save the term ID and the user ID.
   db_delete('permissions_by_term_user')
     ->condition('tid', $form_state['values']['tid'])
