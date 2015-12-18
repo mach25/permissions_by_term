@@ -98,6 +98,12 @@ function permissions_by_term_validate($form, FormState $oFormState) {
  * Submit handler for permissions_by_term_form_alter().
  */
 function permissions_by_term_submit($form, FormState $oFormState) {
+  $oDbConnection = \Drupal::database();
+  $accessService = new AccessService($oDbConnection,
+    $oFormState);
+  $accessService->saveTermPermissions();
+
+  return;
   /*
   $oDbConnection = \Drupal::database();
   $accessService = new AccessService($oDbConnection,
