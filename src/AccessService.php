@@ -13,6 +13,7 @@ use Drupal\Core\Entity\Entity;
 use Drupal\Core\Form\FormState;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\user\UserData;
+use Drupal\user\Entity\User;
 
 /**
  * Class AccessService.
@@ -54,6 +55,13 @@ class AccessService implements AccessServiceInterface {
   protected $iTermId;
 
   /**
+   * The roles with granted access.
+   *
+   * @var array
+   */
+  protected $aSubmittedRolesGrantedAccess;
+
+  /**
    * AccessService constructor.
    * @param \Drupal\Core\Database\Driver\mysql\Connection $database
    * @param \Drupal\Core\Form\FormState $oFormState
@@ -65,6 +73,9 @@ class AccessService implements AccessServiceInterface {
 
     $sValuesUserAccess = $this->oFormState->getValues()['access']['user'];
     $aUsernamesGrantedAccess = Tags::explode($sValuesUserAccess);
+
+    $this->aSubmittedRolesGrantedAccess = $this->oFormState->getValue('access')['role'];
+
     $this->aUserIdsGrantedAccess = $this->getUserIdsByNames($aUsernamesGrantedAccess);
 
     $this->iTermId = $this->getTermId();
@@ -127,6 +138,22 @@ class AccessService implements AccessServiceInterface {
   }
 
   /**
+   * Gets role term permissions by tid.
+   *
+   * @param $iTid
+   *
+   * @return mixed
+   */
+  public function getRoleTermPermissionsByTid() {
+    return $this->oDatabase->select('permissions_by_term_role', 'pr')
+      ->condition('tid', $this->iTid)
+      ->fields('pr', ['rid'])
+      ->execute()
+      ->fetchCol();
+  }
+
+
+  /**
    * Gets single user id by user name.
    *
    * @param $sUsername
@@ -164,10 +191,12 @@ class AccessService implements AccessServiceInterface {
    *
    * @return null
    */
-  private function deleteOneTermPermissionByUserId($iUserId) {
-    $this->oDatabase->delete('permissions_by_term_user')
-      ->condition('uid', [$iUserId])
-      ->execute();
+  private function deleteTermPermissionsByUserIds($aUserIdsAccessRemove) {
+    foreach($aUserIdsAccessRemove as $iUserId) {
+      $this->oDatabase->delete('permissions_by_term_user')
+        ->condition('uid', $iUserId, '!=')
+        ->execute();
+    }
   }
 
   /**
@@ -179,10 +208,12 @@ class AccessService implements AccessServiceInterface {
    * @return null
    * @throws \Exception
    */
-  private function addOneTermPermission($iUserIdGrantedAccess){
-    $this->oDatabase->insert('permissions_by_term_user')
-      ->fields(['tid', 'uid'], [$this->iTermId, $iUserIdGrantedAccess])
-      ->execute();
+  private function addTermPermissionsByUserIds($aUserIdsGrantedAccess){
+    foreach($aUserIdsGrantedAccess as $iUserIdGrantedAccess) {
+      $this->oDatabase->insert('permissions_by_term_user')
+        ->fields(['tid', 'uid'], [$this->iTermId, $iUserIdGrantedAccess])
+        ->execute();
+    }
   }
 
   /**
@@ -209,22 +240,32 @@ class AccessService implements AccessServiceInterface {
    */
   public function saveTermPermissionsByUsers() {
 
-    $aUserPermissions = $this->getUserTermPermissionsByTid();
-    $aUserIdsGrantedAccess = $this->getUserIdsGrantedAccess();
+    $aExistingUserPermissions = $this->getUserTermPermissionsByTid();
+    $aSubmittedUserIdsGrantedAccess = $this->getUserIdsGrantedAccess();
 
-    foreach ($aUserPermissions as $iPermissionUid) {
-      if (!in_array($iPermissionUid, $aUserIdsGrantedAccess)) {
-        $this->deleteOneTermPermissionByUserId($iPermissionUid);
+    $aRoleIdsGrantedAccess = $this->getRoleTermPermissionsByTid();
+    $aSubmittedRolesGrantedAccess = $this->aSubmittedRolesGrantedAccess;
+
+    $aRoles = \Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple();
+
+    foreach ($aExistingUserPermissions as $iPermissionUid) {
+      if (!in_array($iPermissionUid, $aExistingUserPermissions)) {
+        $aUserIdsGrantedAccess = array_diff($aExistingUserPermissions, [$iPermissionUid]);
+        $aUserIdsAccessRemove[] = $iPermissionUid;
       }
     }
 
     foreach ($aUserIdsGrantedAccess as $iUserIdGrantedAccess) {
-      if (!in_array($iUserIdGrantedAccess, $aUserPermissions)) {
-        $this->addOneTermPermission($iUserIdGrantedAccess);
+      if (!in_array($iUserIdGrantedAccess, $aUserIdsGrantedAccess)) {
+        $aUserIdsGrantedAccess[] = $iUserIdGrantedAccess;
       }
     }
 
-    return $aUserPermissions;
+    $this->deleteTermPermissionsByUserIds($aUserIdsAccessRemove);
+    $this->addTermPermissionsByUserIds($aUserIdsGrantedAccess);
+
+
+    return $aUserIdsGrantedAccess;
 
   }
 
