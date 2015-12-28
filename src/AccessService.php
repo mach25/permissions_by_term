@@ -33,6 +33,27 @@ class AccessService implements AccessServiceInterface {
   protected $oFormState;
 
   /**
+   * The term name for which the access is set.
+   *
+   * @var string
+   */
+  protected $sTermName;
+
+  /**
+   * The user ids which gain granted access.
+   *
+   * @var array
+   */
+  protected $aUserIdsGrantedAccess;
+
+  /**
+   * The term id.
+   *
+   * @var int
+   */
+  protected $iTermId;
+
+  /**
    * AccessService constructor.
    * @param \Drupal\Core\Database\Driver\mysql\Connection $database
    * @param \Drupal\Core\Form\FormState $oFormState
@@ -40,6 +61,13 @@ class AccessService implements AccessServiceInterface {
   public function __construct(Connection $database, FormState $oFormState) {
     $this->oDatabase  = $database;
     $this->oFormState = $oFormState;
+    $this->sTermName = $this->oFormState->getValue('name')['0']['value'];
+
+    $sValuesUserAccess = $this->oFormState->getValues()['access']['user'];
+    $aUsernamesGrantedAccess = Tags::explode($sValuesUserAccess);
+    $this->aUserIdsGrantedAccess = $this->getUserIdsByNames($aUsernamesGrantedAccess);
+
+    $this->iTermId = $this->getTermId();
   }
 
   /**
@@ -90,9 +118,9 @@ class AccessService implements AccessServiceInterface {
    *
    * @return mixed
    */
-  private function getUserTermPermissionsByTid($iTid) {
+  public function getUserTermPermissionsByTid() {
     return $this->oDatabase->select('permissions_by_term_user', 'pu')
-      ->condition('tid', $iTid)
+      ->condition('tid', $this->iTid)
       ->fields('pu', ['uid'])
       ->execute()
       ->fetchCol();
@@ -151,10 +179,26 @@ class AccessService implements AccessServiceInterface {
    * @return null
    * @throws \Exception
    */
-  private function addOneTermPermission($iUserIdGrantedAccess, $iTermId){
+  private function addOneTermPermission($iUserIdGrantedAccess){
     $this->oDatabase->insert('permissions_by_term_user')
-      ->fields(['tid', 'uid'], [$iTermId, $iUserIdGrantedAccess])
+      ->fields(['tid', 'uid'], [$this->iTermId, $iUserIdGrantedAccess])
       ->execute();
+  }
+
+  /**
+   * Gets the term id by term name.
+   *
+   * @return null
+   */
+  private function getTermId() {
+    $aTermId = \Drupal::entityQuery('taxonomy_term')
+      ->condition('name', $this->sTermName)
+      ->execute();
+    return key($aTermId);
+  }
+
+  public function getUserIdsGrantedAccess(){
+    return $this->aUserIdsGrantedAccess;
   }
 
   /**
@@ -163,33 +207,25 @@ class AccessService implements AccessServiceInterface {
    *
    * @return null
    */
-  private function saveTermPermissionsByUsers() {
-    $sTermName = $this->oFormState->getValue('name')['0']['value'];
+  public function saveTermPermissionsByUsers() {
 
-    $sValuesUserAccess = $this->oFormState->getValues()['access']['user'];
+    $aUserPermissions = $this->getUserTermPermissionsByTid();
+    $aUserIdsGrantedAccess = $this->getUserIdsGrantedAccess();
 
-    $aUsernamesGrantedAccess = Tags::explode($sValuesUserAccess);
-
-    $aUserIdsGrantedAccess = $this->getUserIdsByNames($aUsernamesGrantedAccess);
-
-    $aTermId = \Drupal::entityQuery('taxonomy_term')
-      ->condition('name', $sTermName)
-      ->execute();
-    $iTermId = key($aTermId);
-
-    $aUserOldPermissions = $this->getUserTermPermissionsByTid($iTermId);
-
-    foreach ($aUserOldPermissions as $iOldPermissionUid) {
-      if (!in_array($iOldPermissionUid, $aUserIdsGrantedAccess)) {
-        $this->deleteOneTermPermissionByUserId($iOldPermissionUid);
+    foreach ($aUserPermissions as $iPermissionUid) {
+      if (!in_array($iPermissionUid, $aUserIdsGrantedAccess)) {
+        $this->deleteOneTermPermissionByUserId($iPermissionUid);
       }
     }
 
     foreach ($aUserIdsGrantedAccess as $iUserIdGrantedAccess) {
-      if (!in_array($iUserIdGrantedAccess, $aUserOldPermissions)) {
-        $this->addOneTermPermission($iUserIdGrantedAccess, $iTermId);
+      if (!in_array($iUserIdGrantedAccess, $aUserPermissions)) {
+        $this->addOneTermPermission($iUserIdGrantedAccess);
       }
     }
+
+    return $aUserPermissions;
+
   }
 
 }
