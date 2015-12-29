@@ -199,7 +199,7 @@ class AccessService implements AccessServiceInterface {
   }
 
   /**
-   * Deletes one term permission by user id.
+   * Deletes term permissions by user id.
    *
    * @param $iUserId
    *
@@ -214,7 +214,22 @@ class AccessService implements AccessServiceInterface {
   }
 
   /**
-   * Adds one term permission.
+   * Deletes term permissions by role ids.
+   *
+   * @param $aRoleIdsAccessRemove
+   *
+   * @return null
+   */
+  private function deleteTermPermissionsByRoleIds($aRoleIdsAccessRemove) {
+    foreach($aRoleIdsAccessRemove as $sRoleId) {
+      $this->oDatabase->delete('permissions_by_term_role')
+        ->condition('rid', $sRoleId, '!=')
+        ->execute();
+    }
+  }
+
+  /**
+   * Adds term permissions by user ids.
    *
    * @param $iUserIdGrantedAccess
    * @param $iTermId
@@ -226,6 +241,22 @@ class AccessService implements AccessServiceInterface {
     foreach($aUserIdsGrantedAccess as $iUserIdGrantedAccess) {
       $this->oDatabase->insert('permissions_by_term_user')
         ->fields(['tid', 'uid'], [$this->iTermId, $iUserIdGrantedAccess])
+        ->execute();
+    }
+  }
+
+  /**
+   * Adds term permissions by role ids.
+   *
+   * @param $aRoleIdsGrantedAccess
+   *
+   * @return null
+   * @throws \Exception
+   */
+  private function addTermPermissionsByRoleIds($aRoleIdsGrantedAccess){
+    foreach($aRoleIdsGrantedAccess as $sRoleIdGrantedAccess) {
+      $this->oDatabase->insert('permissions_by_term_user')
+        ->fields(['tid', 'rid'], [$this->iTermId, $sRoleIdGrantedAccess])
         ->execute();
     }
   }
@@ -289,10 +320,12 @@ class AccessService implements AccessServiceInterface {
         $aExistingRoleIdsGrantedAccess);
 
 
-    /*
-    $this->deleteTermPermissionsByUserIds($aUserIdsAccessRemove);
-    $this->addTermPermissionsByUserIds($aUserIdsGrantedAccess);
-    */
+    // Run the database queries.
+    $this->deleteTermPermissionsByUserIds($aRet['UserIdPermissionsToRemove']);
+    $this->addTermPermissionsByUserIds($aRet['UserIdPermissionsToAdd']);
+
+
+
 
     return $aRet;
 
