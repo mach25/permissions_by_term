@@ -208,7 +208,7 @@ class AccessService implements AccessServiceInterface {
   private function deleteTermPermissionsByUserIds($aUserIdsAccessRemove) {
     foreach ($aUserIdsAccessRemove as $iUserId) {
       $this->oDatabase->delete('permissions_by_term_user')
-        ->condition('uid', $iUserId, '!=')
+        ->condition('uid', $iUserId, '=')
         ->execute();
     }
   }

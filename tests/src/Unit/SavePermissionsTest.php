@@ -13,7 +13,8 @@ class SavePermissionsTests extends UnitTestCase {
    * @return null
    */
   public function setUp() {
-    $this->accessService = $this->getMockBuilder('Drupal\permissions_by_term\AccessService')
+    $this->accessService =
+      $this->getMockBuilder('Drupal\permissions_by_term\AccessService')
       ->disableOriginalConstructor()
       ->setMethods(
         array(
