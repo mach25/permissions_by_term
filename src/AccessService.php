@@ -342,6 +342,16 @@ class AccessService implements AccessServiceInterface {
     return $aRet;
   }
 
+  /**
+   * Prepares the data which has to be applied to the database.
+   *
+   * @param array $aExistingUserPermissions
+   * @param array $aSubmittedUserIdsGrantedAccess
+   * @param array $aExistingRoleIdsGrantedAccess
+   * @param array $aSubmittedRolesGrantedAccess
+   *
+   * @return mixed
+   */
   public function getPreparedDataForDatabaseQueries($aExistingUserPermissions,
                                                     $aSubmittedUserIdsGrantedAccess,
                                                     $aExistingRoleIdsGrantedAccess,

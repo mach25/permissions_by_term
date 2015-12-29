@@ -25,6 +25,8 @@ class SavePermissionsTests extends UnitTestCase {
   }
 
   /**
+   * Data provider method for the test. Specifies the data which will be passed
+   * by the parameters.
    *
    * @return array
    */
