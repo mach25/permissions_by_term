@@ -79,8 +79,20 @@ class AccessService implements AccessServiceInterface {
     $this->iTermId = $this->getTermId();
   }
 
+  /**
+   * Gets submitted roles with granted access from form.
+   *
+   * @return array
+   */
   protected function getSubmittedRolesGrantedAccess(){
-    return $this->oFormState->getValue('access')['role'];
+    $aRoles = $this->oFormState->getValue('access')['role'];
+    $aChosenRoles = array();
+    foreach ($aRoles as $sRole) {
+      if ($sRole !== 0) {
+        $aChosenRoles[] = $sRole;
+      }
+    }
+    return $aChosenRoles;
   }
 
   /**
@@ -251,39 +263,31 @@ class AccessService implements AccessServiceInterface {
     /**
      * Fill array with user ids to remove permission.
      */
-    foreach ($aExistingUserPermissions as $iExistingPermissionUid) {
-      if (!in_array($iExistingPermissionUid, $aSubmittedUserIdsGrantedAccess)) {
-        $aRet['UserIdPermissionsToRemove'][] = $iExistingPermissionUid;
-      }
-    }
+    $aRet['UserIdPermissionsToRemove'] =
+      $this->getArrayItemsToRemove($aExistingUserPermissions,
+        $aSubmittedUserIdsGrantedAccess);
 
     /**
      * Fill array with user ids to add permission.
      */
-    foreach ($aSubmittedUserIdsGrantedAccess as $iSubmittedUserId) {
-      if (!in_array($iSubmittedUserId, $aExistingUserPermissions)) {
-        $aRet['UserIdPermissionsToAdd'][] = $iSubmittedUserId;
-      }
-    }
+    $aRet['UserIdPermissionsToAdd'] =
+      $this->getArrayItemsToAdd($aSubmittedUserIdsGrantedAccess,
+        $aExistingUserPermissions);
 
     /**
      * Fill array with user roles to remove permission.
      */
-    foreach ($aExistingRoleIdsGrantedAccess as $sExistingRoleIdGrantedAccess) {
-      if (!in_array($sExistingRoleIdGrantedAccess, $aSubmittedRolesGrantedAccess)) {
-        $aRet['UserRolePermissionsToRemove'][] = $sExistingRoleIdGrantedAccess;
-      }
-    }
+    $aRet['UserRolePermissionsToRemove'] =
+      $this->getArrayItemsToRemove($aExistingRoleIdsGrantedAccess,
+        $aSubmittedRolesGrantedAccess);
 
     /**
-     * Fill array with user toles to add permission.
+     * Fill array with user roles to add permission.
      */
-    foreach ($aSubmittedRolesGrantedAccess as $sSubmittedRoleGrantedAccess) {
-      if (!in_array($sSubmittedRoleGrantedAccess, $aExistingRoleIdsGrantedAccess) &&
-        $sSubmittedRoleGrantedAccess !== 0) {
-        $aRet['aRoleIdPermissionsToAdd'][] = $sSubmittedRoleGrantedAccess;
-      }
-    }
+    $aRet['aRoleIdPermissionsToAdd'] =
+      $this->getArrayItemsToAdd($aSubmittedRolesGrantedAccess,
+        $aExistingRoleIdsGrantedAccess);
+
 
     /*
     $this->deleteTermPermissionsByUserIds($aUserIdsAccessRemove);
@@ -292,6 +296,42 @@ class AccessService implements AccessServiceInterface {
 
     return $aRet;
 
+  }
+
+  /**
+   * Get array items to remove. The array items which aren't in the new items
+   * array, but are in old items array, will be returned.
+   *
+   * @param $aExistingItems
+   * @param $aNewItems
+   *
+   * @return array
+   */
+  private function getArrayItemsToRemove($aExistingItems, $aNewItems) {
+    foreach ($aExistingItems as $existingItem) {
+      if (!in_array($existingItem, $aNewItems)) {
+        $aRet[] = $existingItem;
+      }
+    }
+    return $aRet;
+  }
+
+  /**
+   * Get the array items to add. The items in the new items array, which aren't
+   * in the existing items array, will be returned.
+   *
+   * @param $aNewItems
+   * @param $aExistingItems
+   *
+   * @return array
+   */
+  private function getArrayItemsToAdd($aNewItems, $aExistingItems) {
+    foreach ($aNewItems as $newItem) {
+      if (!in_array($newItem, $aExistingItems)) {
+        $aRet[] = $newItem;
+      }
+    }
+    return $aRet;
   }
 
 }

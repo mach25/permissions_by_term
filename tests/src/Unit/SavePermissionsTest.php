@@ -15,8 +15,14 @@ class SavePermissionsTests extends UnitTestCase {
     $this->accessService = $this->getMockBuilder('Drupal\permissions_by_term\AccessService')
       ->disableOriginalConstructor()
       // Set methods which can be overwritten.
-      ->setMethods(array('getExistingUserTermPermissionsByTid', 'getSubmittedUserIdsGrantedAccess',
-        'getExistingRoleTermPermissionsByTid', 'getSubmittedRolesGrantedAccess'))
+      ->setMethods(
+        array(
+          'getExistingUserTermPermissionsByTid',
+          'getSubmittedUserIdsGrantedAccess',
+          'getExistingRoleTermPermissionsByTid',
+          'getSubmittedRolesGrantedAccess'
+        )
+      )
       ->getMock();
   }
 
