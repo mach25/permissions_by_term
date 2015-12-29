@@ -74,11 +74,13 @@ class AccessService implements AccessServiceInterface {
     $sValuesUserAccess = $this->oFormState->getValues()['access']['user'];
     $aUsernamesGrantedAccess = Tags::explode($sValuesUserAccess);
 
-    $this->aSubmittedRolesGrantedAccess = $this->oFormState->getValue('access')['role'];
-
     $this->aUserIdsGrantedAccess = $this->getUserIdsByNames($aUsernamesGrantedAccess);
 
     $this->iTermId = $this->getTermId();
+  }
+
+  private function getSubmittedRolesGrantedAccess(){
+    return $this->oFormState->getValue('access')['role'];
   }
 
   /**
@@ -125,13 +127,13 @@ class AccessService implements AccessServiceInterface {
   /**
    * Gets user term permissions by tid.
    *
-   * @param $iTid
+   * @param $iTermId
    *
    * @return mixed
    */
-  public function getUserTermPermissionsByTid() {
+  public function getExistingUserTermPermissionsByTid() {
     return $this->oDatabase->select('permissions_by_term_user', 'pu')
-      ->condition('tid', $this->iTid)
+      ->condition('tid', $this->iTermId)
       ->fields('pu', ['uid'])
       ->execute()
       ->fetchCol();
@@ -140,13 +142,13 @@ class AccessService implements AccessServiceInterface {
   /**
    * Gets role term permissions by tid.
    *
-   * @param $iTid
+   * @param $iTermId
    *
    * @return mixed
    */
-  public function getRoleTermPermissionsByTid() {
+  public function getExistingRoleTermPermissionsByTid() {
     return $this->oDatabase->select('permissions_by_term_role', 'pr')
-      ->condition('tid', $this->iTid)
+      ->condition('tid', $this->iTermId)
       ->fields('pr', ['rid'])
       ->execute()
       ->fetchCol();
@@ -240,24 +242,27 @@ class AccessService implements AccessServiceInterface {
    */
   public function saveTermPermissionsByUsers() {
 
-    $aExistingUserPermissions = $this->getUserTermPermissionsByTid();
+    $aExistingUserPermissions = $this->getExistingUserTermPermissionsByTid();
     $aSubmittedUserIdsGrantedAccess = $this->getUserIdsGrantedAccess();
 
-    $aRoleIdsGrantedAccess = $this->getRoleTermPermissionsByTid();
-    $aSubmittedRolesGrantedAccess = $this->aSubmittedRolesGrantedAccess;
+    $aExistingRoleIdsGrantedAccess = $this->getExistingRoleTermPermissionsByTid();
+    $aSubmittedRolesGrantedAccess = $this->getSubmittedRolesGrantedAccess();
 
-    $aRoles = \Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple();
+    //$aRoles = \Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple();
 
-    foreach ($aExistingUserPermissions as $iPermissionUid) {
-      if (!in_array($iPermissionUid, $aExistingUserPermissions)) {
-        $aUserIdsGrantedAccess = array_diff($aExistingUserPermissions, [$iPermissionUid]);
-        $aUserIdsAccessRemove[] = $iPermissionUid;
+    $aNewUserIdPermissions = array();
+    $aUserIdPermissionsToRemove = array();
+
+    foreach ($aExistingUserPermissions as $iExistingPermissionUid) {
+      if (!in_array($iExistingPermissionUid, $aSubmittedUserIdsGrantedAccess)) {
+        //$aUserIdsGrantedAccess = array_diff($aExistingUserPermissions, [$iExistingPermissionUid]);
+        $aUserIdPermissionsToRemove[] = $iExistingPermissionUid;
       }
     }
 
     foreach ($aUserIdsGrantedAccess as $iUserIdGrantedAccess) {
       if (!in_array($iUserIdGrantedAccess, $aUserIdsGrantedAccess)) {
-        $aUserIdsGrantedAccess[] = $iUserIdGrantedAccess;
+        $aNewUserIdPermissions[] = $iUserIdGrantedAccess;
       }
     }
 
