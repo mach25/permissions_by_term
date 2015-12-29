@@ -7,50 +7,52 @@ use Drupal\Tests\UnitTestCase;
 class SavePermissionsTests extends UnitTestCase {
 
   /**
-   * Setup the test data.
+   * Setup the test data. Mock class, disable constructor and set methods from
+   * the class, which have to be available during the test.
    *
    * @return null
    */
   public function setUp() {
     $this->accessService = $this->getMockBuilder('Drupal\permissions_by_term\AccessService')
       ->disableOriginalConstructor()
-      // Set methods which can be overwritten.
       ->setMethods(
         array(
-          'getExistingUserTermPermissionsByTid',
-          'getSubmittedUserIdsGrantedAccess',
-          'getExistingRoleTermPermissionsByTid',
-          'getSubmittedRolesGrantedAccess'
+          'getArrayItemsToRemove',
+          'getArrayItemsToAdd'
         )
       )
       ->getMock();
   }
 
   /**
-   * Test the function which will update data in database for the access by
-   * user and role ids.
+   *
+   * @return array
+   */
+  public static function getTestData(){
+    $aRet[] = [
+      'aExistingUserPermissions' => [1, 2, 3],
+      'aSubmittedUserIdsGrantedAccess' => [1, 2, 4, 5],
+      'aExistingRoleIdsGrantedAccess' => ['admin', 'anonymous'],
+      'aSubmittedRolesGrantedAccess' => ['some role']
+    ];
+    return $aRet;
+  }
+
+  /**
+   * Test the method which prepares data from form submit and database to be
+   * applied in the database.
    *
    * @return null
+   * @dataProvider getTestData()
    */
-  public function testSaveTermPermissionsByUsers(){
+  public function testSaveTermPermissionsByUsers($aExistingUserPermissions,
+                                                 $aSubmittedUserIdsGrantedAccess,
+                                                 $aExistingRoleIdsGrantedAccess,
+                                                 $aSubmittedRolesGrantedAccess){
 
-    /**
-     * Mock the methods which will retrieve data from database or form.
-     */
-    $this->accessService->method('getExistingUserTermPermissionsByTid')
-      ->willReturn([1, 2, 3]);
-    $this->accessService->method('getSubmittedUserIdsGrantedAccess')
-      ->willReturn([1, 2, 4, 5]);
-
-    $this->accessService->method('getExistingRoleTermPermissionsByTid')
-      ->willReturn(['admin', 'anonymous']);
-    $this->accessService->method('getSubmittedRolesGrantedAccess')
-      ->willReturn(['some role']);
-
-    /**
-     * Compare the arrays which are returned by the save function.
-     */
-    $aRet = $this->accessService->saveTermPermissionsByUsers();
+    $aRet = $this->accessService->getPreparedDataForDatabaseQueries(
+      $aExistingUserPermissions, $aSubmittedUserIdsGrantedAccess,
+      $aExistingRoleIdsGrantedAccess, $aSubmittedRolesGrantedAccess);
 
     $this->assertEquals([3], $aRet['UserIdPermissionsToRemove']);
     $this->assertEquals([4, 5], $aRet['UserIdPermissionsToAdd']);

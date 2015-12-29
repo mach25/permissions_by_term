@@ -69,9 +69,9 @@ class AccessService implements AccessServiceInterface {
   public function __construct(Connection $database, FormState $oFormState) {
     $this->oDatabase  = $database;
     $this->oFormState = $oFormState;
-    $this->sTermName = $this->oFormState->getValue('name')['0']['value'];
+    $this->sTermName  = $this->oFormState->getValue('name')['0']['value'];
 
-    $sValuesUserAccess = $this->oFormState->getValues()['access']['user'];
+    $sValuesUserAccess       = $this->oFormState->getValues()['access']['user'];
     $aUsernamesGrantedAccess = Tags::explode($sValuesUserAccess);
 
     $this->aUserIdsGrantedAccess = $this->getUserIdsByNames($aUsernamesGrantedAccess);
@@ -84,8 +84,8 @@ class AccessService implements AccessServiceInterface {
    *
    * @return array
    */
-  protected function getSubmittedRolesGrantedAccess(){
-    $aRoles = $this->oFormState->getValue('access')['role'];
+  protected function getSubmittedRolesGrantedAccess() {
+    $aRoles       = $this->oFormState->getValue('access')['role'];
     $aChosenRoles = array();
     foreach ($aRoles as $sRole) {
       if ($sRole !== 0) {
@@ -206,7 +206,7 @@ class AccessService implements AccessServiceInterface {
    * @return null
    */
   private function deleteTermPermissionsByUserIds($aUserIdsAccessRemove) {
-    foreach($aUserIdsAccessRemove as $iUserId) {
+    foreach ($aUserIdsAccessRemove as $iUserId) {
       $this->oDatabase->delete('permissions_by_term_user')
         ->condition('uid', $iUserId, '!=')
         ->execute();
@@ -221,7 +221,7 @@ class AccessService implements AccessServiceInterface {
    * @return null
    */
   private function deleteTermPermissionsByRoleIds($aRoleIdsAccessRemove) {
-    foreach($aRoleIdsAccessRemove as $sRoleId) {
+    foreach ($aRoleIdsAccessRemove as $sRoleId) {
       $this->oDatabase->delete('permissions_by_term_role')
         ->condition('rid', $sRoleId, '!=')
         ->execute();
@@ -237,8 +237,8 @@ class AccessService implements AccessServiceInterface {
    * @return null
    * @throws \Exception
    */
-  private function addTermPermissionsByUserIds($aUserIdsGrantedAccess){
-    foreach($aUserIdsGrantedAccess as $iUserIdGrantedAccess) {
+  private function addTermPermissionsByUserIds($aUserIdsGrantedAccess) {
+    foreach ($aUserIdsGrantedAccess as $iUserIdGrantedAccess) {
       $this->oDatabase->insert('permissions_by_term_user')
         ->fields(['tid', 'uid'], [$this->iTermId, $iUserIdGrantedAccess])
         ->execute();
@@ -253,9 +253,9 @@ class AccessService implements AccessServiceInterface {
    * @return null
    * @throws \Exception
    */
-  private function addTermPermissionsByRoleIds($aRoleIdsGrantedAccess){
-    foreach($aRoleIdsGrantedAccess as $sRoleIdGrantedAccess) {
-      $this->oDatabase->insert('permissions_by_term_user')
+  private function addTermPermissionsByRoleIds($aRoleIdsGrantedAccess) {
+    foreach ($aRoleIdsGrantedAccess as $sRoleIdGrantedAccess) {
+      $this->oDatabase->insert('permissions_by_term_role')
         ->fields(['tid', 'rid'], [$this->iTermId, $sRoleIdGrantedAccess])
         ->execute();
     }
@@ -273,7 +273,7 @@ class AccessService implements AccessServiceInterface {
     return key($aTermId);
   }
 
-  protected function getSubmittedUserIdsGrantedAccess(){
+  protected function getSubmittedUserIdsGrantedAccess() {
     return $this->aUserIdsGrantedAccess;
   }
 
@@ -285,47 +285,22 @@ class AccessService implements AccessServiceInterface {
    */
   public function saveTermPermissionsByUsers() {
 
-    $aExistingUserPermissions = $this->getExistingUserTermPermissionsByTid();
+    $aExistingUserPermissions       = $this->getExistingUserTermPermissionsByTid();
     $aSubmittedUserIdsGrantedAccess = $this->getSubmittedUserIdsGrantedAccess();
 
     $aExistingRoleIdsGrantedAccess = $this->getExistingRoleTermPermissionsByTid();
-    $aSubmittedRolesGrantedAccess = $this->getSubmittedRolesGrantedAccess();
+    $aSubmittedRolesGrantedAccess  = $this->getSubmittedRolesGrantedAccess();
 
-    /**
-     * Fill array with user ids to remove permission.
-     */
-    $aRet['UserIdPermissionsToRemove'] =
-      $this->getArrayItemsToRemove($aExistingUserPermissions,
-        $aSubmittedUserIdsGrantedAccess);
-
-    /**
-     * Fill array with user ids to add permission.
-     */
-    $aRet['UserIdPermissionsToAdd'] =
-      $this->getArrayItemsToAdd($aSubmittedUserIdsGrantedAccess,
-        $aExistingUserPermissions);
-
-    /**
-     * Fill array with user roles to remove permission.
-     */
-    $aRet['UserRolePermissionsToRemove'] =
-      $this->getArrayItemsToRemove($aExistingRoleIdsGrantedAccess,
-        $aSubmittedRolesGrantedAccess);
-
-    /**
-     * Fill array with user roles to add permission.
-     */
-    $aRet['aRoleIdPermissionsToAdd'] =
-      $this->getArrayItemsToAdd($aSubmittedRolesGrantedAccess,
-        $aExistingRoleIdsGrantedAccess);
-
+    $aRet = $this->getPreparedDataForDatabaseQueries($aExistingUserPermissions,
+      $aSubmittedUserIdsGrantedAccess, $aExistingRoleIdsGrantedAccess,
+      $aSubmittedRolesGrantedAccess);
 
     // Run the database queries.
     $this->deleteTermPermissionsByUserIds($aRet['UserIdPermissionsToRemove']);
     $this->addTermPermissionsByUserIds($aRet['UserIdPermissionsToAdd']);
 
-
-
+    $this->deleteTermPermissionsByRoleIds($aRet['UserRolePermissionsToRemove']);
+    $this->addTermPermissionsByRoleIds($aRet['aRoleIdPermissionsToAdd']);
 
     return $aRet;
 
@@ -364,6 +339,41 @@ class AccessService implements AccessServiceInterface {
         $aRet[] = $newItem;
       }
     }
+    return $aRet;
+  }
+
+  public function getPreparedDataForDatabaseQueries($aExistingUserPermissions,
+                                                    $aSubmittedUserIdsGrantedAccess,
+                                                    $aExistingRoleIdsGrantedAccess,
+                                                    $aSubmittedRolesGrantedAccess) {
+    /**
+     * Fill array with user ids to remove permission.
+     */
+    $aRet['UserIdPermissionsToRemove'] =
+      $this->getArrayItemsToRemove($aExistingUserPermissions,
+        $aSubmittedUserIdsGrantedAccess);
+
+    /**
+     * Fill array with user ids to add permission.
+     */
+    $aRet['UserIdPermissionsToAdd'] =
+      $this->getArrayItemsToAdd($aSubmittedUserIdsGrantedAccess,
+        $aExistingUserPermissions);
+
+    /**
+     * Fill array with user roles to remove permission.
+     */
+    $aRet['UserRolePermissionsToRemove'] =
+      $this->getArrayItemsToRemove($aExistingRoleIdsGrantedAccess,
+        $aSubmittedRolesGrantedAccess);
+
+    /**
+     * Fill array with user roles to add permission.
+     */
+    $aRet['aRoleIdPermissionsToAdd'] =
+      $this->getArrayItemsToAdd($aSubmittedRolesGrantedAccess,
+        $aExistingRoleIdsGrantedAccess);
+
     return $aRet;
   }
 
