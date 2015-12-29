@@ -2,32 +2,35 @@
 
 namespace Drupal\Tests\permissions_by_term\Unit;
 
-use Doctrine\Common\Reflection\StaticReflectionMethod;
-use Drupal\permissions_by_term\AccessService;
 use Drupal\Tests\UnitTestCase;
 
 class SavePermissionsTests extends UnitTestCase {
 
+  /**
+   * Setup the test data.
+   *
+   * @return null
+   */
   public function setUp() {
-    //$this->accessService = $this->getMock('Drupal\permissions_by_term\AccessService');
-
     $this->accessService = $this->getMockBuilder('Drupal\permissions_by_term\AccessService')
       ->disableOriginalConstructor()
+      // Set methods which can be overwritten.
       ->setMethods(array('getExistingUserTermPermissionsByTid', 'getSubmittedUserIdsGrantedAccess',
         'getExistingRoleTermPermissionsByTid', 'getSubmittedRolesGrantedAccess'))
       ->getMock();
   }
 
-  private function deleteItemFromArray(){
-
-  }
-
-  private function addItemToArray(){
-
-  }
-
+  /**
+   * Test the function which will update data in database for the access by
+   * user and role ids.
+   *
+   * @return null
+   */
   public function testSaveTermPermissionsByUsers(){
 
+    /**
+     * Mock the methods which will retrieve data from database or form.
+     */
     $this->accessService->method('getExistingUserTermPermissionsByTid')
       ->willReturn([1, 2, 3]);
     $this->accessService->method('getSubmittedUserIdsGrantedAccess')
@@ -38,11 +41,9 @@ class SavePermissionsTests extends UnitTestCase {
     $this->accessService->method('getSubmittedRolesGrantedAccess')
       ->willReturn(['some role']);
 
-    /*
-    $this->accessService->method('saveTermPermissionsByUsers')
-      ->willReturn([1, 2, 3, 4, 5]);
-*/
-
+    /**
+     * Compare the arrays which are returned by the save function.
+     */
     $aRet = $this->accessService->saveTermPermissionsByUsers();
 
     $this->assertEquals([3], $aRet['UserIdPermissionsToRemove']);
@@ -50,7 +51,6 @@ class SavePermissionsTests extends UnitTestCase {
     $this->assertEquals(['admin', 'anonymous'], $aRet['UserRolePermissionsToRemove']);
     $this->assertEquals(['some role'], $aRet['aRoleIdPermissionsToAdd']);
 
-    //$this->accessService->saveTermPermissionsByUsers();
   }
 
 }
