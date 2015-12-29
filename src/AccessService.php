@@ -248,29 +248,49 @@ class AccessService implements AccessServiceInterface {
     $aExistingRoleIdsGrantedAccess = $this->getExistingRoleTermPermissionsByTid();
     $aSubmittedRolesGrantedAccess = $this->getSubmittedRolesGrantedAccess();
 
-    //$aRoles = \Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple();
-
-    $aNewUserIdPermissions = array();
-    $aUserIdPermissionsToRemove = array();
-
+    /**
+     * Fill array with user ids to remove permission.
+     */
     foreach ($aExistingUserPermissions as $iExistingPermissionUid) {
       if (!in_array($iExistingPermissionUid, $aSubmittedUserIdsGrantedAccess)) {
-        //$aUserIdsGrantedAccess = array_diff($aExistingUserPermissions, [$iExistingPermissionUid]);
-        $aUserIdPermissionsToRemove[] = $iExistingPermissionUid;
+        $aRet['UserIdPermissionsToRemove'][] = $iExistingPermissionUid;
       }
     }
 
-    foreach ($aUserIdsGrantedAccess as $iUserIdGrantedAccess) {
-      if (!in_array($iUserIdGrantedAccess, $aUserIdsGrantedAccess)) {
-        $aNewUserIdPermissions[] = $iUserIdGrantedAccess;
+    /**
+     * Fill array with user ids to add permission.
+     */
+    foreach ($aSubmittedUserIdsGrantedAccess as $iSubmittedUserId) {
+      if (!in_array($iSubmittedUserId, $aExistingUserPermissions)) {
+        $aRet['UserIdPermissionsToAdd'][] = $iSubmittedUserId;
       }
     }
 
+    /**
+     * Fill array with user roles to remove permission.
+     */
+    foreach ($aExistingRoleIdsGrantedAccess as $sExistingRoleIdGrantedAccess) {
+      if (!in_array($sExistingRoleIdGrantedAccess, $aSubmittedRolesGrantedAccess)) {
+        $aRet['UserRolePermissionsToRemove'][] = $sExistingRoleIdGrantedAccess;
+      }
+    }
+
+    /**
+     * Fill array with user toles to add permission.
+     */
+    foreach ($aSubmittedRolesGrantedAccess as $sSubmittedRoleGrantedAccess) {
+      if (!in_array($sSubmittedRoleGrantedAccess, $aExistingRoleIdsGrantedAccess) &&
+        $sSubmittedRoleGrantedAccess !== 0) {
+        $aRet['aRoleIdPermissionsToAdd'][] = $sSubmittedRoleGrantedAccess;
+      }
+    }
+
+    /*
     $this->deleteTermPermissionsByUserIds($aUserIdsAccessRemove);
     $this->addTermPermissionsByUserIds($aUserIdsGrantedAccess);
+    */
 
-
-    return $aUserIdsGrantedAccess;
+    return $aRet;
 
   }
 
