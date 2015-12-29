@@ -79,7 +79,7 @@ class AccessService implements AccessServiceInterface {
     $this->iTermId = $this->getTermId();
   }
 
-  private function getSubmittedRolesGrantedAccess(){
+  protected function getSubmittedRolesGrantedAccess(){
     return $this->oFormState->getValue('access')['role'];
   }
 
@@ -131,7 +131,7 @@ class AccessService implements AccessServiceInterface {
    *
    * @return mixed
    */
-  public function getExistingUserTermPermissionsByTid() {
+  protected function getExistingUserTermPermissionsByTid() {
     return $this->oDatabase->select('permissions_by_term_user', 'pu')
       ->condition('tid', $this->iTermId)
       ->fields('pu', ['uid'])
@@ -146,7 +146,7 @@ class AccessService implements AccessServiceInterface {
    *
    * @return mixed
    */
-  public function getExistingRoleTermPermissionsByTid() {
+  protected function getExistingRoleTermPermissionsByTid() {
     return $this->oDatabase->select('permissions_by_term_role', 'pr')
       ->condition('tid', $this->iTermId)
       ->fields('pr', ['rid'])
@@ -230,7 +230,7 @@ class AccessService implements AccessServiceInterface {
     return key($aTermId);
   }
 
-  public function getUserIdsGrantedAccess(){
+  protected function getSubmittedUserIdsGrantedAccess(){
     return $this->aUserIdsGrantedAccess;
   }
 
@@ -243,7 +243,7 @@ class AccessService implements AccessServiceInterface {
   public function saveTermPermissionsByUsers() {
 
     $aExistingUserPermissions = $this->getExistingUserTermPermissionsByTid();
-    $aSubmittedUserIdsGrantedAccess = $this->getUserIdsGrantedAccess();
+    $aSubmittedUserIdsGrantedAccess = $this->getSubmittedUserIdsGrantedAccess();
 
     $aExistingRoleIdsGrantedAccess = $this->getExistingRoleTermPermissionsByTid();
     $aSubmittedRolesGrantedAccess = $this->getSubmittedRolesGrantedAccess();

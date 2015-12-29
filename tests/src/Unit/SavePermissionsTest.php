@@ -13,8 +13,8 @@ class SavePermissionsTests extends UnitTestCase {
 
     $this->accessService = $this->getMockBuilder('Drupal\permissions_by_term\AccessService')
       ->disableOriginalConstructor()
-      ->setMethods(array('getUserTermPermissionsByTid', 'getUserIdsGrantedAccess',
-        'deleteOneTermPermissionByUserId', 'addOneTermPermission'))
+      ->setMethods(array('getExistingUserTermPermissionsByTid', 'getSubmittedUserIdsGrantedAccess',
+        'getExistingRoleTermPermissionsByTid', 'getSubmittedRolesGrantedAccess'))
       ->getMock();
   }
 
@@ -28,22 +28,27 @@ class SavePermissionsTests extends UnitTestCase {
 
   public function testSaveTermPermissionsByUsers(){
 
-    $aOne = array(1, 2, 3, 4, 5);
+    $this->accessService->method('getExistingUserTermPermissionsByTid')
+      ->willReturn([1, 2, 3]);
+    $this->accessService->method('getSubmittedUserIdsGrantedAccess')
+      ->willReturn([1, 2, 4, 5]);
 
+    $this->accessService->method('getExistingRoleTermPermissionsByTid')
+      ->willReturn(['admin', 'anonymous']);
+    $this->accessService->method('getSubmittedRolesGrantedAccess')
+      ->willReturn(['some role']);
 
-
-    $this->accessService->method('getUserTermPermissionsByTid')
-      ->willReturn([1, 2, 3, 4, 5]);
-    $this->accessService->method('getUserIdsGrantedAccess')
-      ->willReturn([1, 2, 3, 4, 5]);
-/*
+    /*
     $this->accessService->method('saveTermPermissionsByUsers')
       ->willReturn([1, 2, 3, 4, 5]);
 */
 
-    $aR = $this->accessService->saveTermPermissionsByUsers();
-    var_dump($aR);
-    $this->assertEquals($aOne, $aR);
+    $aRet = $this->accessService->saveTermPermissionsByUsers();
+
+    $this->assertEquals([3], $aRet['UserIdPermissionsToRemove']);
+    $this->assertEquals([4, 5], $aRet['UserIdPermissionsToAdd']);
+    $this->assertEquals(['admin', 'anonymous'], $aRet['UserRolePermissionsToRemove']);
+    $this->assertEquals(['some role'], $aRet['aRoleIdPermissionsToAdd']);
 
     //$this->accessService->saveTermPermissionsByUsers();
   }
