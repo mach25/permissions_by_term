@@ -52,7 +52,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    *
    * @var int
    */
-  protected $iTermId;
+  private $iTermId;
 
   /**
    * The roles with granted access.
@@ -66,17 +66,16 @@ class AccessStorageService implements AccessStorageServiceInterface {
    * @param \Drupal\Core\Database\Driver\mysql\Connection $database
    * @param \Drupal\Core\Form\FormState $oFormState
    */
-  public function __construct(Connection $database, FormState $oFormState) {
+  public function __construct(Connection $database, FormState $oFormState, $iTermId = null) {
     $this->oDatabase  = $database;
     $this->oFormState = $oFormState;
-    $this->sTermName  = $this->oFormState->getValue('name')['0']['value'];
 
     $sValuesUserAccess       = $this->oFormState->getValues()['access']['user'];
     $aUsernamesGrantedAccess = Tags::explode($sValuesUserAccess);
 
     $this->aUserIdsGrantedAccess = $this->getUserIdsByNames($aUsernamesGrantedAccess);
 
-    $this->iTermId = $this->getTermId();
+    $this->iTermId = $this->getTermId($iTermId);
   }
 
   /**
@@ -145,7 +144,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    *
    * @return mixed
    */
-  protected function getExistingRoleTermPermissionsByTid() {
+  public function getExistingRoleTermPermissionsByTid() {
     return $this->oDatabase->select('permissions_by_term_role', 'pr')
       ->condition('tid', $this->iTermId)
       ->fields('pr', ['rid'])
@@ -210,7 +209,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
   private function deleteTermPermissionsByRoleIds($aRoleIdsAccessRemove) {
     foreach ($aRoleIdsAccessRemove as $sRoleId) {
       $this->oDatabase->delete('permissions_by_term_role')
-        ->condition('rid', $sRoleId, '!=')
+        ->condition('rid', $sRoleId, '=')
         ->execute();
     }
   }
@@ -253,11 +252,16 @@ class AccessStorageService implements AccessStorageServiceInterface {
    *
    * @return null
    */
-  private function getTermId() {
-    $aTermId = \Drupal::entityQuery('taxonomy_term')
-      ->condition('name', $this->sTermName)
-      ->execute();
-    return key($aTermId);
+  private function getTermId($iTermId = null) {
+    if ($iTermId == null){
+      $this->sTermName  = $this->oFormState->getValue('name')['0']['value'];
+      $aTermId = \Drupal::entityQuery('taxonomy_term')
+        ->condition('name', $this->sTermName)
+        ->execute();
+      return key($aTermId);
+    } else {
+      return $iTermId;
+    }
   }
 
   protected function getSubmittedUserIdsGrantedAccess() {

@@ -46,7 +46,7 @@ function permissions_by_term_menu() {
 /**
  * Implements hook_form_alter().
  */
-//function permissions_by_term_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+//function permissions_by_term_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $oFormState, $form_id) {
   // This is the node add / edit form. If a different selector is used from
   // another contributed module, we do nothing so as to not break the form.
   // @FIXME
@@ -267,11 +267,14 @@ function permissions_by_term_autocomplete_multiple($string) {
 /**
  * Implements hook_form_alter().
  */
-function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $oFormState, $form_id) {
 
   if (\Drupal::currentUser()->hasPermission('show term permission form on term page')) {
 
     $iTermId = getFormTermId();
+    $oDbConnection = \Drupal::database();
+    $oAccessStorageService = new AccessStorageService($oDbConnection,
+      $oFormState, $iTermId);
 
     // This is the add / edit term form from the taxonomy page.
     // Normally the term is an array, but when deleting terms it becomes an
@@ -314,25 +317,23 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
       '#weight' => -10,
     );
 
-
+    /*
     $allowed_roles = array();
     if (!empty($form['tid']['#value'])) {
       $query = db_select('permissions_by_term_role', 'pbt')
         ->fields('pbt', array('tid', 'rid'))
         ->condition('pbt.tid', $term->tid);
 
-      // joins cannot be chained in Drupal oop db-queries.
-      $query->leftJoin('user__roles', 'ur', 'ur.entity_id = pbt.rid');
-
-      $query->fields('ur', array('roles_target_id'));
-
       $allowed_roles = $query->execute()->fetchAllAssoc('name');
     }
+    */
+
+    $aAllowedRoles = $oAccessStorageService->getExistingRoleTermPermissionsByTid();
 
     // firstly fetch all translated allowed role names.
-    $arr__translated_allowed_role_names = array();
-    foreach($allowed_roles as $role){
-      $arr__translated_allowed_role_names[] = t($role->name);
+    $aTranslatedAllowedRoleNames = array();
+    foreach($aAllowedRoles as $role){
+      $aTranslatedAllowedRoleNames[] = t($role);
     }
 
     // get all roles for the complete form and translate them.
@@ -344,13 +345,11 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
     }
 
     // generate the default values for the form.
-    $allowed_roles_positions = array();
-    if(!empty($arr__translated_allowed_role_names)){
-      foreach($arr__translated_allowed_role_names as $role_name){
-        $pos = array_search($role_name, $arr__all_translated_user_roles);
-        if(is_numeric($pos)){
-          $allowed_roles_positions[] = $pos;
-        }
+    $aSetRoles = array();
+    if(!empty($aTranslatedAllowedRoleNames)){
+      foreach($aTranslatedAllowedRoleNames as $role_name){
+          $aSetRoles[] = $role_name->__toString();
+
       }
     }
 
@@ -359,7 +358,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
       '#type' => 'checkboxes',
       '#title' => t('Allowed roles'),
       '#description' => t('Select a role to allow all members of that role access to this term.'),
-      '#default_value' => $allowed_roles_positions,
+      '#default_value' => $aSetRoles,
       '#options' => $arr__all_translated_user_roles,
       //'#options' => user_roles(),
       '#multiple' => FALSE,
