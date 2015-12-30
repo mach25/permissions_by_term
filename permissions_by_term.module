@@ -5,7 +5,7 @@
  */
 
 use \Drupal\Core\Form\FormState;
-use \Drupal\permissions_by_term\AccessService;
+use \Drupal\permissions_by_term\AccessStorageService;
 use Drupal\Core\Url;
 
 
@@ -91,7 +91,7 @@ function permissions_by_term_menu() {
  */
 function permissions_by_term_validate($form, FormState $oFormState) {
     $oDbConnection = \Drupal::database();
-    $accessService = new AccessService($oDbConnection,
+    $accessService = new AccessStorageService($oDbConnection,
       $oFormState);
     $accessService->checkIfUsersExists();
 }
@@ -101,59 +101,9 @@ function permissions_by_term_validate($form, FormState $oFormState) {
  */
 function permissions_by_term_submit($form, FormState $oFormState) {
   $oDbConnection = \Drupal::database();
-  $accessService = new AccessService($oDbConnection,
+  $accessService = new AccessStorageService($oDbConnection,
     $oFormState);
   $accessService->saveTermPermissions();
-
-  return;
-  /*
-  $oDbConnection = \Drupal::database();
-  $accessService = new AccessService($oDbConnection,
-    $oFormState);
-  $accessService->saveTermPermissions();
-
-  // omit the following code.
-  return;
-  */
-  // For each user, save the term ID and the user ID.
-  db_delete('permissions_by_term_user')
-    ->condition('tid', $form_state['values']['tid'])
-    ->execute();
-  if (!empty($form_state['values']['access']['user']) &&
-    $form_state['values']['op'] == t('Save')) {
-    $allowed_users
-      = drupal_explode_tags($form_state['values']['access']['user']);
-
-    $query = db_insert('permissions_by_term_user')->fields(array('tid', 'uid'));
-
-    foreach ($allowed_users as $name) {
-
-      $user = db_query("SELECT u.uid FROM {users} u WHERE u.name = :uname",
-        array(':uname' => $name))->fetchCol();
-
-      $query->values(array(
-        'tid' => $form_state['values']['tid'],
-        'uid' => $user['0'],
-      ));
-
-    }
-    $query->execute();
-  }
-
-  // For each role, save the term ID and the role ID.
-  db_delete('permissions_by_term_role')
-    ->condition('tid', $form_state['values']['tid'])
-    ->execute();
-  if (!empty($form_state['values']['access']['role']) && $form_state['values']['op'] == t('Save')) {
-    foreach (array_keys(array_filter($form_state['values']['access']['role'])) as $rid) {
-      db_insert('permissions_by_term_role')
-        ->fields(array(
-          'tid' => $form_state['values']['tid'],
-          'rid' => $rid,
-        ))
-        ->execute();
-    }
-  }
 }
 
 

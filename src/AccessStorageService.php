@@ -20,7 +20,7 @@ use Drupal\user\Entity\User;
  *
  * @package Drupal\permissions_by_term
  */
-class AccessService implements AccessServiceInterface {
+class AccessStorageService implements AccessStorageServiceInterface {
 
   /**
    * Drupal\Core\Database\Driver\mysql\Connection definition.
@@ -120,19 +120,6 @@ class AccessService implements AccessServiceInterface {
       }
 
     }
-
-  }
-
-  /**
-   * Adds and deletes term permissions by users and by user roles.
-   *
-   * @TODO: save term permissions by roles.
-   * @TODO: write an unit test.
-   * @return null
-   */
-  public function saveTermPermissions() {
-
-    $this->saveTermPermissionsByUsers();
 
   }
 
@@ -283,7 +270,7 @@ class AccessService implements AccessServiceInterface {
    *
    * @return null
    */
-  public function saveTermPermissionsByUsers() {
+  public function saveTermPermissions() {
 
     $aExistingUserPermissions       = $this->getExistingUserTermPermissionsByTid();
     $aSubmittedUserIdsGrantedAccess = $this->getSubmittedUserIdsGrantedAccess();

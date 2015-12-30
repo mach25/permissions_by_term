@@ -12,7 +12,7 @@ namespace Drupal\permissions_by_term;
  *
  * @package Drupal\permissions_by_term
  */
-interface AccessServiceInterface {
+interface AccessStorageServiceInterface {
 
 
 }

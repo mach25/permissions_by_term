@@ -13,8 +13,8 @@ class SavePermissionsTests extends UnitTestCase {
    * @return null
    */
   public function setUp() {
-    $this->accessService =
-      $this->getMockBuilder('Drupal\permissions_by_term\AccessService')
+    $this->accessStorageService =
+      $this->getMockBuilder('Drupal\permissions_by_term\AccessStorageService')
       ->disableOriginalConstructor()
       ->setMethods(
         array(
@@ -53,7 +53,7 @@ class SavePermissionsTests extends UnitTestCase {
                                                  $aExistingRoleIdsGrantedAccess,
                                                  $aSubmittedRolesGrantedAccess){
 
-    $aRet = $this->accessService->getPreparedDataForDatabaseQueries(
+    $aRet = $this->accessStorageService->getPreparedDataForDatabaseQueries(
       $aExistingUserPermissions, $aSubmittedUserIdsGrantedAccess,
       $aExistingRoleIdsGrantedAccess, $aSubmittedRolesGrantedAccess);
 
