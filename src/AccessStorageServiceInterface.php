@@ -14,5 +14,6 @@ namespace Drupal\permissions_by_term;
  */
 interface AccessStorageServiceInterface {
 
+  // @TODO: some necessary methods.
 
 }
