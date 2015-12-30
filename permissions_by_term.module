@@ -337,10 +337,10 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
     }
 
     // get all roles for the complete form and translate them.
-    $arr__all_translated_user_roles = array();
+    $aTranslatedUserRoles = array();
     $array_key_counter = 1;
     foreach(user_roles() as $user_role_id=>$user_role_name){
-      $arr__all_translated_user_roles[$user_role_id] = t($user_role_name->label());
+      $aTranslatedUserRoles[$user_role_id] = t($user_role_name->label());
       $array_key_counter++;
     }
 
@@ -359,7 +359,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
       '#title' => t('Allowed roles'),
       '#description' => t('Select a role to allow all members of that role access to this term.'),
       '#default_value' => $aSetRoles,
-      '#options' => $arr__all_translated_user_roles,
+      '#options' => $aTranslatedUserRoles,
       //'#options' => user_roles(),
       '#multiple' => FALSE,
       '#weight' => 5,
