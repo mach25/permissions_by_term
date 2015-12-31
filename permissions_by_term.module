@@ -291,11 +291,6 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
 
     // Pull in any stored users in the database.
     if (!empty($form['tid']['#value'])) {
-      /*
-      $aAllowedUsers = db_query("SELECT ufd.name FROM {permissions_by_term_user} p
-                        JOIN {users_field_data} ufd ON p.uid = ufd.uid WHERE p.tid = :tid",
-        array(':tid' => $iTermId))->fetchCol();
-      */
       $aAllowedUsers = $oAccessStorageService->getAllowedUserNames();
       $sAllowedUsers = implode(', ', $aAllowedUsers);
     }
