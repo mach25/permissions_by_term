@@ -185,6 +185,25 @@ class AccessStorageService implements AccessStorageServiceInterface {
   }
 
   /**
+   * Gets the user names from users which have granted access
+   * for a taxonomy term.
+   *
+   * @return mixed
+   */
+  public function getAllowedUserNames() {
+    $query = $this->oDatabase->select('permissions_by_term_user', 'p')
+      ->fields('ufd', ['name'])
+      ->condition('p.tid', $this->iTermId);
+
+    // Join is not fluent on Drupal database object.
+    $query->join('users_field_data', 'ufd', 'p.uid = %alias.uid');
+
+    // fetchCol() returns all results, fetchAssoc() only "one" result.
+    return $query->execute()
+      ->fetchCol();
+  }
+
+  /**
    * Deletes term permissions by user id.
    *
    * @param $iUserId

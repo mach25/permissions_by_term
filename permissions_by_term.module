@@ -276,11 +276,6 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
     $oAccessStorageService = new AccessStorageService($oDbConnection,
       $oFormState, $iTermId);
 
-    // This is the add / edit term form from the taxonomy page.
-    // Normally the term is an array, but when deleting terms it becomes an
-    // object. So, we cast it to an object so we can consistently reference it.
-    $term = (object) $form['#term'];
-
     $form['access'] = array(
       '#type' => 'fieldset',
       '#title' => t('Permissions'),
@@ -293,13 +288,15 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
       '#weight' => -5,
       '#tree' => TRUE,
     );
+
     // Pull in any stored users in the database.
-    $aAllowedUsers = array();
     if (!empty($form['tid']['#value'])) {
+      /*
       $aAllowedUsers = db_query("SELECT ufd.name FROM {permissions_by_term_user} p
                         JOIN {users_field_data} ufd ON p.uid = ufd.uid WHERE p.tid = :tid",
         array(':tid' => $iTermId))->fetchCol();
-
+      */
+      $aAllowedUsers = $oAccessStorageService->getAllowedUserNames();
       $sAllowedUsers = implode(', ', $aAllowedUsers);
     }
 
@@ -316,17 +313,6 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
       '#autocomplete_path' => 'permissions-by-term/autocomplete',
       '#weight' => -10,
     );
-
-    /*
-    $allowed_roles = array();
-    if (!empty($form['tid']['#value'])) {
-      $query = db_select('permissions_by_term_role', 'pbt')
-        ->fields('pbt', array('tid', 'rid'))
-        ->condition('pbt.tid', $term->tid);
-
-      $allowed_roles = $query->execute()->fetchAllAssoc('name');
-    }
-    */
 
     $aAllowedRoles = $oAccessStorageService->getExistingRoleTermPermissionsByTid();
 
