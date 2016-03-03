@@ -6,29 +6,41 @@
 namespace Drupal\permissions_by_term\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use \Drupal\Component\Utility\Tags;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use \Drupal\Core\Entity\Entity;
 
 /**
  * Default controller for the permissions_by_term module.
  */
 class DefaultController extends ControllerBase {
 
-  public function permissions_by_term_autocomplete_multiple($string) {
+  public function permissions_by_term_autocomplete_multiple() {
     // The user enters a comma-separated list of users.
-  // We only autocomplete the last user.
-    $array = drupal_explode_tags($string);
+    // We only autocomplete the last user.
+    $array = Tags::explode($_REQUEST['q']);
 
     // Fetch last user.
     $last_string = trim(array_pop($array));
 
     $matches = [];
-    $result = db_select('users')->fields('users', ['name'])->condition('name', db_like($last_string) . '%', 'LIKE')->range(0, 10)->execute();
+
+    $aUserIds = \Drupal::entityQuery('user')
+      ->condition('name', $last_string, 'CONTAINS')
+      ->execute();
 
     $prefix = count($array) ? implode(', ', $array) . ', ' : '';
 
-    foreach ($result as $user) {
-      $matches[$prefix . $user->name] = \Drupal\Component\Utility\SafeMarkup::checkPlain($user->name);
+    foreach ($aUserIds as $iUserId) {
+      $oUser = user_load($iUserId);
+      $matches[$prefix . $oUser->getUsername()] = \Drupal\Component\Utility\SafeMarkup::checkPlain($oUser->getUsername());
     }
-    drupal_json_output($matches);
+    /*
+    $oResponse = new JsonResponse($matches);
+
+    $sResponse = $oResponse->getContent();
+    */
+    return new JsonResponse($matches);
   }
 
 }

@@ -192,13 +192,10 @@ class AccessStorageService implements AccessStorageServiceInterface {
    *
    * @return mixed
    */
-  public function getAllowedUserNames() {
+  public function getAllowedUserIds() {
     $query = $this->oDatabase->select('permissions_by_term_user', 'p')
-      ->fields('ufd', ['name'])
+      ->fields('ufd', ['uid'])
       ->condition('p.tid', $this->iTermId);
-
-    // Join is not fluent on Drupal database object.
-    $query->join('users_field_data', 'ufd', 'p.uid = %alias.uid');
 
     // fetchCol() returns all results, fetchAssoc() only "one" result.
     return $query->execute()

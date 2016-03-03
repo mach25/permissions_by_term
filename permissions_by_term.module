@@ -29,64 +29,6 @@ function permissions_by_term_help($path, $arg) {
 }
 
 /**
- * Implements hook_menu().
- */
-function permissions_by_term_menu() {
-  $items = array();
-  $items['permissions-by-term/autocomplete'] = array(
-    'title' => '',
-    'page callback' => 'permissions_by_term_autocomplete_multiple',
-    'access arguments' => array('access user profiles'),
-    'type' => MENU_CALLBACK,
-  );
-
-  return $items;
-}
-
-/**
- * Implements hook_form_alter().
- */
-//function permissions_by_term_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $oFormState, $form_id) {
-  // This is the node add / edit form. If a different selector is used from
-  // another contributed module, we do nothing so as to not break the form.
-  // @FIXME
-// // @FIXME
-// // This looks like another module's variable. You'll need to rewrite this call
-// // to ensure that it uses the correct configuration object.
-// if ((isset($form['type']) && isset($form['#node']) && (!variable_get('taxonomy_override_selector', FALSE)) && $form['type']['#value'] . '_node_form' == $form_id) ||
-//        (isset($form['#entity_type']) && isset($form['#bundle']))) {
-//     // Field types we are looking for.
-//     $types = array('taxonomy_term_reference');
-//     foreach (element_children($form) as $field_name) {
-//       if (!$field_info = field_info_field($field_name)) {
-//         continue;
-//       }
-//       if (!in_array('#language', $form[$field_name])) {
-//         continue;
-//       }
-//       $options = &$form[$field_name][$form[$field_name]['#language']]['#options'];
-//       if (!in_array($field_info['type'], $types) || !isset($options)) {
-//         continue;
-//       }
-//
-//       foreach ($options as $tid => $name) {
-//         if ($tid == "_none") {
-//           continue;
-//         }
-//
-//         // Now we have the term ID, check to see if the current user has
-//         // access to the term.
-//         $user = \Drupal::currentUser();
-//         if (!permissions_by_term_allowed($tid, $user)) {
-//           unset($options[$tid]);
-//         }
-//       }
-//     }
-//   }
-
-//}
-
-/**
  * Validation handler for permissions_by_term_form_alter().
  */
 function permissions_by_term_validate($form, FormState $oFormState) {
@@ -237,34 +179,6 @@ function permissions_by_term_allowed($tid, $user) {
 }
 
 /**
- * Page callback: Returns Json array for autocomplete fields.
- *
- * Supports multiple entries separated by a comma.
- *
- * @param string $string
- *   A comma-separated list of users.
- */
-function permissions_by_term_autocomplete_multiple($string) {
-  // The user enters a comma-separated list of users.
-  // We only autocomplete the last user.
-  $array = drupal_explode_tags($string);
-
-  // Fetch last user.
-  $last_string = trim(array_pop($array));
-
-  $matches = array();
-  $result = db_select('users')->fields('users', array('name'))->condition('name',
-            db_like($last_string) . '%', 'LIKE')->range(0, 10)->execute();
-
-  $prefix = count($array) ? implode(', ', $array) . ', ' : '';
-
-  foreach ($result as $user) {
-    $matches[$prefix . $user->name] = \Drupal\Component\Utility\SafeMarkup::checkPlain($user->name);
-  }
-  drupal_json_output($matches);
-}
-
-/**
  * Implements hook_form_alter().
  */
 function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $oFormState, $form_id) {
@@ -289,25 +203,31 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
       '#tree' => TRUE,
     );
 
-    $sAllowedUsers = '';
+    $aAllowedUsers = NULL;
 
     // Pull in any stored users in the database.
     if (!empty($form['tid']['#value'])) {
-      $aAllowedUsers = $oAccessStorageService->getAllowedUserNames();
-      $sAllowedUsers = implode(', ', $aAllowedUsers);
+      $aAllowedUsers = array();
+      $aAllowedUsers = $oAccessStorageService->getAllowedUserIds();
+      foreach ($aAllowedUsers as $iAllowedUser) {
+        $aAllowedUsers[] = user_load($iAllowedUser);
+      }
     }
+
+    // @TODO: Working on autocomplete functionality. Currently comes "The user 1 does not exist." after submited form.
 
     // Note that the autocomplete widget will only enable for users with the
     // 'access profiles' permission. Other users will have to specify the name
     // manually.
     $form['access']['user'] = array(
-      '#type' => 'textfield',
+      '#type' => 'entity_autocomplete',
+      '#target_type' => 'user',
       '#title' => t('Allowed users'),
       '#description' => t('Enter a comma-seperated list of user names to give') .
         t('them permission to use this term.'),
-      '#default_value' => $sAllowedUsers,
+      '#default_value' => $aAllowedUsers,
       '#size' => 60,
-      '#autocomplete_path' => 'permissions-by-term/autocomplete',
+      '#autocomplete_route_name' => 'permissions_by_term.autocomplete_multiple',
       '#weight' => -10,
     );
 
