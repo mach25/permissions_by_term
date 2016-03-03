@@ -70,10 +70,12 @@ class AccessStorageService implements AccessStorageServiceInterface {
     $this->oDatabase  = $database;
     $this->oFormState = $oFormState;
 
-    $sValuesUserAccess       = $this->oFormState->getValues()['access']['user'];
-    $aUsernamesGrantedAccess = Tags::explode($sValuesUserAccess);
+    if (isset($this->oFormState->getValues()['access'])) {
+      $sValuesUserAccess       = $this->oFormState->getValues()['access']['user'];
+      $aUsernamesGrantedAccess = Tags::explode($sValuesUserAccess);
 
-    $this->aUserIdsGrantedAccess = $this->getUserIdsByNames($aUsernamesGrantedAccess);
+      $this->aUserIdsGrantedAccess = $this->getUserIdsByNames($aUsernamesGrantedAccess);
+    }
 
     $this->iTermId = $this->getTermId($iTermId);
   }

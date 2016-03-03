@@ -289,6 +289,8 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
       '#tree' => TRUE,
     );
 
+    $sAllowedUsers = '';
+
     // Pull in any stored users in the database.
     if (!empty($form['tid']['#value'])) {
       $aAllowedUsers = $oAccessStorageService->getAllowedUserNames();
