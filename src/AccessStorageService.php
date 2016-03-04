@@ -346,11 +346,14 @@ class AccessStorageService implements AccessStorageServiceInterface {
    * @return array
    */
   private function getArrayItemsToRemove($aExistingItems, $aNewItems) {
+    $aRet = array();
+
     foreach ($aExistingItems as $existingItem) {
       if (!in_array($existingItem, $aNewItems)) {
         $aRet[] = $existingItem;
       }
     }
+
     return $aRet;
   }
 
@@ -364,11 +367,14 @@ class AccessStorageService implements AccessStorageServiceInterface {
    * @return array
    */
   private function getArrayItemsToAdd($aNewItems, $aExistingItems) {
+    $aRet = array();
+
     foreach ($aNewItems as $newItem) {
       if (!in_array($newItem, $aExistingItems)) {
         $aRet[] = $newItem;
       }
     }
+
     return $aRet;
   }
 
@@ -428,10 +434,21 @@ class AccessStorageService implements AccessStorageServiceInterface {
 
     $sUserInfos = '';
 
-    foreach ($aAllowedUsers as $oUser) {
-      $iUid = $oUser->id();
-      $sUsername = $oUser->getUsername();
-      $sUserInfos .= $sUsername . ' ' . '(' . $iUid . '), ';
+    if (!empty($aAllowedUsers)) {
+
+      // Remove the anonymous user, if set.
+      if (isset($aAllowedUsers['0'])) {
+        unset($aAllowedUsers['0']);
+      }
+
+      foreach ($aAllowedUsers as $oUser) {
+        $iUid = $oUser->id();
+        $sUsername = $oUser->getUsername();
+        $sUserInfos .= $sUsername . ' ' . '(' . $iUid . '), ';
+      }
+
+      // Remove space and comma at the end of the string.
+      $sUserInfos = substr($sUserInfos, 0, -2);
     }
 
     return $sUserInfos;
