@@ -113,8 +113,11 @@ function permissions_by_term_views_post_execute(&$view) {
 function permissions_by_term_node_access($node, $op, $account) {
 
   if (isset($node->nid) && $op == 'view') {
-    $node = \Drupal::entityManager()->getStorage('node')->load($node->nid);
-    $secured_areas = field_get_items('node', $node, 'field_secured_areas');
+
+    // @TODO: working on access check by node id. Have to create field with name "field_secured_areas".
+    $oField = $node->get('field_taxonomy_term');
+    $oField = $node->get('field_secured_areas');
+
     if (!empty($secured_areas)) {
       $user = \Drupal::currentUser();
       foreach ($secured_areas as $term) {
