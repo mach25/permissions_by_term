@@ -203,18 +203,17 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
       '#tree' => TRUE,
     );
 
-    $aAllowedUsers = NULL;
-
-    // Pull in any stored users in the database.
-    if (!empty($form['tid']['#value'])) {
-      $aAllowedUsers = array();
-      $aAllowedUsers = $oAccessStorageService->getAllowedUserIds();
-      foreach ($aAllowedUsers as $iAllowedUser) {
-        $aAllowedUsers[] = user_load($iAllowedUser);
-      }
+    $aAllowedUsers = $oAccessStorageService->getAllowedUserIds();
+    if (!empty($aAllowedUsers)) {
+      $aAllowedUsers = user_load_multiple($aAllowedUsers);
+      $sUserFormValue = $oAccessStorageService->getUserFormValue($aAllowedUsers);
+    } else {
+      $sUserFormValue = NULL;
     }
 
     // @TODO: Working on autocomplete functionality. Currently comes "The user 1 does not exist." after submited form.
+
+    $debug = true;
 
     // Note that the autocomplete widget will only enable for users with the
     // 'access profiles' permission. Other users will have to specify the name
@@ -225,7 +224,8 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
       '#title' => t('Allowed users'),
       '#description' => t('Enter a comma-seperated list of user names to give') .
         t('them permission to use this term.'),
-      '#default_value' => $aAllowedUsers,
+      // @TODO: load multiple users by Entity::loadMultiple
+      '#value' => $sUserFormValue,
       '#size' => 60,
       '#autocomplete_route_name' => 'permissions_by_term.autocomplete_multiple',
       '#weight' => -10,

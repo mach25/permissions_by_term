@@ -109,15 +109,16 @@ class AccessStorageService implements AccessStorageServiceInterface {
     $sAllowedUsers = $this->oFormState->getValue('access')['user'];
     $aAllowedUsers = Tags::explode($sAllowedUsers);
 
-    foreach ($aAllowedUsers as $sUserName) {
+    foreach ($aAllowedUsers as $sUserId) {
 
       $aUserId = \Drupal::entityQuery('user')
-        ->condition('name', $sUserName)
+        ->condition('uid', $sUserId)
         ->execute();
 
       if (empty($aUserId)) {
-        $this->oFormState->setErrorByName('access][user', t('The user %user_name does not exist.',
-          array('%user_name' => $sUserName)));
+        $this->oFormState->setErrorByName('access][user',
+          t('The user with ID %user_id does not exist.',
+          array('%user_id' => $sUserId)));
       }
 
     }
@@ -194,7 +195,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    */
   public function getAllowedUserIds() {
     $query = $this->oDatabase->select('permissions_by_term_user', 'p')
-      ->fields('ufd', ['uid'])
+      ->fields('p', ['uid'])
       ->condition('p.tid', $this->iTermId);
 
     // fetchCol() returns all results, fetchAssoc() only "one" result.
@@ -282,8 +283,28 @@ class AccessStorageService implements AccessStorageServiceInterface {
     }
   }
 
-  protected function getSubmittedUserIdsGrantedAccess() {
-    return $this->aUserIdsGrantedAccess;
+  /**
+   * Gets the user ids which have been submitted by form and which
+   * will gain granted access to taxonomy terms.
+   *
+   * @return array The user ids which have been submitted.
+   */
+  protected function getSubmittedUserIds() {
+    /**
+     * There's a $this->oFormState->getValues() method, but
+     * it is loosing multiple form values. Don't know why.
+     * So there're some custom lines on the $_REQUEST array.
+     */
+    $sRawUsers = $_REQUEST['access']['user'];
+    $aRawUsers = explode('),', $sRawUsers);
+    $aUserIds = array();
+    foreach ($aRawUsers as $sRawUser) {
+      $aTempRawUser = explode(' (', $sRawUser);
+      $sRawUser = trim($aTempRawUser['0']);
+      $aUserIds[] = $this->getUserIdByName($sRawUser)['uid'];
+    }
+
+    return $aUserIds;
   }
 
   /**
@@ -295,7 +316,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
   public function saveTermPermissions() {
 
     $aExistingUserPermissions       = $this->getExistingUserTermPermissionsByTid();
-    $aSubmittedUserIdsGrantedAccess = $this->getSubmittedUserIdsGrantedAccess();
+    $aSubmittedUserIdsGrantedAccess = $this->getSubmittedUserIds();
 
     $aExistingRoleIdsGrantedAccess = $this->getExistingRoleTermPermissionsByTid();
     $aSubmittedRolesGrantedAccess  = $this->getSubmittedRolesGrantedAccess();
@@ -394,6 +415,26 @@ class AccessStorageService implements AccessStorageServiceInterface {
         $aExistingRoleIdsGrantedAccess);
 
     return $aRet;
+  }
+
+  /**
+   * The form value for allowed users as string to be shown to the user.
+   *
+   * @param \Drupal\user\Entity\User[] $aAllowedUsers
+   *
+   * @return null
+   */
+  public function getUserFormValue($aAllowedUsers) {
+
+    $sUserInfos = '';
+
+    foreach ($aAllowedUsers as $oUser) {
+      $iUid = $oUser->id();
+      $sUsername = $oUser->getUsername();
+      $sUserInfos .= $sUsername . ' ' . '(' . $iUid . '), ';
+    }
+
+    return $sUserInfos;
   }
 
 }
