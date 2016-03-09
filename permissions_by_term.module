@@ -110,22 +110,22 @@ function permissions_by_term_views_post_execute(&$view) {
  * Forwards user by drupal_access_denied(); to an access denied page, if a
  * single restricted node is called.
  */
-function permissions_by_term_node_access($node, $op, $account) {
+function permissions_by_term_node_access(\Drupal\node\NodeInterface $node, $op,
+                                         \Drupal\Core\Session\AccountInterface $account) {
 
   if (isset($node->nid) && $op == 'view') {
 
     // @TODO: working on access check by node id. Have to create field with name "field_secured_areas".
-    $oField = $node->get('field_taxonomy_term');
     $oField = $node->get('field_secured_areas');
 
-    if (!empty($secured_areas)) {
+    $aReferencedTaxonomyTerms = $oField->getValue();
+
+    if (!empty($aReferencedTaxonomyTerms)) {
       $user = \Drupal::currentUser();
-      foreach ($secured_areas as $term) {
+      foreach ($aReferencedTaxonomyTerms as $aReferencedTerm) {
 
-        $term_secured_areas = $term;
-
-        if (isset($term_secured_areas['tid']) &&
-          permissions_by_term_allowed($term_secured_areas['tid'], $user) === TRUE) {
+        if (isset($aReferencedTerm['target_id']) &&
+          permissions_by_term_allowed($aReferencedTerm['target_id'], $user) === TRUE) {
           $user_is_allowed_to_view = TRUE;
         }
         if (!isset($user_is_allowed_to_view)) {
@@ -133,8 +133,11 @@ function permissions_by_term_node_access($node, $op, $account) {
         }
       }
     }
+
     if (isset($user_is_allowed_to_view) && $user_is_allowed_to_view === FALSE) {
-      return NODE_ACCESS_DENY;
+      return \Drupal\Core\Access\AccessResult::forbidden();
+    } else {
+      return \Drupal\Core\Access\AccessResult::allowed();
     }
   }
 
@@ -145,11 +148,11 @@ function permissions_by_term_node_access($node, $op, $account) {
  */
 function permissions_by_term_allowed($tid, $user) {
 
-  if ($user->uid == 1) {
+  if ($user->id() == 1) {
     return TRUE;
   }
 
-  // Are permissions enabled on this term?
+  // Are permissions enabled on this term? Check for role and user.
   if (!(db_query("SELECT COUNT(1) FROM {permissions_by_term_user} WHERE tid = :tid",
     array(':tid' => $tid))->fetchField() ||
     db_query("SELECT COUNT(1) FROM {permissions_by_term_role} WHERE tid = :tid",
@@ -157,24 +160,19 @@ function permissions_by_term_allowed($tid, $user) {
     return TRUE;
   }
 
-  /* Permissions are enabled, check to see if this user or one of their roles
-  is allowed.
+  /**
+   * At this point permissions are enabled, check to see if this user or one
+   * of their roles is allowed.
    */
-  $user_roles = array_keys($user->roles);
+  $aUserRoles = $user->getRoles();
 
-  $i = 0;
-
-  while (isset($user_roles[$i])) {
-
+  foreach ($aUserRoles as $sUserRole) {
     if (db_query("SELECT uid FROM {permissions_by_term_user} WHERE tid = :tid AND uid = :uid",
-        array(':tid' => $tid, ':uid' => $user->uid))->fetchField() ||
-        db_query("SELECT rid FROM {permissions_by_term_role} WHERE tid = :tid AND rid IN (:user_roles)",
-        array(':tid' => $tid, ':user_roles' => $user_roles[$i]))->fetchField()) {
+        array(':tid' => $tid, ':uid' => $user->id()))->fetchField() ||
+      db_query("SELECT rid FROM {permissions_by_term_role} WHERE tid = :tid AND rid IN (:user_roles)",
+        array(':tid' => $tid, ':user_roles' => $sUserRole))->fetchField()) {
       return TRUE;
     }
-
-    $i++;
-
   }
 
   return FALSE;
@@ -227,7 +225,6 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
       '#title' => t('Allowed users'),
       '#description' => t('Enter a comma-seperated list of user names to give') . ' ' .
         t('them permission to use this term.'),
-      // @TODO: load multiple users by Entity::loadMultiple
       '#value' => $sUserFormValue,
       '#size' => 60,
       '#autocomplete_route_name' => 'permissions_by_term.autocomplete_multiple',
