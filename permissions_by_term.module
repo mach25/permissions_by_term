@@ -225,7 +225,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
       '#type' => 'entity_autocomplete',
       '#target_type' => 'user',
       '#title' => t('Allowed users'),
-      '#description' => t('Enter a comma-seperated list of user names to give') .
+      '#description' => t('Enter a comma-seperated list of user names to give') . ' ' .
         t('them permission to use this term.'),
       // @TODO: load multiple users by Entity::loadMultiple
       '#value' => $sUserFormValue,
