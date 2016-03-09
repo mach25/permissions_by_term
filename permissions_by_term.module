@@ -6,7 +6,6 @@
 
 use \Drupal\Core\Form\FormState;
 use \Drupal\permissions_by_term\AccessStorageService;
-use Drupal\Core\Url;
 
 
 /**
@@ -48,13 +47,32 @@ function permissions_by_term_submit($form, FormState $oFormState) {
   $accessService->saveTermPermissions();
 }
 
+/**
+ * Implements hook_views_data_alter().
+ *
+ * @TODO: Create filter for filtering from the views UI.
+ */
+/*
+function permissions_by_term_views_data_alter(array &$data)
+{
+  $data['node_field_data']['nodes_titles'] = array(
+    'title' => t('Node titles'),
+    'filter' => array(
+      'title' => t('Node titles'),
+      'help' => t('Specify a list of titles a node can have.'),
+      'field' => 'title',
+      'id' => 'd8views_node_titles'
+    ),
+  );
+}
+*/
 
 /**
  * Implements hook_views_post_execute().
  *
  * Hides nodes in every view on the site.
  */
-function permissions_by_term_views_post_execute(&$view) {
+function permissions_by_term_views_post_execute($view) {
   $user = \Drupal::currentUser();
 
   $view_contains_nodes = FALSE;
@@ -62,6 +80,7 @@ function permissions_by_term_views_post_execute(&$view) {
   foreach ($view->result as $view_result) {
     if (array_key_exists('nid', $view_result) === TRUE) {
       $view_contains_nodes = TRUE;
+      break;
     }
   }
 
@@ -71,36 +90,48 @@ function permissions_by_term_views_post_execute(&$view) {
 
       $node = \Drupal::entityManager()->getStorage('node')->load($v->nid);
 
-      $secured_areas = field_get_items('node', $node, 'field_secured_areas');
+      if ($node->hasField('field_secured_areas')) {
+        // @TODO: replace hard coded field name to add flexibility.
+        $oField = $node->get('field_secured_areas');
+        $aReferencedTaxonomyTerms = $oField->getValue();
 
-      if (!empty($secured_areas)) {
-        foreach ($secured_areas as $term) {
-          if (isset($term['tid']) &&
-            permissions_by_term_allowed($term['tid'], $user) === TRUE) {
-            $user_is_allowed_to_view = TRUE;
+        if (!empty($aReferencedTaxonomyTerms)) {
+          foreach ($aReferencedTaxonomyTerms as $aReferencedTerm) {
+            if (isset($aReferencedTerm['target_id']) &&
+              permissions_by_term_allowed($aReferencedTerm['target_id'], $user) === TRUE) {
+              $user_is_allowed_to_view = TRUE;
+            }
+
+            if (!isset($user_is_allowed_to_view)) {
+              $user_is_allowed_to_view = FALSE;
+              $arr__nodes_to_hide_in_view[] = $node->id();
+            }
+
           }
-
-          if (!isset($user_is_allowed_to_view)) {
-            $user_is_allowed_to_view = FALSE;
-            $arr__nodes_to_hide_in_view[] = $node->nid;
-          }
-
+        } else {
+          /**
+           * Show all nodes in view, because there is no field reference
+           * to secured term.
+           */
+          return $view;
         }
       }
 
     }
 
-    $arr__new_results = array();
+    $iCounter = 0;
 
     // Hide the nodes.
     foreach ($view->result as $v) {
-      if (!in_array($v->nid, $arr__nodes_to_hide_in_view)) {
-        $arr__new_results[] = $v;
+      if (in_array($v->nid, $arr__nodes_to_hide_in_view)) {
+        unset($view->result[$iCounter]);
       }
+      $iCounter++;
     }
 
-    $view->result = $arr__new_results;
   }
+
+  return $view;
 
 }
 
@@ -115,7 +146,7 @@ function permissions_by_term_node_access(\Drupal\node\NodeInterface $node, $op,
 
   if (isset($node->nid) && $op == 'view') {
 
-    // @TODO: working on access check by node id. Have to create field with name "field_secured_areas".
+    // @TODO: replace hard coded field name to add flexibility.
     $oField = $node->get('field_secured_areas');
 
     $aReferencedTaxonomyTerms = $oField->getValue();
