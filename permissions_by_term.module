@@ -145,6 +145,9 @@ function permissions_by_term_node_access(\Drupal\node\NodeInterface $node, $op,
 
 /**
  * Implements permissions_by_term_allowed().
+ *
+ * This hook-function checks if a user is either allowed or not allowed to
+ * access a given node by the referenced taxonomy term.
  */
 function permissions_by_term_allowed($tid, $user) {
 
