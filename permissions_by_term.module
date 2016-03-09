@@ -6,7 +6,7 @@
 
 use \Drupal\Core\Form\FormState;
 use \Drupal\permissions_by_term\AccessStorageService;
-
+use \Drupal\permissions_by_term\AccessCheckService;
 
 /**
  * Implements hook_help().
@@ -50,7 +50,8 @@ function permissions_by_term_submit($form, FormState $oFormState) {
 /**
  * Implements hook_views_data_alter().
  *
- * @TODO: Create filter for filtering from the views UI.
+ * @TODO: Create filter for filtering from the views UI. Good tutorial is
+ * located at http://www.webomelette.com/creating-custom-views-filter-drupal-8.
  */
 /*
 function permissions_by_term_views_data_alter(array &$data)
@@ -143,6 +144,9 @@ function permissions_by_term_views_post_execute($view) {
  */
 function permissions_by_term_node_access(\Drupal\node\NodeInterface $node, $op,
                                          \Drupal\Core\Session\AccountInterface $account) {
+
+  $oAccessCheckService = new AccessCheckService();
+  $oAccessCheckService->canUserAccessByNodeId(5);
 
   if (isset($node->nid) && $op == 'view') {
 
