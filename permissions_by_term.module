@@ -146,21 +146,24 @@ function permissions_by_term_node_access(\Drupal\node\NodeInterface $node, $op,
 
   if (isset($node->nid) && $op == 'view') {
 
-    // @TODO: replace hard coded field name to add flexibility.
-    $oField = $node->get('field_secured_areas');
+    if ($node->hasField('field_secured_areas')) {
+      // @TODO: replace hard coded field name to add flexibility.
+      $oField = $node->get('field_secured_areas');
 
-    $aReferencedTaxonomyTerms = $oField->getValue();
+      $aReferencedTaxonomyTerms = $oField->getValue();
 
-    if (!empty($aReferencedTaxonomyTerms)) {
-      $user = \Drupal::currentUser();
-      foreach ($aReferencedTaxonomyTerms as $aReferencedTerm) {
+      if (!empty($aReferencedTaxonomyTerms)) {
+        $user = \Drupal::currentUser();
+        foreach ($aReferencedTaxonomyTerms as $aReferencedTerm) {
 
-        if (isset($aReferencedTerm['target_id']) &&
-          permissions_by_term_allowed($aReferencedTerm['target_id'], $user) === TRUE) {
-          $user_is_allowed_to_view = TRUE;
-        }
-        if (!isset($user_is_allowed_to_view)) {
-          $user_is_allowed_to_view = FALSE;
+          if (isset($aReferencedTerm['target_id']) &&
+            permissions_by_term_allowed($aReferencedTerm['target_id'], $user) === TRUE
+          ) {
+            $user_is_allowed_to_view = TRUE;
+          }
+          if (!isset($user_is_allowed_to_view)) {
+            $user_is_allowed_to_view = FALSE;
+          }
         }
       }
     }
@@ -245,10 +248,6 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
     } else {
       $sUserFormValue = NULL;
     }
-
-    // @TODO: Working on autocomplete functionality. Currently comes "The user 1 does not exist." after submited form.
-
-    $debug = true;
 
     // Note that the autocomplete widget will only enable for users with the
     // 'access profiles' permission. Other users will have to specify the name
