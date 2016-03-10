@@ -35,11 +35,58 @@ class AccessCheckService
           }
 
           if (!isset($user_is_allowed_to_view)) {
-            $user_is_allowed_to_view = FALSE;
-            $arr__nodes_to_hide_in_view[] = $oNode->id();
+           return FALSE;
           }
         }
       }
+    } else {
+      // No taxonomy field reference for permissions. User can access.
+      return TRUE;
+    }
+
+  }
+
+  /**
+   * @param $view
+   * @return bool
+   */
+  public function viewContainsNode($view)
+  {
+    $bViewContainsNodes = FALSE;
+
+    foreach ($view->result as $view_result) {
+      if (array_key_exists('nid', $view_result) === TRUE) {
+        $bViewContainsNodes = TRUE;
+        break;
+      }
+    }
+    return $bViewContainsNodes;
+  }
+
+  /**
+   * @param $view
+   * @param $aNodesToHideInView
+   */
+  public function removeForbiddenNodesFromView(&$view)
+  {
+    $aNodesToHideInView = array();
+
+    // Iterate over all nodes in view.
+    foreach ($view->result as $v) {
+
+      if ($this->canUserAccessByNodeId($v->nid) === FALSE) {
+        $aNodesToHideInView[] = $v->nid;
+      }
+
+    }
+
+    $iCounter = 0;
+
+    foreach ($view->result as $v) {
+      if (in_array($v->nid, $aNodesToHideInView)) {
+        unset($view->result[$iCounter]);
+      }
+      $iCounter++;
     }
   }
 

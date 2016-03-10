@@ -6,7 +6,7 @@
 
 use \Drupal\Core\Form\FormState;
 use \Drupal\permissions_by_term\AccessStorageService;
-use \Drupal\permissions_by_term\AccessCheckService;
+use \Drupal\permissions_by_term\Controller\PermissionsByTermController;
 
 /**
  * Implements hook_help().
@@ -74,66 +74,27 @@ function permissions_by_term_views_data_alter(array &$data)
  * Hides nodes in every view on the site.
  */
 function permissions_by_term_views_post_execute($view) {
-  $user = \Drupal::currentUser();
 
-  $view_contains_nodes = FALSE;
+  $oPermissionsByTermController = new PermissionsByTermController();
+  return $oPermissionsByTermController->handleViews($view);
 
+}
+
+
+
+/**
+ * @param $view
+ * @return bool
+ */
+function viewContainsNode($view)
+{
   foreach ($view->result as $view_result) {
     if (array_key_exists('nid', $view_result) === TRUE) {
       $view_contains_nodes = TRUE;
       break;
     }
   }
-
-  if ($view_contains_nodes === TRUE) {
-    $arr__nodes_to_hide_in_view = array();
-    foreach ($view->result as $v) {
-
-      $node = \Drupal::entityManager()->getStorage('node')->load($v->nid);
-
-      if ($node->hasField('field_secured_areas')) {
-        // @TODO: replace hard coded field name to add flexibility.
-        $oField = $node->get('field_secured_areas');
-        $aReferencedTaxonomyTerms = $oField->getValue();
-
-        if (!empty($aReferencedTaxonomyTerms)) {
-          foreach ($aReferencedTaxonomyTerms as $aReferencedTerm) {
-            if (isset($aReferencedTerm['target_id']) &&
-              permissions_by_term_allowed($aReferencedTerm['target_id'], $user) === TRUE) {
-              $user_is_allowed_to_view = TRUE;
-            }
-
-            if (!isset($user_is_allowed_to_view)) {
-              $user_is_allowed_to_view = FALSE;
-              $arr__nodes_to_hide_in_view[] = $node->id();
-            }
-
-          }
-        } else {
-          /**
-           * Show all nodes in view, because there is no field reference
-           * to secured term.
-           */
-          return $view;
-        }
-      }
-
-    }
-
-    $iCounter = 0;
-
-    // Hide the nodes.
-    foreach ($view->result as $v) {
-      if (in_array($v->nid, $arr__nodes_to_hide_in_view)) {
-        unset($view->result[$iCounter]);
-      }
-      $iCounter++;
-    }
-
-  }
-
-  return $view;
-
+  return $view_contains_nodes;
 }
 
 /**
@@ -144,9 +105,6 @@ function permissions_by_term_views_post_execute($view) {
  */
 function permissions_by_term_node_access(\Drupal\node\NodeInterface $node, $op,
                                          \Drupal\Core\Session\AccountInterface $account) {
-
-  $oAccessCheckService = new AccessCheckService();
-  $oAccessCheckService->canUserAccessByNodeId(5);
 
   if (isset($node->nid) && $op == 'view') {
 

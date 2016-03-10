@@ -9,11 +9,31 @@ use Drupal\Core\Controller\ControllerBase;
 use \Drupal\Component\Utility\Tags;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use \Drupal\Core\Entity\Entity;
+use \Drupal\permissions_by_term\AccessCheckService;
 
 /**
  * Default controller for the permissions_by_term module.
  */
-class DefaultController extends ControllerBase {
+class PermissionsByTermController extends ControllerBase {
+
+  public function __construct()
+  {
+    $this->oAccessCheckService = new AccessCheckService();
+
+  }
+
+  /**
+   * Handles views in module's logic.
+   *
+   * @param $view
+   */
+  public function handleViews(&$view) {
+
+    if ($this->oAccessCheckService->viewContainsNode($view) === TRUE) {
+      $this->oAccessCheckService->removeForbiddenNodesFromView($view);
+    }
+
+  }
 
   public function permissions_by_term_autocomplete_multiple() {
     // The user enters a comma-separated list of users.
