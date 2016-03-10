@@ -80,8 +80,6 @@ function permissions_by_term_views_post_execute($view) {
 
 }
 
-
-
 /**
  * @param $view
  * @return bool
@@ -106,75 +104,8 @@ function viewContainsNode($view)
 function permissions_by_term_node_access(\Drupal\node\NodeInterface $node, $op,
                                          \Drupal\Core\Session\AccountInterface $account) {
 
-  if (isset($node->nid) && $op == 'view') {
-
-    if ($node->hasField('field_secured_areas')) {
-      // @TODO: replace hard coded field name to add flexibility.
-      $oField = $node->get('field_secured_areas');
-
-      $aReferencedTaxonomyTerms = $oField->getValue();
-
-      if (!empty($aReferencedTaxonomyTerms)) {
-        $user = \Drupal::currentUser();
-        foreach ($aReferencedTaxonomyTerms as $aReferencedTerm) {
-
-          if (isset($aReferencedTerm['target_id']) &&
-            permissions_by_term_allowed($aReferencedTerm['target_id'], $user) === TRUE
-          ) {
-            $user_is_allowed_to_view = TRUE;
-          }
-          if (!isset($user_is_allowed_to_view)) {
-            $user_is_allowed_to_view = FALSE;
-          }
-        }
-      }
-    }
-
-    if (isset($user_is_allowed_to_view) && $user_is_allowed_to_view === FALSE) {
-      return \Drupal\Core\Access\AccessResult::forbidden();
-    } else {
-      return \Drupal\Core\Access\AccessResult::allowed();
-    }
-  }
-
-}
-
-/**
- * Implements permissions_by_term_allowed().
- *
- * This hook-function checks if a user is either allowed or not allowed to
- * access a given node by the referenced taxonomy term.
- */
-function permissions_by_term_allowed($tid, $user) {
-
-  if ($user->id() == 1) {
-    return TRUE;
-  }
-
-  // Are permissions enabled on this term? Check for role and user.
-  if (!(db_query("SELECT COUNT(1) FROM {permissions_by_term_user} WHERE tid = :tid",
-    array(':tid' => $tid))->fetchField() ||
-    db_query("SELECT COUNT(1) FROM {permissions_by_term_role} WHERE tid = :tid",
-    array(':tid' => $tid))->fetchField())) {
-    return TRUE;
-  }
-
-  /**
-   * At this point permissions are enabled, check to see if this user or one
-   * of their roles is allowed.
-   */
-  $aUserRoles = $user->getRoles();
-
-  foreach ($aUserRoles as $sUserRole) {
-    if (db_query("SELECT uid FROM {permissions_by_term_user} WHERE tid = :tid AND uid = :uid",
-        array(':tid' => $tid, ':uid' => $user->id()))->fetchField() ||
-      db_query("SELECT rid FROM {permissions_by_term_role} WHERE tid = :tid AND rid IN (:user_roles)",
-        array(':tid' => $tid, ':user_roles' => $sUserRole))->fetchField()) {
-      return TRUE;
-    }
-  }
-
-  return FALSE;
+  $oPermissionsByTermController = new PermissionsByTermController();
+  return $oPermissionsByTermController->handleNode($node->id());
 
 }
 

@@ -6,7 +6,7 @@ class AccessCheckService
 {
 
   public function __construct() {
-    $debug = true;
+    $this->oUser = \Drupal::currentUser();
   }
 
   /**
@@ -29,7 +29,7 @@ class AccessCheckService
           // @TODO: Move permissions_by_term_allowed() in here.
 
           if (isset($aReferencedTerm['target_id']) &&
-            permissions_by_term_allowed($aReferencedTerm['target_id'], \Drupal::currentUser()) === TRUE
+            $this->getAccessFromDatabase($aReferencedTerm['target_id']) === TRUE
           ) {
             $user_is_allowed_to_view = TRUE;
           }
@@ -88,6 +88,49 @@ class AccessCheckService
       }
       $iCounter++;
     }
+  }
+
+  private function databaseRequest() {
+
+  }
+
+  /**
+   * Implements permissions_by_term_allowed().
+   *
+   * This hook-function checks if a user is either allowed or not allowed to
+   * access a given node by the referenced taxonomy term.
+   */
+  private function getAccessFromDatabase($tid) {
+
+    if ($this->oUser->id() == 1) {
+      return TRUE;
+    }
+
+    // Are permissions enabled on this term? Check for role and user.
+    if (!(db_query("SELECT COUNT(1) FROM {permissions_by_term_user} WHERE tid = :tid",
+        array(':tid' => $tid))->fetchField() ||
+      db_query("SELECT COUNT(1) FROM {permissions_by_term_role} WHERE tid = :tid",
+        array(':tid' => $tid))->fetchField())) {
+      return TRUE;
+    }
+
+    /**
+     * At this point permissions are enabled, check to see if this user or one
+     * of their roles is allowed.
+     */
+    $aUserRoles = $this->oUser->getRoles();
+
+    foreach ($aUserRoles as $sUserRole) {
+      if (db_query("SELECT uid FROM {permissions_by_term_user} WHERE tid = :tid AND uid = :uid",
+          array(':tid' => $tid, ':uid' => $this->oUser->id()))->fetchField() ||
+        db_query("SELECT rid FROM {permissions_by_term_role} WHERE tid = :tid AND rid IN (:user_roles)",
+          array(':tid' => $tid, ':user_roles' => $sUserRole))->fetchField()) {
+        return TRUE;
+      }
+    }
+
+    return FALSE;
+
   }
 
 }

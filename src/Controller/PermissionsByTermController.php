@@ -10,6 +10,8 @@ use \Drupal\Component\Utility\Tags;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use \Drupal\Core\Entity\Entity;
 use \Drupal\permissions_by_term\AccessCheckService;
+use \Drupal\Component\Utility\SafeMarkup;
+use \Drupal\Core\Access\AccessResult;
 
 /**
  * Default controller for the permissions_by_term module.
@@ -19,7 +21,6 @@ class PermissionsByTermController extends ControllerBase {
   public function __construct()
   {
     $this->oAccessCheckService = new AccessCheckService();
-
   }
 
   /**
@@ -33,6 +34,14 @@ class PermissionsByTermController extends ControllerBase {
       $this->oAccessCheckService->removeForbiddenNodesFromView($view);
     }
 
+  }
+
+  public function handleNode($iNid) {
+    if ($this->oAccessCheckService->canUserAccessByNodeId($iNid) === TRUE) {
+      return AccessResult::allowed();
+    } else {
+      return AccessResult::forbidden();
+    }
   }
 
   /**
@@ -58,13 +67,9 @@ class PermissionsByTermController extends ControllerBase {
 
     foreach ($aUserIds as $iUserId) {
       $oUser = user_load($iUserId);
-      $matches[$prefix . $oUser->getUsername()] = \Drupal\Component\Utility\SafeMarkup::checkPlain($oUser->getUsername());
+      $matches[$prefix . $oUser->getUsername()] = SafeMarkup::checkPlain($oUser->getUsername());
     }
-    /*
-    $oResponse = new JsonResponse($matches);
 
-    $sResponse = $oResponse->getContent();
-    */
     return new JsonResponse($matches);
   }
 
