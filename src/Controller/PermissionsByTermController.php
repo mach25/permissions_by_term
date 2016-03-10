@@ -35,6 +35,11 @@ class PermissionsByTermController extends ControllerBase {
 
   }
 
+  /**
+   * Returns JSON response for user's autocomplete field in permissions form.
+   *
+   * @return JsonResponse
+   */
   public function permissions_by_term_autocomplete_multiple() {
     // The user enters a comma-separated list of users.
     // We only autocomplete the last user.
