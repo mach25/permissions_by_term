@@ -36,6 +36,13 @@ class PermissionsByTermController extends ControllerBase {
 
   }
 
+  /**
+   * Handles nodes in module's logic.
+   *
+   * @param $iNid
+   *
+   * @return \Drupal\Core\Access\AccessResult
+   */
   public function handleNode($iNid) {
     if ($this->oAccessCheckService->canUserAccessByNodeId($iNid) === TRUE) {
       return AccessResult::allowed();

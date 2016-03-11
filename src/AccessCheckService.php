@@ -16,6 +16,8 @@ class AccessCheckService
    */
   public function canUserAccessByNodeId($iNid)
   {
+    // @TODO: check if there's any permission setting + check access for anonymous users. There seems to be a bug.
+
     $oNode = \Drupal::entityManager()->getStorage('node')->load($iNid);
 
     if ($oNode->hasField('field_secured_areas')) {
@@ -88,10 +90,6 @@ class AccessCheckService
       }
       $iCounter++;
     }
-  }
-
-  private function databaseRequest() {
-
   }
 
   /**

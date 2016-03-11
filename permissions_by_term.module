@@ -81,21 +81,6 @@ function permissions_by_term_views_post_execute($view) {
 }
 
 /**
- * @param $view
- * @return bool
- */
-function viewContainsNode($view)
-{
-  foreach ($view->result as $view_result) {
-    if (array_key_exists('nid', $view_result) === TRUE) {
-      $view_contains_nodes = TRUE;
-      break;
-    }
-  }
-  return $view_contains_nodes;
-}
-
-/**
  * Implements hook_node_access().
  *
  * Forwards user by drupal_access_denied(); to an access denied page, if a
