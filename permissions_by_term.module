@@ -89,8 +89,10 @@ function permissions_by_term_views_post_execute($view) {
 function permissions_by_term_node_access(\Drupal\node\NodeInterface $node, $op,
                                          \Drupal\Core\Session\AccountInterface $account) {
 
-  $oPermissionsByTermController = new PermissionsByTermController($node->id());
-  return $oPermissionsByTermController->handleNode();
+  if (method_exists($node, 'id')) {
+    $oPermissionsByTermController = new PermissionsByTermController($node->id());
+    return $oPermissionsByTermController->handleNode();
+  }
 
 }
 
@@ -109,9 +111,10 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
     $form['access'] = array(
       '#type' => 'fieldset',
       '#title' => t('Permissions'),
-      '#description' => t('To limit selection of this term by user or roles,
+      '#description' => t('To limit access to this term by user or roles,
       add users or roles to the following lists. Leave empty to allow
-      selection by all users.'),
+      node access by single node view, node listing in views and taxonomy
+      term selection by all users.'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
       '#attributes' => array('id' => 'fieldset_term_access'),
@@ -135,7 +138,8 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
       '#target_type' => 'user',
       '#title' => t('Allowed users'),
       '#description' => t('Enter a comma-seperated list of user names to give') . ' ' .
-        t('them permission to use this term.'),
+        t('them permission to use this term and access related nodes in single node view
+        and views listings.'),
       '#value' => $sUserFormValue,
       '#size' => 60,
       '#autocomplete_route_name' => 'permissions_by_term.autocomplete_multiple',
@@ -171,7 +175,9 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
     $form['access']['role'] = array(
       '#type' => 'checkboxes',
       '#title' => t('Allowed roles'),
-      '#description' => t('Select a role to allow all members of that role access to this term.'),
+      '#description' => t('Select a role to allow all members of this role to
+        use this term and access related nodes in single node view and views
+        listings.'),
       '#default_value' => $aSetRoles,
       '#options' => $aTranslatedUserRoles,
       //'#options' => user_roles(),

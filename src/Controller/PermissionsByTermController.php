@@ -18,7 +18,12 @@ use \Drupal\Core\Access\AccessResult;
  */
 class PermissionsByTermController extends ControllerBase {
 
-  public function __construct($iNid)
+  /**
+   * PermissionsByTermController constructor.
+   *
+   * @param null $iNid Can be null for views pages.
+   */
+  public function __construct($iNid = NULL)
   {
     $this->oAccessCheckService = new AccessCheckService($iNid);
   }
