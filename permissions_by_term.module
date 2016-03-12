@@ -85,11 +85,15 @@ function permissions_by_term_views_post_execute($view) {
  *
  * Forwards user by drupal_access_denied(); to an access denied page, if a
  * single restricted node is called.
+ *
+ * This hook is not fired if admin is logged in. Users with the
+ * "bypass node access" permission may always view and edit content
+ * through the administrative interface.
  */
 function permissions_by_term_node_access(\Drupal\node\NodeInterface $node, $op,
                                          \Drupal\Core\Session\AccountInterface $account) {
 
-  if (method_exists($node, 'id')) {
+  if (method_exists($node, 'id') && $op == 'view') {
     $oPermissionsByTermController = new PermissionsByTermController($node->id());
     return $oPermissionsByTermController->handleNode();
   }
