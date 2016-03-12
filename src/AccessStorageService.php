@@ -296,6 +296,10 @@ class AccessStorageService implements AccessStorageServiceInterface {
      * So there're some custom lines on the $_REQUEST array.
      */
     $sRawUsers = $_REQUEST['access']['user'];
+    if (empty($sRawUsers)) {
+      return array();
+    }
+
     $aRawUsers = explode('),', $sRawUsers);
     $aUserIds = array();
     foreach ($aRawUsers as $sRawUser) {
@@ -341,11 +345,13 @@ class AccessStorageService implements AccessStorageServiceInterface {
    * array, but are in old items array, will be returned.
    *
    * @param $aExistingItems
-   * @param $aNewItems
+   * @param array|boolean $aNewItems Either false if there're no new items or
+   * an array with items.
    *
    * @return array
    */
   private function getArrayItemsToRemove($aExistingItems, $aNewItems) {
+
     $aRet = array();
 
     foreach ($aExistingItems as $existingItem) {
@@ -436,14 +442,14 @@ class AccessStorageService implements AccessStorageServiceInterface {
 
     if (!empty($aAllowedUsers)) {
 
-      // Remove the anonymous user, if set.
-      if (isset($aAllowedUsers['0'])) {
-        unset($aAllowedUsers['0']);
-      }
-
       foreach ($aAllowedUsers as $oUser) {
-        $iUid = $oUser->id();
-        $sUsername = $oUser->getUsername();
+        $iUid = intval($oUser->id());
+        if ($iUid !== 0) {
+          $sUsername = $oUser->getUsername();
+        } else {
+          $sUsername = t('Anonymous User');
+        }
+
         $sUserInfos .= $sUsername . ' ' . '(' . $iUid . '), ';
       }
 

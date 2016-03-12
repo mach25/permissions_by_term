@@ -22,6 +22,7 @@ class AccessCheckService
    * Checks if a user can access a node by given node id.
    *
    * @param $iNid
+   * @return bool
    */
   public function canUserAccessByNodeId($iNid = NULL)
   {
@@ -63,6 +64,8 @@ class AccessCheckService
   }
 
   /**
+   * Returns a boolean if the view is containing nodes.
+   *
    * @param $view
    * @return bool
    */
@@ -80,6 +83,8 @@ class AccessCheckService
   }
 
   /**
+   * Removes forbidden nodes from view listing.
+   *
    * @param $view
    * @param $aNodesToHideInView
    */
