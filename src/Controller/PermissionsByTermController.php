@@ -18,9 +18,9 @@ use \Drupal\Core\Access\AccessResult;
  */
 class PermissionsByTermController extends ControllerBase {
 
-  public function __construct()
+  public function __construct($iNid)
   {
-    $this->oAccessCheckService = new AccessCheckService();
+    $this->oAccessCheckService = new AccessCheckService($iNid);
   }
 
   /**
@@ -43,8 +43,13 @@ class PermissionsByTermController extends ControllerBase {
    *
    * @return \Drupal\Core\Access\AccessResult
    */
-  public function handleNode($iNid) {
-    if ($this->oAccessCheckService->canUserAccessByNodeId($iNid) === TRUE) {
+  public function handleNode() {
+    // If the trigger field isn't existing, allow the access.
+    if (!$this->oAccessCheckService->oNode->hasField('field_secured_areas')) {
+      return AccessResult::allowed();
+    }
+
+    if ($this->oAccessCheckService->canUserAccessByNodeId() === TRUE) {
       return AccessResult::allowed();
     } else {
       return AccessResult::forbidden();

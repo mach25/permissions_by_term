@@ -89,8 +89,8 @@ function permissions_by_term_views_post_execute($view) {
 function permissions_by_term_node_access(\Drupal\node\NodeInterface $node, $op,
                                          \Drupal\Core\Session\AccountInterface $account) {
 
-  $oPermissionsByTermController = new PermissionsByTermController();
-  return $oPermissionsByTermController->handleNode($node->id());
+  $oPermissionsByTermController = new PermissionsByTermController($node->id());
+  return $oPermissionsByTermController->handleNode();
 
 }
 

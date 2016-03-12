@@ -2,11 +2,14 @@
 
 namespace Drupal\permissions_by_term;
 
+
 class AccessCheckService
 {
 
-  public function __construct() {
+  public function __construct($iNid) {
     $this->oUser = \Drupal::currentUser();
+    $this->oNode = \Drupal::entityManager()->getStorage('node')->load($iNid);
+    $debug = true;
   }
 
   /**
@@ -14,21 +17,17 @@ class AccessCheckService
    *
    * @param $iNid
    */
-  public function canUserAccessByNodeId($iNid)
+  public function canUserAccessByNodeId()
   {
     // @TODO: check if there's any permission setting + check access for anonymous users. There seems to be a bug.
 
-    $oNode = \Drupal::entityManager()->getStorage('node')->load($iNid);
-
-    if ($oNode->hasField('field_secured_areas')) {
+    if ($this->oNode->hasField('field_secured_areas')) {
       // @TODO: replace hard coded field name to add flexibility.
-      $oField = $oNode->get('field_secured_areas');
+      $oField = $this->oNode->get('field_secured_areas');
       $aReferencedTaxonomyTerms = $oField->getValue();
 
       if (!empty($aReferencedTaxonomyTerms)) {
         foreach ($aReferencedTaxonomyTerms as $aReferencedTerm) {
-
-          // @TODO: Move permissions_by_term_allowed() in here.
 
           if (isset($aReferencedTerm['target_id']) &&
             $this->getAccessFromDatabase($aReferencedTerm['target_id']) === TRUE
