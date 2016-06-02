@@ -90,8 +90,9 @@ function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, 
     $form['access']['user'] = array(
       '#type' => 'textfield',
       '#title' => t('Allowed users'),
-      '#description' => t('Enter a comma-seperated list of user names to give') .
-        ' ' . t('them permission to use this term.'),
+      '#description' => t('Enter a comma-seperated list of user names to ' .
+        'give them permission to use this term and access related nodes in ' .
+        'single node view and views listings.'),
       '#default_value' => $allowed_users,
       '#size' => 60,
       '#autocomplete_path' => 'permissions-by-term/autocomplete',
@@ -142,7 +143,9 @@ function permissions_by_term_form_taxonomy_form_term_alter(&$form, $form_state, 
     $form['access']['role'] = array(
       '#type' => 'checkboxes',
       '#title' => t('Allowed roles'),
-      '#description' => t('Select a role to allow all members of that role access to this term.'),
+      '#description' => t('Select a role to allow all members of this role ' .
+        'to use this term and access related nodes in single node view and ' .
+        'views listings.'),
       '#default_value' => $allowed_roles_positions,
       '#options' => $arr__all_translated_user_roles,
       //'#options' => user_roles(),
@@ -288,15 +291,9 @@ function permissions_by_term_views_post_execute(&$view) {
       if (!empty($secured_areas)) {
         foreach ($secured_areas as $term) {
           if (isset($term['tid']) &&
-            permissions_by_term_allowed($term['tid'], $user) === TRUE) {
-            $user_is_allowed_to_view = TRUE;
-          }
-
-          if (!isset($user_is_allowed_to_view)) {
-            $user_is_allowed_to_view = FALSE;
+            !permissions_by_term_allowed($term['tid'], $user)) {
             $arr__nodes_to_hide_in_view[] = $node->nid;
           }
-
         }
       }
 
