@@ -440,11 +440,16 @@ function permissions_by_term_form_views_exposed_form_alter(&$form, $form_state) 
       $filter_name, $user);
 
     // Modify the autocomplete path, to remove restricted taxonomy term items.
-    $vocabulary_id = explode('taxonomy/',
-      $form[$filter_name]['#autocomplete_path']);
-    $vocabulary_id = $vocabulary_id['1'];
-    $form[$filter_name]['#autocomplete_path'] = 'permissions-by-term/' .
-      'autocomplete_terms/'. $vocabulary_id;
+	if (!empty($form[$filter_name]['#autocomplete_path'])){
+      $vocabulary_id = explode('taxonomy/',
+        $form[$filter_name]['#autocomplete_path']);
+	}
+    if (!empty($vocabulary_id['1'])) {
+      $vocabulary_id = $vocabulary_id['1'];
+      $form[$filter_name]['#autocomplete_path'] = 'permissions-by-term/' .
+        'autocomplete_terms/'. $vocabulary_id;
+    }
+
   }
 
 }
@@ -463,20 +468,25 @@ function _permissions_by_term_remove_restricted_items_in_select_field(&$form,
                                                                       $user) {
   foreach ($form[$filter_name] as $form_element) {
     if (is_array($form_element)) {
-      foreach ($form_element as $option) {
-        $term = taxonomy_get_term_by_name($option);
+      foreach ($form_element as $k => $option) {
+		if (is_object($option)){
+			$term = taxonomy_term_load($k);
+		} else {
+        	$term = taxonomy_get_term_by_name($option);
+		}
         if (is_array($term)) {
           foreach ($term as $term_info) {
             $term_id = $term_info->tid;
             if (!permissions_by_term_allowed($term_id, $user)) {
               unset($form[$filter_name]['#options'][$term_id]);
-            }
+			}
           }
         }
       }
     }
   }
 }
+
 
 /**
  * Page callback for views taxonomy autocomplete.
