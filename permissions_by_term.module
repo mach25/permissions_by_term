@@ -48,27 +48,6 @@ function permissions_by_term_submit($form, FormState $oFormState) {
 }
 
 /**
- * Implements hook_views_data_alter().
- *
- * @TODO: Create filter for filtering from the views UI. Good tutorial is
- * located at http://www.webomelette.com/creating-custom-views-filter-drupal-8.
- */
-/*
-function permissions_by_term_views_data_alter(array &$data)
-{
-  $data['node_field_data']['nodes_titles'] = array(
-    'title' => t('Node titles'),
-    'filter' => array(
-      'title' => t('Node titles'),
-      'help' => t('Specify a list of titles a node can have.'),
-      'field' => 'title',
-      'id' => 'd8views_node_titles'
-    ),
-  );
-}
-*/
-
-/**
  * Implements hook_views_post_execute().
  *
  * Hides nodes in every view on the site.
@@ -107,7 +86,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
 
   if (\Drupal::currentUser()->hasPermission('show term permission form on term page')) {
 
-    $iTermId = getFormTermId();
+    $iTermId = $oFormState->getFormObject()->getEntity()->id();
     $oDbConnection = \Drupal::database();
     $oAccessStorageService = new AccessStorageService($oDbConnection,
       $oFormState, $iTermId);
@@ -193,14 +172,4 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
     $form['actions']['submit']['#submit'][] = 'permissions_by_term_submit';
   }
 
-}
-
-/**
- * Gets the term id from the current form.
- *
- * @return int
- */
-function getFormTermId() {
-  $aUrl = explode('/', $_SERVER['REQUEST_URI']);
-  return intval($aUrl['3']);
 }
