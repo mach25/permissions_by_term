@@ -41,20 +41,22 @@ class AccessCheckService
       $aReferencedTaxonomyTerms = $oField->getValue();
 
       if (!empty($aReferencedTaxonomyTerms)) {
+
+        $user_is_allowed_to_view = FALSE;
         foreach ($aReferencedTaxonomyTerms as $aReferencedTerm) {
 
           if (isset($aReferencedTerm['target_id']) &&
-            $this->isAccessAllowedByDatabase($aReferencedTerm['target_id']) === TRUE
+            $this->isAccessAllowedByDatabase($aReferencedTerm['target_id'])
+            === TRUE
           ) {
-            return TRUE;
-          }
-
-          if (!isset($user_is_allowed_to_view)) {
-           return FALSE;
+            $user_is_allowed_to_view = TRUE;
           }
 
         }
+        return $user_is_allowed_to_view;
       }
+
+      return TRUE;
 
     } else {
       // No taxonomy field reference for permissions. User can access.
