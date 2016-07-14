@@ -31,6 +31,9 @@ function permissions_by_term_help($path, $arg) {
  * Validation handler for permissions_by_term_form_alter().
  */
 function permissions_by_term_validate($form, FormState $oFormState) {
+    // @TODO: as in issue #2756809 - check if all term relation fields contain only allowed terms.
+
+
     $oDbConnection = \Drupal::database();
     $accessService = new AccessStorageService($oDbConnection,
       $oFormState);
@@ -172,4 +175,8 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
     $form['actions']['submit']['#submit'][] = 'permissions_by_term_submit';
   }
 
+}
+
+function permissions_by_term_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $oFormState, $form_id) {
+  $form['#validate'][] = 'permissions_by_term_validate';
 }
