@@ -33,6 +33,14 @@ class SavePermissionsTest extends KernelTestBase {
    * Tests if an editor has access to a term on node edit form.
    */
   public function testTermFormAccess() {
+
+    $term = Term::create([
+      'name' => 'test',
+      'vid' => '1',
+    ])->save();
+
+
+    /*
     // Add a paragraph field to the article.
     $field_storage = FieldStorageConfig::create(array(
       'field_name' => 'secured_areas',
@@ -59,6 +67,7 @@ class SavePermissionsTest extends KernelTestBase {
       'bundle' => 'article',
     ));
     $field->save();
+    */
   }
 
 }
