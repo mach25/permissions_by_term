@@ -9,7 +9,7 @@ use Drupal\KernelTests\KernelTestBase;
  *
  * @group permissions_by_term
  */
-class SavePermissionsTest extends KernelTestBase {
+class SelectTermTest extends KernelTestBase {
 
   /**
    * Modules to enable.
