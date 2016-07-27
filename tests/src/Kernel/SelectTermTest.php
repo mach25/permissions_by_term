@@ -17,7 +17,8 @@ class SelectTermTest extends KernelTestBase {
    * @var array
    */
   public static $modules = array(
-    'permissions_by_term',
+    'taxonomy',
+    //'permissions_by_term',
   );
 
   /**
@@ -26,19 +27,19 @@ class SelectTermTest extends KernelTestBase {
   protected function setUp() {
     parent::setUp();
 
-    $this->installEntitySchema('permissions_by_term');
+    //$this->installEntitySchema('permissions_by_term');
   }
 
   /**
    * Tests if an editor has access to a term on node edit form.
    */
   public function testTermFormAccess() {
-
+    /*
     $term = Term::create([
       'name' => 'test',
       'vid' => '1',
     ])->save();
-
+    */
 
     /*
     // Add a paragraph field to the article.
