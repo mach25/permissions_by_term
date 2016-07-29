@@ -3,6 +3,9 @@
 namespace Drupal\Tests\permissions_by_term\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
+use Drupal\taxonomy\Tests\TaxonomyTestTrait;
+use Drupal\taxonomy\Entity\Term;
+use Drupal\taxonomy\Entity\Vocabulary;
 
 /**
  * Tests the ERR composite relationship upgrade path.
@@ -11,6 +14,8 @@ use Drupal\KernelTests\KernelTestBase;
  */
 class SelectTermTest extends KernelTestBase {
 
+  use TaxonomyTestTrait;
+
   /**
    * Modules to enable.
    *
@@ -18,7 +23,8 @@ class SelectTermTest extends KernelTestBase {
    */
   public static $modules = array(
     'taxonomy',
-    //'permissions_by_term',
+    'permissions_by_term',
+    'text'
   );
 
   /**
@@ -27,19 +33,33 @@ class SelectTermTest extends KernelTestBase {
   protected function setUp() {
     parent::setUp();
 
-    //$this->installEntitySchema('permissions_by_term');
+    $this->installEntitySchema('taxonomy_term');
   }
 
   /**
    * Tests if an editor has access to a term on node edit form.
    */
   public function testTermFormAccess() {
-    /*
-    $term = Term::create([
+    $vocabulary = $this->createVocabulary();
+
+    $values = array(
+      'name' => $this->randomMachineName(),
+    );
+
+    
+    Term::create([
       'name' => 'test',
       'vid' => '1',
+      'description' => [
+        'value' => $this->randomMachineName(),
+        // Use the first available text format.
+        'format' => 1,
+      ],
     ])->save();
-    */
+
+    $term = Term::load(1);
+
+    $debug = true;
 
     /*
     // Add a paragraph field to the article.
