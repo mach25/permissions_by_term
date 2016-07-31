@@ -2,93 +2,79 @@
 
 namespace Drupal\Tests\permissions_by_term\Kernel;
 
-use Drupal\KernelTests\KernelTestBase;
-use Drupal\taxonomy\Tests\TaxonomyTestTrait;
-use Drupal\taxonomy\Entity\Term;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\simpletest\WebTestBase;
 use Drupal\taxonomy\Entity\Vocabulary;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\taxonomy\Entity\Term;
 
 /**
  * Tests the ERR composite relationship upgrade path.
  *
  * @group permissions_by_term
  */
-class SelectTermTest extends KernelTestBase {
-
-  use TaxonomyTestTrait;
-
-  /**
-   * Modules to enable.
-   *
-   * @var array
-   */
-  public static $modules = array(
-    'taxonomy',
-    'permissions_by_term',
-    'text'
-  );
+class SelectTermTest extends WebTestBase {
 
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
-    parent::setUp();
-
-    $this->installEntitySchema('taxonomy_term');
-  }
+  public static $modules = array('taxonomy', 'text');
 
   /**
-   * Tests if an editor has access to a term on node edit form.
+   * List of taxonomy term names by language.
+   *
+   * @var array
    */
-  public function testTermFormAccess() {
-    $vocabulary = $this->createVocabulary();
+  public $termNames = [];
 
-    $values = array(
-      'name' => $this->randomMachineName(),
-    );
+  /**
+   * The vocabulary used for creating terms.
+   *
+   * @var \Drupal\taxonomy\VocabularyInterface
+   */
+  protected $vocabulary;
 
-    
-    Term::create([
-      'name' => 'test',
-      'vid' => '1',
-      'description' => [
-        'value' => $this->randomMachineName(),
-        // Use the first available text format.
-        'format' => 1,
-      ],
+  function setUp() {
+    parent::setUp();
+    //$this->installEntitySchema('taxonomy_term');
+
+    // Create a vocabulary.
+    $this->vocabulary = Vocabulary::create([
+      'name' => 'Views testing tags',
+      'vid' => 'views_testing_tags',
+    ]);
+    $this->vocabulary->save();
+
+    // Add a translatable field to the vocabulary.
+    $field = FieldStorageConfig::create(array(
+      'field_name' => 'field_foo',
+      'entity_type' => 'taxonomy_term',
+      'type' => 'text',
+    ));
+    $field->save();
+    FieldConfig::create([
+      'field_name' => 'field_foo',
+      'entity_type' => 'taxonomy_term',
+      'label' => 'Foo',
+      'bundle' => 'views_testing_tags',
     ])->save();
 
-    $term = Term::load(1);
+    $new_term = Term::create([
+      'name' => 'blar',
+      'vid' => 'views_testing_tags',
+      'field_foo' => [
+        'value' => 'blub',
+        'format' => 'text'
+      ]
+    ]);
+    $new_term->save();
 
-    $debug = true;
+    $term = taxonomy_term_load_multiple_by_name('blar', 'views_testing_tags');
 
-    /*
-    // Add a paragraph field to the article.
-    $field_storage = FieldStorageConfig::create(array(
-      'field_name' => 'secured_areas',
-      'entity_type' => 'term_relation',
-      //'type' => 'entity_reference_revisions',
-    ));
-    $field_storage->save();
-    $field = FieldConfig::create(array(
-      'field_storage' => $field_storage,
-      'bundle' => 'test_pbt',
-    ));
-    $field->save();
+    $test = true;
+  }
 
-    // Add a paragraph field to the article.
-    $field_storage = FieldStorageConfig::create(array(
-      'field_name' => 'node_pbt_field',
-      'entity_type' => 'node',
-      'type' => 'entity_reference_revisions',
-      'cardinality' => '-1',
-    ));
-    $field_storage->save();
-    $field = FieldConfig::create(array(
-      'field_storage' => $field_storage,
-      'bundle' => 'article',
-    ));
-    $field->save();
-    */
+  public function testSomething() {
   }
 
 }
