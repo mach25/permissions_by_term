@@ -123,7 +123,7 @@ class AccessCheckService
    *
    * @return bool
    */
-  private function isAccessAllowedByDatabase($tid) {
+  public function isAccessAllowedByDatabase($tid) {
 
     // Admin can access everything (user id "1").
     if ($this->oUser->id() == 1) {
@@ -168,7 +168,7 @@ class AccessCheckService
    *
    * @return bool
    */
-  private function isTermAllowedByUserId ($iTid, $iUid) {
+  public function isTermAllowedByUserId ($iTid, $iUid) {
 
     $query_result = db_query("SELECT uid FROM {permissions_by_term_user} WHERE tid = :tid AND uid = :uid",
       array(':tid' => $iTid, ':uid' => $iUid))->fetchField();
@@ -189,7 +189,7 @@ class AccessCheckService
    *
    * @return bool
    */
-  private function isTermAllowedByUserRole ($iTid, $sUserRole) {
+  public function isTermAllowedByUserRole ($iTid, $sUserRole) {
     $query_result = db_query("SELECT rid FROM {permissions_by_term_role} WHERE tid = :tid AND rid IN (:user_roles)",
       array(':tid' => $iTid, ':user_roles' => $sUserRole))->fetchField();
 
@@ -209,7 +209,7 @@ class AccessCheckService
    *
    * @return bool
    */
-  private function isAnyPermissionSetForTerm ($iTid) {
+  public function isAnyPermissionSetForTerm ($iTid) {
 
     $iUserTableResults = intval(db_query("SELECT COUNT(1) FROM {permissions_by_term_user} WHERE tid = :tid",
       array(':tid' => $iTid))->fetchField());
