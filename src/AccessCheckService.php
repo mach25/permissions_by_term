@@ -161,6 +161,15 @@ class AccessCheckService
   }
 
   /**
+   * Returns either true or false if the user can access the term.
+   *
+   * Unifies isTermAllowedByUserId() and isTermAllowedByUserRole()
+   */
+  public function isTermAllowedByUser() {
+    // @TODO!
+  }
+
+  /**
    * Returns a boolean if the term is allowed by given user id.
    *
    * @param $iTid

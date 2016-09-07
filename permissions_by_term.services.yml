@@ -1,0 +1,6 @@
+services:
+    permissions_by_term.kernel_event_listener:
+        class: Drupal\permissions_by_term\KernelEventListener
+        arguments: []
+        tags:
+            - { name: event_subscriber }
