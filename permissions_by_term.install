@@ -8,7 +8,7 @@
  * Implements hook_schema().
  */
 function permissions_by_term_schema() {
-  /*
+
   $schema = array();
 
   // Specifications for tabe 'permissions_by_term_user'
@@ -54,5 +54,5 @@ function permissions_by_term_schema() {
   );
 
   return $schema;
-  */
+
 }

@@ -8,7 +8,6 @@ namespace Drupal\permissions_by_term\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use \Drupal\Component\Utility\Tags;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use \Drupal\Core\Entity\Entity;
 use \Drupal\permissions_by_term\AccessCheckService;
 use \Drupal\Component\Utility\SafeMarkup;
 use \Drupal\Core\Access\AccessResult;
