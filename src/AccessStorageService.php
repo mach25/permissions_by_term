@@ -344,7 +344,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    *
    * @return null
    */
-  protected function saveTermPermissions() {
+  public function saveTermPermissions() {
 
     $aExistingUserPermissions       = $this->getExistingUserTermPermissionsByTid();
     $aSubmittedUserIdsGrantedAccess = $this->getSubmittedUserIds();

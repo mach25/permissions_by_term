@@ -18,30 +18,28 @@ class KernelEventListener implements EventSubscriberInterface {
   {
     if ($event->getRequest()->attributes->get('target_type') == 'taxonomy_term' &&
       $event->getRequest()->attributes->get('_route') == 'system.entity_autocomplete') {
+      $query_string = $event->getRequest()->get('q');
+      $query_string = trim($query_string);
 
-      // @TODO: separate the words, validate it.
-      $query_string = $event->getRequest()->getQueryString();
-
-
-      $query_string = 'No Access';
+      // @TODO: react on reponse by autocomplete list. This list under the field.
 
       $tid = $this->accessStorageService->getTermIdByName($query_string);
 
-      $this->accessCheckService->isAccessAllowedByDatabase();
+      if (!$this->accessCheckService->isAccessAllowedByDatabase($tid)) {
+        exit();
+      }
+    }
+  }
 
-      $response = new JsonResponse();
-      $response->setData(array(
-        'data' => 123
-      ));
-      $response->send();
-      exit();
-     }
+  public function onKernelResponse($event) {
+    xdebug_break();
   }
 
   public static function getSubscribedEvents()
   {
     return [
-      KernelEvents::REQUEST => 'onKernelRequest',
+      KernelEvents::REQUEST  => 'onKernelRequest',
+      KernelEvents::RESPONSE => 'onKernelResponse',
     ];
   }
 
