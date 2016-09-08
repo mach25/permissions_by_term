@@ -117,7 +117,7 @@ class AccessCheckService
    * Implements permissions_by_term_allowed().
    *
    * This hook-function checks if a user is either allowed or not allowed to
-   * access a given node by the referenced taxonomy term.
+   * access a given term.
    *
    * @param int $tid The taxonomy term id.
    *
@@ -158,15 +158,6 @@ class AccessCheckService
 
     return FALSE;
 
-  }
-
-  /**
-   * Returns either true or false if the user can access the term.
-   *
-   * Unifies isTermAllowedByUserId() and isTermAllowedByUserRole()
-   */
-  public function isTermAllowedByUser() {
-    // @TODO!
   }
 
   /**

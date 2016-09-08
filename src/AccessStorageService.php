@@ -18,6 +18,11 @@ use Drupal\user\Entity\User;
 /**
  * Class AccessService.
  *
+ * The "protected" class methods are meant for protection regarding Drupal's
+ * forms and presentation layer.
+ *
+ * The "public" class methods can be used for extensions.
+ *
  * @package Drupal\permissions_by_term
  */
 class AccessStorageService implements AccessStorageServiceInterface {
@@ -62,22 +67,31 @@ class AccessStorageService implements AccessStorageServiceInterface {
   protected $aSubmittedRolesGrantedAccess;
 
   /**
-   * AccessService constructor.
+   * AccessStorageService constructor.
+   *
    * @param \Drupal\Core\Database\Driver\mysql\Connection $database
-   * @param \Drupal\Core\Form\FormState $oFormState
+   *   The connection to the database.
+   * @param \Drupal\Core\Form\FormState|NULL $oFormState
+   *   The form state object
+   * @param null|int $iTermId
+   *   The taxonomy term id.
    */
-  public function __construct(Connection $database, FormState $oFormState, $iTermId = null) {
+  public function __construct(Connection $database, FormState $oFormState = NULL, $iTermId = NULL) {
     $this->oDatabase  = $database;
     $this->oFormState = $oFormState;
 
-    if (isset($this->oFormState->getValues()['access'])) {
+    if (!empty($this->oFormState)) {
       $sValuesUserAccess       = $this->oFormState->getValues()['access']['user'];
       $aUsernamesGrantedAccess = Tags::explode($sValuesUserAccess);
 
       $this->aUserIdsGrantedAccess = $this->getUserIdsByNames($aUsernamesGrantedAccess);
-    }
 
-    $this->iTermId = $this->getTermId($iTermId);
+      $this->iTermId = $iTermId;
+
+      if (!empty($this->oFormState->getValue('name')['0']['value'])) {
+        $this->sTermName  = $this->oFormState->getValue('name')['0']['value'];
+      }
+    }
   }
 
   /**
@@ -132,7 +146,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    *
    * @return mixed
    */
-  protected function getExistingUserTermPermissionsByTid() {
+  public function getExistingUserTermPermissionsByTid() {
     return $this->oDatabase->select('permissions_by_term_user', 'pu')
       ->condition('tid', $this->iTermId)
       ->fields('pu', ['uid'])
@@ -163,7 +177,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    *
    * @return mixed
    */
-  private function getUserIdByName($sUsername) {
+  public function getUserIdByName($sUsername) {
     return $this->oDatabase->select('users_field_data', 'ufd')
       ->condition('name', $sUsername)
       ->fields('ufd', ['uid'])
@@ -178,7 +192,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    *
    * @return array
    */
-  private function getUserIdsByNames($aUserNames) {
+  public function getUserIdsByNames($aUserNames) {
     $aUserIds = array();
     foreach ($aUserNames as $userName) {
       $iUserId    = $this->getUserIdByName($userName)['uid'];
@@ -210,7 +224,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    *
    * @return null
    */
-  private function deleteTermPermissionsByUserIds($aUserIdsAccessRemove) {
+  public function deleteTermPermissionsByUserIds($aUserIdsAccessRemove) {
     foreach ($aUserIdsAccessRemove as $iUserId) {
       $this->oDatabase->delete('permissions_by_term_user')
         ->condition('uid', $iUserId, '=')
@@ -225,7 +239,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    *
    * @return null
    */
-  private function deleteTermPermissionsByRoleIds($aRoleIdsAccessRemove) {
+  public function deleteTermPermissionsByRoleIds($aRoleIdsAccessRemove) {
     foreach ($aRoleIdsAccessRemove as $sRoleId) {
       $this->oDatabase->delete('permissions_by_term_role')
         ->condition('rid', $sRoleId, '=')
@@ -242,7 +256,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    * @return null
    * @throws \Exception
    */
-  private function addTermPermissionsByUserIds($aUserIdsGrantedAccess) {
+  public function addTermPermissionsByUserIds($aUserIdsGrantedAccess) {
     foreach ($aUserIdsGrantedAccess as $iUserIdGrantedAccess) {
       $this->oDatabase->insert('permissions_by_term_user')
         ->fields(['tid', 'uid'], [$this->iTermId, $iUserIdGrantedAccess])
@@ -258,7 +272,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    * @return null
    * @throws \Exception
    */
-  private function addTermPermissionsByRoleIds($aRoleIdsGrantedAccess) {
+  public function addTermPermissionsByRoleIds($aRoleIdsGrantedAccess) {
     foreach ($aRoleIdsGrantedAccess as $sRoleIdGrantedAccess) {
       $this->oDatabase->insert('permissions_by_term_role')
         ->fields(['tid', 'rid'], [$this->iTermId, $sRoleIdGrantedAccess])
@@ -269,18 +283,31 @@ class AccessStorageService implements AccessStorageServiceInterface {
   /**
    * Gets the term id by term name.
    *
-   * @return null
+   * @param string $sTermName
+   *   The term name.
+   *
+   * @return int
    */
-  private function getTermId($iTermId = null) {
-    if ($iTermId == null){
-      $this->sTermName  = $this->oFormState->getValue('name')['0']['value'];
-      $aTermId = \Drupal::entityQuery('taxonomy_term')
-        ->condition('name', $this->sTermName)
-        ->execute();
-      return key($aTermId);
-    } else {
-      return $iTermId;
-    }
+  public function getTermIdByName($sTermName) {
+    $aTermId = \Drupal::entityQuery('taxonomy_term')
+      ->condition('name', $sTermName)
+      ->execute();
+    return key($aTermId);
+  }
+
+  /**
+   * Gets the taxonomy name by id.
+   *
+   * @param int $term_id
+   *   The taxonomy term id.
+   *
+   * @return string
+   */
+  public function getTermNameById($term_id) {
+    $term_name = \Drupal::entityQuery('taxonomy_term')
+      ->condition('id', $term_id)
+      ->execute();
+    return key($term_name);
   }
 
   /**
@@ -317,7 +344,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    *
    * @return null
    */
-  public function saveTermPermissions() {
+  protected function saveTermPermissions() {
 
     $aExistingUserPermissions       = $this->getExistingUserTermPermissionsByTid();
     $aSubmittedUserIdsGrantedAccess = $this->getSubmittedUserIds();
