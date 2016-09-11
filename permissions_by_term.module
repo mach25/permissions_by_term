@@ -48,7 +48,8 @@ function permissions_by_term_entity_update(Drupal\Core\Entity\EntityInterface $e
   $field_definitions = $entity->getFieldDefinitions();
   foreach ($field_definitions as $field) {
     $type = $field->getType();
-    if ($type == 'entity_reference') {
+    $target_type = $field_definitions['field_tags']->getItemDefinition()->getSettings()['target_type'];
+    if ($type == 'entity_reference' && $target_type == 'taxonomy_term') {
       $debug = true;
     }
   }
