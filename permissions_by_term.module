@@ -13,13 +13,14 @@ use \Drupal\node\NodeInterface;
 use \Drupal\Core\Session\AccountInterface;
 use \Drupal\taxonomy\Entity\Term;
 use \Drupal\permissions_by_term\AccessCheckService;
+use Drupal\Core\Routing\RouteMatchInterface;
 
 /**
  * Implements hook_help().
  */
-function permissions_by_term_help($path, $arg) {
-  switch ($path) {
-    case 'admin/help#permissions_by_term':
+function permissions_by_term_help($route_name, RouteMatchInterface $arg) {
+  switch ($route_name) {
+    case 'help.page.permissions_by_term':
       $output = '<p>' . t('This module allows taxonomy administrators the
         ability to restrict setting individual terms on nodes by user
         or role. If a user is unable to set any terms for a required
@@ -169,7 +170,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
     $aSetRoles = array();
     if (!empty($aTranslatedAllowedRoleNames)) {
       foreach ($aTranslatedAllowedRoleNames as $role_name) {
-        $aSetRoles[] = $role_name->__toString();
+        $aSetRoles[] = $role_name;
       }
     }
 
