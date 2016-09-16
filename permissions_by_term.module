@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Allows access to terms in a vocabulary to be limited by user or role.
@@ -7,6 +8,11 @@
 use \Drupal\Core\Form\FormState;
 use \Drupal\permissions_by_term\AccessStorageService;
 use \Drupal\permissions_by_term\Controller\PermissionsByTermController;
+use \Drupal\Core\Form\FormStateInterface;
+use \Drupal\node\NodeInterface;
+use \Drupal\Core\Session\AccountInterface;
+use \Drupal\taxonomy\Entity\Term;
+use \Drupal\permissions_by_term\AccessCheckService;
 
 /**
  * Implements hook_help().
@@ -38,9 +44,9 @@ function permissions_by_term_validate($form, FormState $oFormState) {
       $not_allowed_term_names = array();
       foreach ($terms as $term) {
         $term_id = $term['target_id'];
-        $access_check_service = new \Drupal\permissions_by_term\AccessCheckService();
+        $access_check_service = new AccessCheckService();
         if (!$access_check_service->isAccessAllowedByDatabase($term_id)) {
-          $term = \Drupal\taxonomy\Entity\Term::load($term_id);
+          $term = Term::load($term_id);
           $not_allowed_term_names[] = $term->getName();
         }
       }
@@ -49,12 +55,11 @@ function permissions_by_term_validate($form, FormState $oFormState) {
   if (!empty($not_allowed_term_names)) {
     if (count($not_allowed_term_names) > 1) {
       $term_names = implode(', ', $not_allowed_term_names);
-    } else {
+    }
+    else {
       $term_names = $not_allowed_term_names['0'];
     }
-    $oFormState->setErrorByName('field_tags', t('You are not allowed to use ' .
-      'specific taxonomy terms like the following: "term-names". Remove the ' .
-      'restricted taxonomy terms from the form field and try again.',
+    $oFormState->setErrorByName('field_tags', t('You are not allowed to use specific taxonomy terms like the following: "term-names". Remove the restricted taxonomy terms from the form field and try again.',
       ['term-names' => $term_names]));
   }
 }
@@ -89,8 +94,7 @@ function permissions_by_term_views_post_execute($view) {
  * "bypass node access" permission may always view and edit content
  * through the administrative interface.
  */
-function permissions_by_term_node_access(\Drupal\node\NodeInterface $node, $op,
-                                         \Drupal\Core\Session\AccountInterface $account) {
+function permissions_by_term_node_access(NodeInterface $node, $op, AccountInterface $account) {
   if (method_exists($node, 'id') && $op == 'view') {
     $oPermissionsByTermController = new PermissionsByTermController($node->id());
     return $oPermissionsByTermController->handleNode();
@@ -100,7 +104,7 @@ function permissions_by_term_node_access(\Drupal\node\NodeInterface $node, $op,
 /**
  * Implements hook_form_alter().
  */
-function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $oFormState, $form_id) {
+function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInterface $oFormState, $form_id) {
   if (\Drupal::currentUser()->hasPermission('show term permission form on term page')) {
     $iTermId = $oFormState->getFormObject()->getEntity()->id();
     $oDbConnection = \Drupal::database();
@@ -137,8 +141,8 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
       '#target_type' => 'user',
       '#title' => t('Allowed users'),
       '#description' => t('Enter a comma-seperated list of user names to give') . ' ' .
-        t('them permission to use this term and access related nodes in single node view
-        and views listings.'),
+      t('them permission to use this term and access related nodes in single node view
+      and views listings.'),
       '#value' => $sUserFormValue,
       '#size' => 60,
       '#autocomplete_route_name' => 'permissions_by_term.autocomplete_multiple',
@@ -147,26 +151,25 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
 
     $aAllowedRoles = $oAccessStorageService->getExistingRoleTermPermissionsByTid();
 
-    // firstly fetch all translated allowed role names.
+    // Firstly fetch all translated allowed role names.
     $aTranslatedAllowedRoleNames = array();
-    foreach($aAllowedRoles as $role){
-      $aTranslatedAllowedRoleNames[] = t($role);
+    foreach ($aAllowedRoles as $role) {
+      $aTranslatedAllowedRoleNames[] = $role;
     }
 
-    // get all roles for the complete form and translate them.
+    // Get all roles for the complete form and translate them.
     $aTranslatedUserRoles = array();
     $array_key_counter = 1;
-    foreach(user_roles() as $user_role_id=>$user_role_name){
-      $aTranslatedUserRoles[$user_role_id] = t($user_role_name->label());
+    foreach (user_roles() as $user_role_id => $user_role_name) {
+      $aTranslatedUserRoles[$user_role_id] = $user_role_name->label();
       $array_key_counter++;
     }
 
-    // generate the default values for the form.
+    // Generate the default values for the form.
     $aSetRoles = array();
-    if(!empty($aTranslatedAllowedRoleNames)){
-      foreach($aTranslatedAllowedRoleNames as $role_name){
-          $aSetRoles[] = $role_name->__toString();
-
+    if (!empty($aTranslatedAllowedRoleNames)) {
+      foreach ($aTranslatedAllowedRoleNames as $role_name) {
+        $aSetRoles[] = $role_name->__toString();
       }
     }
 
@@ -179,7 +182,6 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
         listings.'),
       '#default_value' => $aSetRoles,
       '#options' => $aTranslatedUserRoles,
-      //'#options' => user_roles(),
       '#multiple' => FALSE,
       '#weight' => 5,
     );
@@ -190,6 +192,9 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\
 
 }
 
-function permissions_by_term_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $oFormState, $form_id) {
+/**
+ * Implements hook_form_alter().
+ */
+function permissions_by_term_form_alter(&$form, FormStateInterface $oFormState, $form_id) {
   $form['#validate'][] = 'permissions_by_term_validate';
 }

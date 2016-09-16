@@ -1,19 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains Drupal\permissions_by_term\AccessService.
- */
-
 namespace Drupal\permissions_by_term;
 
 use Drupal\Core\Database\Driver\mysql\Connection;
 use \Drupal\Component\Utility\Tags;
-use Drupal\Core\Entity\Entity;
 use Drupal\Core\Form\FormState;
-use Drupal\taxonomy\Entity\Term;
-use Drupal\user\UserData;
-use Drupal\user\Entity\User;
 
 /**
  * Class AccessService.
@@ -25,7 +16,7 @@ use Drupal\user\Entity\User;
  *
  * @package Drupal\permissions_by_term
  */
-class AccessStorageService implements AccessStorageServiceInterface {
+class AccessStorageService {
 
   /**
    * Drupal\Core\Database\Driver\mysql\Connection definition.
@@ -33,7 +24,10 @@ class AccessStorageService implements AccessStorageServiceInterface {
    * @var Drupal\Core\Database\Driver\mysql\Connection
    */
   protected $oDatabase;
+
   /**
+   * The form state object.
+   *
    * @var \Drupal\Core\Form\FormState
    */
   protected $oFormState;
@@ -71,8 +65,8 @@ class AccessStorageService implements AccessStorageServiceInterface {
    *
    * @param \Drupal\Core\Database\Driver\mysql\Connection $database
    *   The connection to the database.
-   * @param \Drupal\Core\Form\FormState|NULL $oFormState
-   *   The form state object
+   * @param \Drupal\Core\Form\FormState|null $oFormState
+   *   The form state object.
    * @param null|int $iTermId
    *   The taxonomy term id.
    */
@@ -98,6 +92,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    * Gets submitted roles with granted access from form.
    *
    * @return array
+   *   An array with chosen roles.
    */
   protected function getSubmittedRolesGrantedAccess() {
     $aRoles       = $this->oFormState->getValue('access')['role'];
@@ -111,40 +106,30 @@ class AccessStorageService implements AccessStorageServiceInterface {
   }
 
   /**
-   * Checks if the submitted users are existing. If an user isn't existing,
-   * set an error message.
+   * Checks if the submitted users are existing.
    *
-   * @param array $aAllowedUsers An array with usernames.
-   *
-   * @return null
+   * If an user isn't existing, set an error message.
    */
   public function checkIfUsersExists() {
-
     $sAllowedUsers = $this->oFormState->getValue('access')['user'];
     $aAllowedUsers = Tags::explode($sAllowedUsers);
-
     foreach ($aAllowedUsers as $sUserId) {
-
       $aUserId = \Drupal::entityQuery('user')
         ->condition('uid', $sUserId)
         ->execute();
-
       if (empty($aUserId)) {
         $this->oFormState->setErrorByName('access][user',
           t('The user with ID %user_id does not exist.',
           array('%user_id' => $sUserId)));
       }
-
     }
-
   }
 
   /**
    * Gets user term permissions by tid.
    *
-   * @param $iTermId
-   *
    * @return mixed
+   *   Existing term permissions.
    */
   public function getExistingUserTermPermissionsByTid() {
     return $this->oDatabase->select('permissions_by_term_user', 'pu')
@@ -157,9 +142,8 @@ class AccessStorageService implements AccessStorageServiceInterface {
   /**
    * Gets role term permissions by tid.
    *
-   * @param $iTermId
-   *
    * @return mixed
+   *   Existing role term permissions.
    */
   public function getExistingRoleTermPermissionsByTid() {
     return $this->oDatabase->select('permissions_by_term_role', 'pr')
@@ -169,13 +153,14 @@ class AccessStorageService implements AccessStorageServiceInterface {
       ->fetchCol();
   }
 
-
   /**
    * Gets single user id by user name.
    *
-   * @param $sUsername
+   * @param string $sUsername
+   *   An user name.
    *
-   * @return mixed
+   * @return int
+   *   User id.
    */
   public function getUserIdByName($sUsername) {
     return $this->oDatabase->select('users_field_data', 'ufd')
@@ -188,9 +173,11 @@ class AccessStorageService implements AccessStorageServiceInterface {
   /**
    * Gets multiple user ids by user names.
    *
-   * @param $aUserNames
+   * @param array $aUserNames
+   *   An array with user names.
    *
    * @return array
+   *   User ids.
    */
   public function getUserIdsByNames($aUserNames) {
     $aUserIds = array();
@@ -202,10 +189,12 @@ class AccessStorageService implements AccessStorageServiceInterface {
   }
 
   /**
-   * Gets the user names from users which have granted access
-   * for a taxonomy term.
+   * Gets the user names from users.
+   *
+   * Users which have granted access for a taxonomy term.
    *
    * @return mixed
+   *   Gets user ids, which are allowed to access.
    */
   public function getAllowedUserIds() {
     $query = $this->oDatabase->select('permissions_by_term_user', 'p')
@@ -220,9 +209,8 @@ class AccessStorageService implements AccessStorageServiceInterface {
   /**
    * Deletes term permissions by user id.
    *
-   * @param $iUserId
-   *
-   * @return null
+   * @param array $aUserIdsAccessRemove
+   *   An array with user ids, which access will be removed.
    */
   public function deleteTermPermissionsByUserIds($aUserIdsAccessRemove) {
     foreach ($aUserIdsAccessRemove as $iUserId) {
@@ -235,9 +223,8 @@ class AccessStorageService implements AccessStorageServiceInterface {
   /**
    * Deletes term permissions by role ids.
    *
-   * @param $aRoleIdsAccessRemove
-   *
-   * @return null
+   * @param array $aRoleIdsAccessRemove
+   *   An array with role ids, that will be removed.
    */
   public function deleteTermPermissionsByRoleIds($aRoleIdsAccessRemove) {
     foreach ($aRoleIdsAccessRemove as $sRoleId) {
@@ -250,10 +237,9 @@ class AccessStorageService implements AccessStorageServiceInterface {
   /**
    * Adds term permissions by user ids.
    *
-   * @param $iUserIdGrantedAccess
-   * @param $iTermId
+   * @param array $aUserIdsGrantedAccess
+   *   The user ids which will get granted access.
    *
-   * @return null
    * @throws \Exception
    */
   public function addTermPermissionsByUserIds($aUserIdsGrantedAccess) {
@@ -267,9 +253,9 @@ class AccessStorageService implements AccessStorageServiceInterface {
   /**
    * Adds term permissions by role ids.
    *
-   * @param $aRoleIdsGrantedAccess
+   * @param array $aRoleIdsGrantedAccess
+   *   The role ids which will gain access.
    *
-   * @return null
    * @throws \Exception
    */
   public function addTermPermissionsByRoleIds($aRoleIdsGrantedAccess) {
@@ -287,6 +273,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    *   The term name.
    *
    * @return int
+   *   The term id.
    */
   public function getTermIdByName($sTermName) {
     $aTermId = \Drupal::entityQuery('taxonomy_term')
@@ -302,6 +289,7 @@ class AccessStorageService implements AccessStorageServiceInterface {
    *   The taxonomy term id.
    *
    * @return string
+   *   Gets a term name by an id.
    */
   public function getTermNameById($term_id) {
     $term_name = \Drupal::entityQuery('taxonomy_term')
@@ -311,17 +299,17 @@ class AccessStorageService implements AccessStorageServiceInterface {
   }
 
   /**
-   * Gets the user ids which have been submitted by form and which
-   * will gain granted access to taxonomy terms.
+   * Gets the user ids which have been submitted by form.
    *
-   * @return array The user ids which have been submitted.
+   * Users which will gain granted access to taxonomy terms.
+   *
+   * @return array
+   *   The user ids which have been submitted.
    */
   protected function getSubmittedUserIds() {
-    /**
-     * There's a $this->oFormState->getValues() method, but
+    /* There's a $this->oFormState->getValues() method, but
      * it is loosing multiple form values. Don't know why.
-     * So there're some custom lines on the $_REQUEST array.
-     */
+     * So there're some custom lines on the $_REQUEST array. */
     $sRawUsers = $_REQUEST['access']['user'];
 
     if (empty($sRawUsers)) {
@@ -354,10 +342,12 @@ class AccessStorageService implements AccessStorageServiceInterface {
   }
 
   /**
-   * Saves term permissions by users. Oposite to save term permission
-   * by roles.
+   * Saves term permissions by users.
    *
-   * @return null
+   * Opposite to save term permission by roles.
+   *
+   * @return array
+   *   Data for database queries.
    */
   public function saveTermPermissions() {
 
@@ -383,14 +373,18 @@ class AccessStorageService implements AccessStorageServiceInterface {
   }
 
   /**
-   * Get array items to remove. The array items which aren't in the new items
-   * array, but are in old items array, will be returned.
+   * Get array items to remove.
    *
-   * @param $aExistingItems
-   * @param array|boolean $aNewItems Either false if there're no new items or
-   * an array with items.
+   * The array items which aren't in the new items array, but are in old items
+   * array, will be returned.
+   *
+   * @param array $aExistingItems
+   *   The existing array items.
+   * @param array|bool $aNewItems
+   *   Either false if there're no new items or an array with items.
    *
    * @return array
+   *   The array items to remove.
    */
   private function getArrayItemsToRemove($aExistingItems, $aNewItems) {
 
@@ -406,13 +400,18 @@ class AccessStorageService implements AccessStorageServiceInterface {
   }
 
   /**
-   * Get the array items to add. The items in the new items array, which aren't
-   * in the existing items array, will be returned.
+   * Get the array items to add.
    *
-   * @param $aNewItems
-   * @param $aExistingItems
+   * The items in the new items array, which aren't in the existing items array,
+   * will be returned.
+   *
+   * @param array $aNewItems
+   *   The new array items.
+   * @param array $aExistingItems
+   *   The existing array items.
    *
    * @return array
+   *   The items which needs to be added.
    */
   private function getArrayItemsToAdd($aNewItems, $aExistingItems) {
     $aRet = array();
@@ -430,40 +429,37 @@ class AccessStorageService implements AccessStorageServiceInterface {
    * Prepares the data which has to be applied to the database.
    *
    * @param array $aExistingUserPermissions
+   *   The permissions for existing user.
    * @param array $aSubmittedUserIdsGrantedAccess
+   *   The user ids which get access.
    * @param array $aExistingRoleIdsGrantedAccess
+   *   The existing role ids.
    * @param array $aSubmittedRolesGrantedAccess
+   *   The user roles which get access.
    *
-   * @return mixed
+   * @return array
+   *   User ID and role data.
    */
   public function getPreparedDataForDatabaseQueries($aExistingUserPermissions,
                                                     $aSubmittedUserIdsGrantedAccess,
                                                     $aExistingRoleIdsGrantedAccess,
                                                     $aSubmittedRolesGrantedAccess) {
-    /**
-     * Fill array with user ids to remove permission.
-     */
+    // Fill array with user ids to remove permission.
     $aRet['UserIdPermissionsToRemove'] =
       $this->getArrayItemsToRemove($aExistingUserPermissions,
         $aSubmittedUserIdsGrantedAccess);
 
-    /**
-     * Fill array with user ids to add permission.
-     */
+    // Fill array with user ids to add permission.
     $aRet['UserIdPermissionsToAdd'] =
       $this->getArrayItemsToAdd($aSubmittedUserIdsGrantedAccess,
         $aExistingUserPermissions);
 
-    /**
-     * Fill array with user roles to remove permission.
-     */
+    // Fill array with user roles to remove permission.
     $aRet['UserRolePermissionsToRemove'] =
       $this->getArrayItemsToRemove($aExistingRoleIdsGrantedAccess,
         $aSubmittedRolesGrantedAccess);
 
-    /**
-     * Fill array with user roles to add permission.
-     */
+    // Fill array with user roles to add permission.
     $aRet['aRoleIdPermissionsToAdd'] =
       $this->getArrayItemsToAdd($aSubmittedRolesGrantedAccess,
         $aExistingRoleIdsGrantedAccess);
@@ -475,8 +471,10 @@ class AccessStorageService implements AccessStorageServiceInterface {
    * The form value for allowed users as string to be shown to the user.
    *
    * @param \Drupal\user\Entity\User[] $aAllowedUsers
+   *   An array with the allowed users.
    *
-   * @return null
+   * @return null|string
+   *   Either null or the user name.
    */
   public function getUserFormValue($aAllowedUsers) {
 
@@ -488,11 +486,12 @@ class AccessStorageService implements AccessStorageServiceInterface {
         $iUid = intval($oUser->id());
         if ($iUid !== 0) {
           $sUsername = $oUser->getUsername();
-        } else {
+        }
+        else {
           $sUsername = t('Anonymous User');
         }
 
-        $sUserInfos .= $sUsername . ' ' . '(' . $iUid . '), ';
+        $sUserInfos .= "$sUsername ($iUid), ";
       }
 
       // Remove space and comma at the end of the string.

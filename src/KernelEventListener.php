@@ -1,23 +1,33 @@
 <?php
 
 namespace Drupal\permissions_by_term;
+
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Drupal\permissions_by_term\AccessCheckService;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+/**
+ * Class KernelEventListener.
+ *
+ * @package Drupal\permissions_by_term
+ */
 class KernelEventListener implements EventSubscriberInterface {
 
+  /**
+   * Instantiating of objects on class construction.
+   */
   public function __construct() {
     $oDbConnection = \Drupal::database();
     $this->accessCheckService = new AccessCheckService();
     $this->accessStorageService = new AccessStorageService($oDbConnection);
   }
 
-  public function onKernelRequest($event)
-  {
+  /**
+   * Access restriction on kernel request.
+   */
+  public function onKernelRequest($event) {
     // Restricts access to nodes (views/edit).
     if (!empty($event->getRequest()->attributes->get('node'))) {
       $nid = $event->getRequest()->attributes->get('node')->get('nid')->getValue()['0']['value'];
@@ -41,10 +51,16 @@ class KernelEventListener implements EventSubscriberInterface {
     }
   }
 
+  /**
+   * Restricts access on kernel response.
+   */
   public function onKernelResponse(FilterResponseEvent $event) {
     $this->restrictTermAccessAtAutoCompletion($event);
   }
 
+  /**
+   * Restricts access to terms on AJAX auto completion.
+   */
   private function restrictTermAccessAtAutoCompletion(FilterResponseEvent $event) {
     if ($event->getRequest()->attributes->get('target_type') == 'taxonomy_term' &&
       $event->getRequest()->attributes->get('_route') == 'system.entity_autocomplete') {
@@ -66,8 +82,10 @@ class KernelEventListener implements EventSubscriberInterface {
     }
   }
 
-  public static function getSubscribedEvents()
-  {
+  /**
+   * The subscribed events.
+   */
+  public static function getSubscribedEvents() {
     return [
       KernelEvents::REQUEST  => 'onKernelRequest',
       KernelEvents::RESPONSE => 'onKernelResponse',

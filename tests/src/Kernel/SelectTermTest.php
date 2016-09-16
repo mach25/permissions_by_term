@@ -34,9 +34,11 @@ class SelectTermTest extends WebTestBase {
    */
   protected $vocabulary;
 
-  function setUp() {
+  /**
+   * Sets up the test.
+   */
+  protected function setUp() {
     parent::setUp();
-    //$this->installEntitySchema('taxonomy_term');
 
     // Create a vocabulary.
     $this->vocabulary = Vocabulary::create([
@@ -64,17 +66,10 @@ class SelectTermTest extends WebTestBase {
       'vid' => 'views_testing_tags',
       'field_foo' => [
         'value' => 'blub',
-        'format' => 'text'
-      ]
+        'format' => 'text',
+      ],
     ]);
     $new_term->save();
-
-    $term = taxonomy_term_load_multiple_by_name('blar', 'views_testing_tags');
-
-    $test = true;
-  }
-
-  public function testSomething() {
   }
 
 }
