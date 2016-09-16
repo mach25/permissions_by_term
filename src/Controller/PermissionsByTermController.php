@@ -1,7 +1,4 @@
-<?php /**
- * @file
- * Contains \Drupal\permissions_by_term\Controller\DefaultController.
- */
+<?php
 
 namespace Drupal\permissions_by_term\Controller;
 
@@ -20,42 +17,33 @@ class PermissionsByTermController extends ControllerBase {
   /**
    * PermissionsByTermController constructor.
    *
-   * @param null $iNid Can be null for views pages.
+   * @param null|int $iNid
+   *   Can be null for views pages.
    */
-  public function __construct($iNid = NULL)
-  {
+  public function __construct($iNid = NULL) {
     $this->oAccessCheckService = new AccessCheckService($iNid);
   }
 
   /**
    * Handles views in module's logic.
-   *
-   * @param $view
    */
   public function handleViews(&$view) {
-
     if ($this->oAccessCheckService->viewContainsNode($view) === TRUE) {
       $this->oAccessCheckService->removeForbiddenNodesFromView($view);
     }
-
   }
 
   /**
    * Handles nodes in module's logic.
    *
-   * @param $iNid
-   *
    * @return \Drupal\Core\Access\AccessResult
+   *   The AccessResult object.
    */
   public function handleNode() {
-    // If the trigger field isn't existing, allow the access.
-    if (!$this->oAccessCheckService->oNode->hasField('field_secured_areas')) {
-      return AccessResult::allowed();
-    }
-
     if ($this->oAccessCheckService->canUserAccessByNodeId() === TRUE) {
       return AccessResult::allowed();
-    } else {
+    }
+    else {
       return AccessResult::forbidden();
     }
   }
@@ -64,8 +52,9 @@ class PermissionsByTermController extends ControllerBase {
    * Returns JSON response for user's autocomplete field in permissions form.
    *
    * @return JsonResponse
+   *   The response as JSON.
    */
-  public function permissions_by_term_autocomplete_multiple() {
+  public function autoCompleteMultiple() {
     // The user enters a comma-separated list of users.
     // We only autocomplete the last user.
     $array = Tags::explode($_REQUEST['q']);
@@ -87,6 +76,15 @@ class PermissionsByTermController extends ControllerBase {
     }
 
     return new JsonResponse($matches);
+  }
+
+  /**
+   * Defines the page, which shows that the access is restricted.
+   */
+  public function accessRestrictedPage() {
+    return array(
+      '#markup' => '<p>' . $this->t('Due to taxonomy term restrictions, you are not allowed to access the requested page.') . '</p>',
+    );
   }
 
 }

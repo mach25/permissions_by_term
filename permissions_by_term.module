@@ -31,29 +31,32 @@ function permissions_by_term_help($path, $arg) {
  * Validation handler for permissions_by_term_form_alter().
  */
 function permissions_by_term_validate($form, FormState $oFormState) {
-  // @TODO: as in issue #2756809 - check if all term relation fields contain only allowed terms.
-
-
-  $oDbConnection = \Drupal::database();
-  $accessService = new AccessStorageService($oDbConnection,
-    $oFormState);
-  $accessService->checkIfUsersExists();
-}
-
-/**
- * Implements hook_entity_update().
- */
-function permissions_by_term_entity_update(Drupal\Core\Entity\EntityInterface $entity) {
-  $def = $entity->getFieldDefinition($entity->get('field_tags'));
-  $field_definitions = $entity->getFieldDefinitions();
-  foreach ($field_definitions as $field) {
-    $type = $field->getType();
-    $target_type = $field_definitions['field_tags']->getItemDefinition()->getSettings()['target_type'];
-    if ($type == 'entity_reference' && $target_type == 'taxonomy_term') {
-      $debug = true;
+  foreach ($form as $field) {
+    if (is_array($field) && $field['widget']['target_id']['#target_type'] == 'taxonomy_term') {
+      $field_name = $field['widget']['#field_name'];
+      $terms = $oFormState->getValues()[$field_name]['target_id'];
+      $not_allowed_term_names = array();
+      foreach ($terms as $term) {
+        $term_id = $term['target_id'];
+        $access_check_service = new \Drupal\permissions_by_term\AccessCheckService();
+        if (!$access_check_service->isAccessAllowedByDatabase($term_id)) {
+          $term = \Drupal\taxonomy\Entity\Term::load($term_id);
+          $not_allowed_term_names[] = $term->getName();
+        }
+      }
     }
   }
-
+  if (!empty($not_allowed_term_names)) {
+    if (count($not_allowed_term_names) > 1) {
+      $term_names = implode(', ', $not_allowed_term_names);
+    } else {
+      $term_names = $not_allowed_term_names['0'];
+    }
+    $oFormState->setErrorByName('field_tags', t('You are not allowed to use ' .
+      'specific taxonomy terms like the following: "term-names". Remove the ' .
+      'restricted taxonomy terms from the form field and try again.',
+      ['term-names' => $term_names]));
+  }
 }
 
 /**
@@ -72,10 +75,8 @@ function permissions_by_term_submit($form, FormState $oFormState) {
  * Hides nodes in every view on the site.
  */
 function permissions_by_term_views_post_execute($view) {
-
   $oPermissionsByTermController = new PermissionsByTermController();
   return $oPermissionsByTermController->handleViews($view);
-
 }
 
 /**
@@ -90,21 +91,17 @@ function permissions_by_term_views_post_execute($view) {
  */
 function permissions_by_term_node_access(\Drupal\node\NodeInterface $node, $op,
                                          \Drupal\Core\Session\AccountInterface $account) {
-
   if (method_exists($node, 'id') && $op == 'view') {
     $oPermissionsByTermController = new PermissionsByTermController($node->id());
     return $oPermissionsByTermController->handleNode();
   }
-
 }
 
 /**
  * Implements hook_form_alter().
  */
 function permissions_by_term_form_taxonomy_term_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $oFormState, $form_id) {
-
   if (\Drupal::currentUser()->hasPermission('show term permission form on term page')) {
-
     $iTermId = $oFormState->getFormObject()->getEntity()->id();
     $oDbConnection = \Drupal::database();
     $oAccessStorageService = new AccessStorageService($oDbConnection, $oFormState, $iTermId);

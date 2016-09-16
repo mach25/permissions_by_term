@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Definition of Drupal\d8views\Plugin\views\filter\NodeTitles.
- */
-
 namespace Drupal\d8views\Plugin\views\filter;
 
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
@@ -30,7 +25,9 @@ class PermissionsByTerm extends InOperator {
   }
 
   /**
-   * Override the query so that no filtering takes place if the user doesn't
+   * Override the query.
+   *
+   * So that no filtering takes place if the user doesn't
    * select any options.
    */
   public function query() {
@@ -40,8 +37,9 @@ class PermissionsByTerm extends InOperator {
   }
 
   /**
-   * Skip validation if no options have been chosen so we can use it as a
-   * non-filter.
+   * Skip validation.
+   *
+   * If no options have been chosen so we can use it as a non-filter.
    */
   public function validate() {
     if (!empty($this->value)) {
@@ -51,10 +49,11 @@ class PermissionsByTerm extends InOperator {
 
   /**
    * Helper function that generates the options.
+   *
    * @return array
+   *   Array keys are used to compare with the table field values.
    */
   public function generateOptions() {
-    // Array keys are used to compare with the table field values.
     return array(
       'my title' => 'my title',
       'another title' => 'another title',
