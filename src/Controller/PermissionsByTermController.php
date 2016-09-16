@@ -6,7 +6,7 @@ use Drupal\Core\Controller\ControllerBase;
 use \Drupal\Component\Utility\Tags;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use \Drupal\permissions_by_term\AccessCheckService;
-use \Drupal\Component\Utility\SafeMarkup;
+use \Drupal\Component\Utility\Html;
 use \Drupal\Core\Access\AccessResult;
 
 /**
@@ -72,7 +72,7 @@ class PermissionsByTermController extends ControllerBase {
 
     foreach ($aUserIds as $iUserId) {
       $oUser = user_load($iUserId);
-      $matches[$prefix . $oUser->getUsername()] = SafeMarkup::checkPlain($oUser->getUsername());
+      $matches[$prefix . $oUser->getUsername()] = Html::escape($oUser->getUsername());
     }
 
     return new JsonResponse($matches);
