@@ -74,18 +74,21 @@ class AccessStorageService {
     $this->oDatabase  = $database;
     $this->oFormState = $oFormState;
 
-    if (!empty($this->oFormState)) {
+    if ($this->oFormState instanceof FormState && !$this->oFormState->isValueEmpty('access')) {
       $sValuesUserAccess       = $this->oFormState->getValues()['access']['user'];
       $aUsernamesGrantedAccess = Tags::explode($sValuesUserAccess);
 
       $this->aUserIdsGrantedAccess = $this->getUserIdsByNames($aUsernamesGrantedAccess);
 
-      $this->iTermId = $iTermId;
-
       if (!empty($this->oFormState->getValue('name')['0']['value'])) {
         $this->sTermName  = $this->oFormState->getValue('name')['0']['value'];
       }
     }
+
+    if (!empty($iTermId)) {
+      $this->iTermId = $iTermId;
+    }
+
   }
 
   /**

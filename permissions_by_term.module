@@ -39,7 +39,7 @@ function permissions_by_term_help($route_name, RouteMatchInterface $arg) {
  */
 function permissions_by_term_validate($form, FormState $oFormState) {
   foreach ($form as $field) {
-    if (is_array($field) && $field['widget']['target_id']['#target_type'] == 'taxonomy_term') {
+    if (!is_object($field) && !empty($field['widget']['target_id']['#target_type']) && $field['widget']['target_id']['#target_type'] == 'taxonomy_term') {
       $field_name = $field['widget']['#field_name'];
       $terms = $oFormState->getValues()[$field_name]['target_id'];
       $not_allowed_term_names = array();

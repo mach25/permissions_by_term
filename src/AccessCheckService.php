@@ -10,7 +10,7 @@ class AccessCheckService {
   /**
    * AccessCheckService constructor.
    */
-  public function __construct($iNid) {
+  public function __construct($iNid = NULL) {
     $this->oUser = \Drupal::currentUser();
     if ($iNid !== NULL) {
       $this->oNode = \Drupal::entityManager()->getStorage('node')->load($iNid);
