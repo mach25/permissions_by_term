@@ -6,6 +6,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
+use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
@@ -27,14 +28,13 @@ class KernelEventListener implements EventSubscriberInterface {
   /**
    * Access restriction on kernel request.
    */
-  public function onKernelRequest($event) {
+  public function onKernelRequest(GetResponseEvent $event) {
     // Restricts access to nodes (views/edit).
     if (!empty($event->getRequest()->attributes->get('node'))) {
       $nid = $event->getRequest()->attributes->get('node')->get('nid')->getValue()['0']['value'];
       if (!$this->accessCheckService->canUserAccessByNodeId($nid)) {
         $response = new RedirectResponse('/access-restricted-by-taxonomy-term');
-        $response->send();
-        return;
+        $event->setResponse($response);
       }
     }
 
