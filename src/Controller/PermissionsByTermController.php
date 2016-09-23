@@ -78,13 +78,4 @@ class PermissionsByTermController extends ControllerBase {
     return new JsonResponse($matches);
   }
 
-  /**
-   * Defines the page, which shows that the access is restricted.
-   */
-  public function accessRestrictedPage() {
-    return array(
-      '#markup' => '<p>' . $this->t('Due to taxonomy term restrictions, you are not allowed to access the requested page.') . '</p>',
-    );
-  }
-
 }

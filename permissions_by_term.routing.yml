@@ -5,10 +5,3 @@ permissions_by_term.autocomplete_multiple:
     _controller: '\Drupal\permissions_by_term\Controller\PermissionsByTermController::autoCompleteMultiple'
   requirements:
     _permission: 'access user profiles'
-permissions_by_term.access_restricted:
-  path: 'access-restricted-by-taxonomy-term'
-  defaults:
-    _controller: '\Drupal\permissions_by_term\Controller\PermissionsByTermController::accessRestrictedPage'
-    _title: 'Access restricted by taxonomy term'
-  requirements:
-    _permission: 'access content'
