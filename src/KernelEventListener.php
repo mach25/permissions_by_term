@@ -30,7 +30,7 @@ class KernelEventListener implements EventSubscriberInterface {
    */
   public function onKernelRequest(GetResponseEvent $event) {
     // Restricts access to nodes (views/edit).
-    if (!empty($event->getRequest()->attributes->get('node'))) {
+    if (method_exists($event->getRequest()->attributes, 'get') && !empty($event->getRequest()->attributes->get('node'))) {
       $nid = $event->getRequest()->attributes->get('node')->get('nid')->getValue()['0']['value'];
       if (!$this->accessCheckService->canUserAccessByNodeId($nid)) {
         $response = new RedirectResponse('/system/403');
