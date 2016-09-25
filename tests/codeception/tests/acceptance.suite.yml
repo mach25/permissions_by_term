@@ -18,7 +18,7 @@ modules:
     config:
         WebDriver:
             # Change this URL for your project.
-            url: 'http://pbt-d8'
+            url: 'http://pbt-d8/'
             browser: phantomjs
             window_size: 1280x768
             clear_cookies: true
