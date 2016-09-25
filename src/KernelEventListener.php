@@ -34,7 +34,7 @@ class KernelEventListener implements EventSubscriberInterface {
       $nid = $event->getRequest()->attributes->get('node')->get('nid')->getValue()['0']['value'];
       if (!$this->accessCheckService->canUserAccessByNodeId($nid)) {
         $response = new RedirectResponse('/system/403');
-        $event->setResponse($response);
+        $response->send();
       }
     }
 
