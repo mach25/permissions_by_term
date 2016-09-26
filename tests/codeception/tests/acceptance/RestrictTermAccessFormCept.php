@@ -1,12 +1,8 @@
 <?php
 $I = new AcceptanceTester($scenario);
 $I->wantTo('Check term access restriction on a node edit form.');
-$I->comment('Firstly I am going to sign in.');
-$I->amOnPage('user/login');
-$I->fillField('name', 'editor');
-$I->fillField('pass', 'eri4t4z');
-$I->see('Log in');
-$I->click('#edit-submit');
+$I->signInWithEditor();
+$I->doNotSeeErrors();
 $I->comment('Check if I am signed in.');
 $I->see('Edit');
 $I->see('View');
@@ -20,3 +16,4 @@ $I->comment('I check if I can use an not restricted taxonomy term.');
 $I->fillField('field_tags[target_id]', 'Everybody');
 $I->wait(1);
 $I->see('Everybody has access');
+$I->doNotSeeErrors();

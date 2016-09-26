@@ -20,7 +20,23 @@ class AcceptanceTester extends \Codeception\Actor
 {
     use _generated\AcceptanceTesterActions;
 
-   /**
-    * Define custom actions here
-    */
+  /**
+   * Sign-in an user which inherits the editor role.
+   */
+    public function signInWithEditor() {
+     $I = $this;
+     $I->comment('Firstly I am going to sign in.');
+     $I->amOnPage('user/login');
+     $I->fillField('name', 'editor');
+     $I->fillField('pass', 'eri4t4z');
+     $I->see('Log in');
+     $I->click('#edit-submit');
+    }
+
+    public function doNotSeeErrors() {
+      $I = $this;
+      $I->dontSee('Warning');
+      $I->dontSee('Error');
+    }
+
 }

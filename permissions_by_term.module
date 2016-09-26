@@ -43,12 +43,14 @@ function permissions_by_term_validate($form, FormState $oFormState) {
       $field_name = $field['widget']['#field_name'];
       $terms = $oFormState->getValues()[$field_name]['target_id'];
       $not_allowed_term_names = array();
-      foreach ($terms as $term) {
-        $term_id = $term['target_id'];
-        $access_check_service = new AccessCheckService();
-        if (!$access_check_service->isAccessAllowedByDatabase($term_id)) {
-          $term = Term::load($term_id);
-          $not_allowed_term_names[] = $term->getName();
+      if (!empty($terms)) {
+        foreach ($terms as $term) {
+          $term_id = $term['target_id'];
+          $access_check_service = new AccessCheckService();
+          if (!$access_check_service->isAccessAllowedByDatabase($term_id)) {
+            $term = Term::load($term_id);
+            $not_allowed_term_names[] = $term->getName();
+          }
         }
       }
     }
