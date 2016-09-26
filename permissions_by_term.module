@@ -83,7 +83,8 @@ function permissions_by_term_submit($form, FormState $oFormState) {
  * Hides nodes in every view on the site.
  */
 function permissions_by_term_views_post_execute($view) {
-  $oPermissionsByTermController = new PermissionsByTermController();
+  $access_check_service = new AccessCheckService();
+  $oPermissionsByTermController = new PermissionsByTermController($access_check_service);
   return $oPermissionsByTermController->handleViews($view);
 }
 
@@ -99,7 +100,8 @@ function permissions_by_term_views_post_execute($view) {
  */
 function permissions_by_term_node_access(NodeInterface $node, $op, AccountInterface $account) {
   if (method_exists($node, 'id') && $op == 'view') {
-    $oPermissionsByTermController = new PermissionsByTermController($node->id());
+    $access_check_service = new AccessCheckService($node->id());
+    $oPermissionsByTermController = new PermissionsByTermController($access_check_service);
     return $oPermissionsByTermController->handleNode();
   }
 }

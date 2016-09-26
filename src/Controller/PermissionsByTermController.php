@@ -17,11 +17,10 @@ class PermissionsByTermController extends ControllerBase {
   /**
    * PermissionsByTermController constructor.
    *
-   * @param null|int $iNid
-   *   Can be null for views pages.
+   * @param \Drupal\permissions_by_term\AccessCheckService|NULL $access_check_service
    */
-  public function __construct($iNid = NULL) {
-    $this->oAccessCheckService = new AccessCheckService($iNid);
+  public function __construct(AccessCheckService $access_check_service) {
+    $this->oAccessCheckService = $access_check_service;
   }
 
   /**
