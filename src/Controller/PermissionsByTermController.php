@@ -5,7 +5,7 @@ namespace Drupal\permissions_by_term\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use \Drupal\Component\Utility\Tags;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use \Drupal\permissions_by_term\AccessCheckService;
+use \Drupal\permissions_by_term\AccessCheckInterface;
 use \Drupal\Component\Utility\Html;
 use \Drupal\Core\Access\AccessResult;
 
@@ -17,9 +17,9 @@ class PermissionsByTermController extends ControllerBase {
   /**
    * PermissionsByTermController constructor.
    *
-   * @param \Drupal\permissions_by_term\AccessCheckService|NULL $access_check_service
+   * @param \Drupal\permissions_by_term\AccessCheckInterface
    */
-  public function __construct(AccessCheckService $access_check_service) {
+  public function __construct(AccessCheckInterface $access_check_service) {
     $this->oAccessCheckService = $access_check_service;
   }
 
@@ -38,8 +38,8 @@ class PermissionsByTermController extends ControllerBase {
    * @return \Drupal\Core\Access\AccessResult
    *   The AccessResult object.
    */
-  public function handleNode() {
-    if ($this->oAccessCheckService->canUserAccessByNodeId() === TRUE) {
+  public function handleNode($node_id) {
+    if ($this->oAccessCheckService->canUserAccessByNodeId($node_id) === TRUE) {
       return AccessResult::allowed();
     }
     else {

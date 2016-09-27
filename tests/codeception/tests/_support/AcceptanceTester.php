@@ -39,4 +39,14 @@ class AcceptanceTester extends \Codeception\Actor
       $I->dontSee('Error');
     }
 
+    public function signInWithAdmin() {
+      $I = $this;
+      $I->comment('Firstly I am going to sign in.');
+      $I->amOnPage('user/login');
+      $I->fillField('name', 'admin');
+      $I->fillField('pass', 'eri4t4z');
+      $I->see('Log in');
+      $I->click('#edit-submit');
+    }
+
 }

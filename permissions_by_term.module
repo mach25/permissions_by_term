@@ -6,14 +6,12 @@
  */
 
 use \Drupal\Core\Form\FormState;
-use \Drupal\permissions_by_term\AccessStorageService;
 use \Drupal\permissions_by_term\Controller\PermissionsByTermController;
 use \Drupal\Core\Form\FormStateInterface;
 use \Drupal\node\NodeInterface;
 use \Drupal\Core\Session\AccountInterface;
 use \Drupal\taxonomy\Entity\Term;
-use \Drupal\permissions_by_term\AccessCheckService;
-use Drupal\Core\Routing\RouteMatchInterface;
+use \Drupal\Core\Routing\RouteMatchInterface;
 
 /**
  * Implements hook_help().
@@ -46,7 +44,8 @@ function permissions_by_term_validate($form, FormState $oFormState) {
       if (!empty($terms)) {
         foreach ($terms as $term) {
           $term_id = $term['target_id'];
-          $access_check_service = new AccessCheckService();
+          /* @var \Drupal\permissions_by_term\AccessCheck $access_check_service */
+          $access_check_service = \Drupal::service('permissions_by_term.access_check');
           if (!$access_check_service->isAccessAllowedByDatabase($term_id)) {
             $term = Term::load($term_id);
             $not_allowed_term_names[] = $term->getName();
@@ -71,10 +70,10 @@ function permissions_by_term_validate($form, FormState $oFormState) {
  * Submit handler for permissions_by_term_form_alter().
  */
 function permissions_by_term_submit($form, FormState $oFormState) {
-  $oDbConnection = \Drupal::database();
   $iTermId = $oFormState->getFormObject()->getEntity()->id();
-  $accessService = new AccessStorageService($oDbConnection, $oFormState, $iTermId);
-  $accessService->saveTermPermissions();
+  /* @var \Drupal\permissions_by_term\AccessStorage $access_storage */
+  $access_storage = \Drupal::service('permissions_by_term.access_storage');
+  $access_storage->saveTermPermissions($oFormState, $iTermId);
 }
 
 /**
@@ -83,7 +82,8 @@ function permissions_by_term_submit($form, FormState $oFormState) {
  * Hides nodes in every view on the site.
  */
 function permissions_by_term_views_post_execute($view) {
-  $access_check_service = new AccessCheckService();
+  /* @var \Drupal\permissions_by_term\AccessCheck $access_check_service */
+  $access_check_service = \Drupal::service('permissions_by_term.access_check');
   $oPermissionsByTermController = new PermissionsByTermController($access_check_service);
   return $oPermissionsByTermController->handleViews($view);
 }
@@ -100,9 +100,11 @@ function permissions_by_term_views_post_execute($view) {
  */
 function permissions_by_term_node_access(NodeInterface $node, $op, AccountInterface $account) {
   if (method_exists($node, 'id') && $op == 'view') {
-    $access_check_service = new AccessCheckService($node->id());
+    /* @var \Drupal\permissions_by_term\AccessCheck $access_check_service */
+    $access_check_service = \Drupal::service('permissions_by_term.access_check');
     $oPermissionsByTermController = new PermissionsByTermController($access_check_service);
-    return $oPermissionsByTermController->handleNode();
+
+    return $oPermissionsByTermController->handleNode($node->id());
   }
 }
 
@@ -112,8 +114,9 @@ function permissions_by_term_node_access(NodeInterface $node, $op, AccountInterf
 function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInterface $oFormState, $form_id) {
   if (\Drupal::currentUser()->hasPermission('show term permission form on term page')) {
     $iTermId = $oFormState->getFormObject()->getEntity()->id();
-    $oDbConnection = \Drupal::database();
-    $oAccessStorageService = new AccessStorageService($oDbConnection, $oFormState, $iTermId);
+
+    /* @var \Drupal\permissions_by_term\AccessStorage $access_storage */
+    $access_storage = \Drupal::service('permissions_by_term.access_storage');
 
     $form['access'] = array(
       '#type' => 'fieldset',
@@ -129,10 +132,10 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
       '#tree' => TRUE,
     );
 
-    $aAllowedUsers = $oAccessStorageService->getAllowedUserIds();
+    $aAllowedUsers = $access_storage->getAllowedUserIds($iTermId);
     if (!empty($aAllowedUsers)) {
       $aAllowedUsers = user_load_multiple($aAllowedUsers);
-      $sUserFormValue = $oAccessStorageService->getUserFormValue($aAllowedUsers);
+      $sUserFormValue = $access_storage->getUserFormValue($aAllowedUsers);
     }
     else {
       $sUserFormValue = NULL;
@@ -154,7 +157,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
       '#weight' => -10,
     );
 
-    $aAllowedRoles = $oAccessStorageService->getExistingRoleTermPermissionsByTid();
+    $aAllowedRoles = $access_storage->getExistingRoleTermPermissionsByTid($iTermId);
 
     // Firstly fetch all translated allowed role names.
     $aTranslatedAllowedRoleNames = array();
@@ -194,7 +197,6 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
     $form['#validate'][] = 'permissions_by_term_validate';
     $form['actions']['submit']['#submit'][] = 'permissions_by_term_submit';
   }
-
 }
 
 /**

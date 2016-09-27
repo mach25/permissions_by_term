@@ -21,8 +21,8 @@ class KernelEventListener implements EventSubscriberInterface {
    */
   public function __construct() {
     $oDbConnection = \Drupal::database();
-    $this->accessCheckService = new AccessCheckService();
-    $this->accessStorageService = new AccessStorageService($oDbConnection);
+    $this->accessCheckService = \Drupal::service('permissions_by_term.access_check');
+    $this->accessStorageService = new AccessStorage($oDbConnection);
   }
 
   /**
