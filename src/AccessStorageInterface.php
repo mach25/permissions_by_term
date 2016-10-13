@@ -77,16 +77,20 @@ interface AccessStorageInterface {
    *
    * @param array $aUserIdsAccessRemove
    *   An array with user ids, which access will be removed.
+   * @param int $term_id
+   *   The term id to remove.
    */
-  public function deleteTermPermissionsByUserIds($aUserIdsAccessRemove);
+  public function deleteTermPermissionsByUserIds($aUserIdsAccessRemove, $term_id);
 
   /**
    * Deletes term permissions by role ids.
    *
    * @param array $aRoleIdsAccessRemove
    *   An array with role ids, that will be removed.
+   * @param int $term_id
+   *   The term id.
    */
-  public function deleteTermPermissionsByRoleIds($aRoleIdsAccessRemove);
+  public function deleteTermPermissionsByRoleIds($aRoleIdsAccessRemove, $term_id);
 
   /**
    * Adds term permissions by user ids.

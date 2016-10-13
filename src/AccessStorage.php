@@ -154,10 +154,11 @@ class AccessStorage implements AccessStorageInterface {
   /**
    * {@inheritdoc}
    */
-  public function deleteTermPermissionsByUserIds($aUserIdsAccessRemove) {
+  public function deleteTermPermissionsByUserIds($aUserIdsAccessRemove, $term_id) {
     foreach ($aUserIdsAccessRemove as $iUserId) {
       $this->oDatabase->delete('permissions_by_term_user')
         ->condition('uid', $iUserId, '=')
+        ->condition('tid', $term_id, '=')
         ->execute();
     }
   }
@@ -165,10 +166,11 @@ class AccessStorage implements AccessStorageInterface {
   /**
    * {@inheritdoc}
    */
-  public function deleteTermPermissionsByRoleIds($aRoleIdsAccessRemove) {
+  public function deleteTermPermissionsByRoleIds($aRoleIdsAccessRemove, $term_id) {
     foreach ($aRoleIdsAccessRemove as $sRoleId) {
       $this->oDatabase->delete('permissions_by_term_role')
         ->condition('rid', $sRoleId, '=')
+        ->condition('tid', $term_id, '=')
         ->execute();
     }
   }
@@ -276,10 +278,10 @@ class AccessStorage implements AccessStorageInterface {
       $aSubmittedRolesGrantedAccess);
 
     // Run the database queries.
-    $this->deleteTermPermissionsByUserIds($aRet['UserIdPermissionsToRemove']);
+    $this->deleteTermPermissionsByUserIds($aRet['UserIdPermissionsToRemove'], $term_id);
     $this->addTermPermissionsByUserIds($aRet['UserIdPermissionsToAdd'], $term_id);
 
-    $this->deleteTermPermissionsByRoleIds($aRet['UserRolePermissionsToRemove']);
+    $this->deleteTermPermissionsByRoleIds($aRet['UserRolePermissionsToRemove'], $term_id);
     $this->addTermPermissionsByRoleIds($aRet['aRoleIdPermissionsToAdd'], $term_id);
 
     return $aRet;
