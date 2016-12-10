@@ -99,7 +99,7 @@ function permissions_by_term_views_post_execute($view) {
  * through the administrative interface.
  */
 function permissions_by_term_node_access(NodeInterface $node, $op, AccountInterface $account) {
-  if (method_exists($node, 'id') && $op == 'view') {
+  if (method_exists($node, 'id') && $op == 'view' && $node->isPublished()) {
     /* @var \Drupal\permissions_by_term\AccessCheck $access_check_service */
     $access_check_service = \Drupal::service('permissions_by_term.access_check');
     $oPermissionsByTermController = new PermissionsByTermController($access_check_service);

@@ -22,6 +22,7 @@ class AccessCheck implements AccessCheckInterface{
   public function canUserAccessByNodeId($iNid) {
     $node = $this->entityManager->getStorage('node')->load($iNid);
     $access_allowed = TRUE;
+
     foreach ($node->getFields() as $field) {
       if ($field->getFieldDefinition()->getType() == 'entity_reference' && $field->getFieldDefinition()->getSetting('target_type') == 'taxonomy_term') {
         $aReferencedTaxonomyTerms = $field->getValue();
@@ -34,6 +35,7 @@ class AccessCheck implements AccessCheckInterface{
         }
       }
     }
+
     return $access_allowed;
   }
 
