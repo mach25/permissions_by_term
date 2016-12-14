@@ -8,18 +8,21 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class KernelEventListener.
  *
  * @package Drupal\permissions_by_term
  */
-class KernelEventListener implements EventSubscriberInterface {
+class KernelEventListener implements EventSubscriberInterface
+{
 
   /**
    * Instantiating of objects on class construction.
    */
-  public function __construct() {
+  public function __construct()
+  {
     $oDbConnection = \Drupal::database();
     $this->accessCheckService = \Drupal::service('permissions_by_term.access_check');
     $this->accessStorageService = new AccessStorage($oDbConnection);
@@ -28,25 +31,26 @@ class KernelEventListener implements EventSubscriberInterface {
   /**
    * Access restriction on kernel request.
    */
-  public function onKernelRequest(GetResponseEvent $event) {
+  public function onKernelRequest(GetResponseEvent $event)
+  {
     // Restricts access to nodes (views/edit).
-    if (method_exists($event->getRequest()->attributes, 'get') && !empty($event->getRequest()->attributes->get('node'))) {
+    if ($this->canNodeBeLoaded($event->getRequest())) {
       $nid = $event->getRequest()->attributes->get('node')->get('nid')->getValue()['0']['value'];
       if (!$this->accessCheckService->canUserAccessByNodeId($nid)) {
-        $response = new RedirectResponse('/system/403');
-        $response->send();
+        $this->sendUserToAccessDeniedPage();
       }
     }
 
     // Restrict access to taxonomy terms by autocomplete list.
     if ($event->getRequest()->attributes->get('target_type') == 'taxonomy_term' &&
-      $event->getRequest()->attributes->get('_route') == 'system.entity_autocomplete') {
+      $event->getRequest()->attributes->get('_route') == 'system.entity_autocomplete'
+    ) {
       $query_string = $event->getRequest()->get('q');
       $query_string = trim($query_string);
 
       $tid = $this->accessStorageService->getTermIdByName($query_string);
       if (!$this->accessCheckService->isAccessAllowedByDatabase($tid)) {
-        exit();
+        $this->sendUserToAccessDeniedPage();
       }
     }
   }
@@ -63,7 +67,8 @@ class KernelEventListener implements EventSubscriberInterface {
    */
   private function restrictTermAccessAtAutoCompletion(FilterResponseEvent $event) {
     if ($event->getRequest()->attributes->get('target_type') == 'taxonomy_term' &&
-      $event->getRequest()->attributes->get('_route') == 'system.entity_autocomplete') {
+      $event->getRequest()->attributes->get('_route') == 'system.entity_autocomplete'
+    ) {
       $json_suggested_terms = $event->getResponse()->getContent();
       $suggested_terms = json_decode($json_suggested_terms);
       $allowed_terms = array();
@@ -85,11 +90,30 @@ class KernelEventListener implements EventSubscriberInterface {
   /**
    * The subscribed events.
    */
-  public static function getSubscribedEvents() {
+  public static function getSubscribedEvents()
+  {
     return [
-      KernelEvents::REQUEST  => 'onKernelRequest',
+      KernelEvents::REQUEST => 'onKernelRequest',
       KernelEvents::RESPONSE => 'onKernelResponse',
     ];
+  }
+
+  private function canNodeBeLoaded(Request $request)
+  {
+    if (method_exists($request->attributes, 'get') && !empty($request->attributes->get('node'))) {
+      if (method_exists($request->attributes->get('node'), 'get')) {
+        return TRUE;
+      }
+    }
+
+    return FALSE;
+  }
+
+  private function sendUserToAccessDeniedPage()
+  {
+    $response = new RedirectResponse('/system/403');
+    $response->send();
+    return $response;
   }
 
 }
