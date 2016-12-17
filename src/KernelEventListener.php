@@ -23,9 +23,8 @@ class KernelEventListener implements EventSubscriberInterface
    */
   public function __construct()
   {
-    $oDbConnection = \Drupal::database();
     $this->accessCheckService = \Drupal::service('permissions_by_term.access_check');
-    $this->accessStorageService = new AccessStorage($oDbConnection);
+    $this->accessStorageService = \Drupal::service('permissions_by_term.access_storage');
   }
 
   /**
@@ -34,7 +33,7 @@ class KernelEventListener implements EventSubscriberInterface
   public function onKernelRequest(GetResponseEvent $event)
   {
     // Restricts access to nodes (views/edit).
-    if ($this->canNodeBeLoaded($event->getRequest())) {
+    if ($this->canRequestGetNode($event->getRequest())) {
       $nid = $event->getRequest()->attributes->get('node')->get('nid')->getValue()['0']['value'];
       if (!$this->accessCheckService->canUserAccessByNodeId($nid)) {
         $this->sendUserToAccessDeniedPage();
@@ -43,8 +42,7 @@ class KernelEventListener implements EventSubscriberInterface
 
     // Restrict access to taxonomy terms by autocomplete list.
     if ($event->getRequest()->attributes->get('target_type') == 'taxonomy_term' &&
-      $event->getRequest()->attributes->get('_route') == 'system.entity_autocomplete'
-    ) {
+      $event->getRequest()->attributes->get('_route') == 'system.entity_autocomplete') {
       $query_string = $event->getRequest()->get('q');
       $query_string = trim($query_string);
 
@@ -98,8 +96,7 @@ class KernelEventListener implements EventSubscriberInterface
     ];
   }
 
-  private function canNodeBeLoaded(Request $request)
-  {
+  private function canRequestGetNode(Request $request) {
     if (method_exists($request->attributes, 'get') && !empty($request->attributes->get('node'))) {
       if (method_exists($request->attributes->get('node'), 'get')) {
         return TRUE;
@@ -109,8 +106,7 @@ class KernelEventListener implements EventSubscriberInterface
     return FALSE;
   }
 
-  private function sendUserToAccessDeniedPage()
-  {
+  private function sendUserToAccessDeniedPage() {
     $response = new RedirectResponse('/system/403');
     $response->send();
     return $response;
