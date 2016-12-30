@@ -397,4 +397,8 @@ class AccessStorage implements AccessStorageInterface {
     return $sUserInfos;
   }
 
+  public function fetchUidsByRid(){
+    // TBD
+  }
+
 }
