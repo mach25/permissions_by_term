@@ -7,42 +7,42 @@ class NodeAccessRecordModel {
   /**
    * @var int $nid
    */
-  private $nid;
+  public $nid;
 
   /**
    * @var string $langcode
    */
-  private $langcode;
+  public $langcode;
 
   /**
    * @var int $fallback
    */
-  private $fallback;
+  public $fallback;
 
   /**
    * @var int $gid
    */
-  private $gid;
+  public $gid;
 
   /**
    * @var string $realm
    */
-  private $realm;
+  public $realm;
 
   /**
    * @var int $grant_view
    */
-  private $grant_view;
+  public $grant_view;
 
   /**
    * @var int $grant_update
    */
-  private $grant_update;
+  public $grant_update;
 
   /**
    * @var int $grant_delete
    */
-  private $grant_delete;
+  public $grant_delete;
 
   /**
    * @return int

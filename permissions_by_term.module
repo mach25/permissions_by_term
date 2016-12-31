@@ -212,14 +212,20 @@ function permissions_by_term_node_grants(\Drupal\Core\Session\AccountInterface $
 function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $node)
 {
     if ($node->id() == 9) {
-        $grants[] = array(
+        $grants[] = [
             'realm' => 'permissions_by_term__access_granted',
             'gid' => 1,
             'grant_view' => 1,
             'grant_update' => 0,
             'grant_delete' => 0
-        );
+
+        ];
 
         return $grants;
     }
+}
+
+function tryNodeAccessByDevel() {
+  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
+  xdebug_break();
 }

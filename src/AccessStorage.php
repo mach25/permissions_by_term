@@ -401,4 +401,8 @@ class AccessStorage implements AccessStorageInterface {
     // TBD
   }
 
+  public function getNidsByTid($tid){
+
+  }
+
 }
