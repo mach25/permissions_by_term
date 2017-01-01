@@ -7,7 +7,7 @@ interface AccessCheckInterface {
   /**
    * Checks if a user can access a node by given node id.
    */
-  public function canUserAccessByNodeId($iNid);
+  public function canUserAccessByNodeId($iNid, $uid = FALSE);
 
   /**
    * Returns a boolean if the view is containing nodes.
@@ -20,19 +20,11 @@ interface AccessCheckInterface {
   public function removeForbiddenNodesFromView(&$view);
 
   /**
-   * Implements permissions_by_term_allowed().
-   *
-   * This hook-function checks if a user is either allowed or not allowed to
-   * access a given term.
-   *
    * @param int $tid
-   *   The taxonomy term id.
-   *
-   * @return bool
-   *   Determines by boolean if access is allowed by given tid and the signed
-   *   in user.
+   * @param bool|int $uid
+   * @return mixed
    */
-  public function isAccessAllowedByDatabase($tid);
+  public function isAccessAllowedByDatabase($tid, $uid = FALSE);
 
   /**
    * Returns a boolean if the term is allowed by given user id.

@@ -3,6 +3,7 @@
 namespace Drupal\permissions_by_term;
 
 use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\user\Entity\User;
 
 /**
  * AccessCheckService class.
@@ -19,8 +20,9 @@ class AccessCheck implements AccessCheckInterface{
   /**
    * {@inheritdoc}
    */
-  public function canUserAccessByNodeId($iNid) {
+  public function canUserAccessByNodeId($iNid, $uid = FALSE) {
     $node = $this->entityManager->getStorage('node')->load($iNid);
+
     $access_allowed = TRUE;
 
     foreach ($node->getFields() as $field) {
@@ -82,11 +84,16 @@ class AccessCheck implements AccessCheckInterface{
   /**
    * {@inheritdoc}
    */
-  public function isAccessAllowedByDatabase($tid) {
+  public function isAccessAllowedByDatabase($tid, $uid = FALSE) {
 
-    $current_user = \Drupal::currentUser();
+    if ($uid === FALSE) {
+      $user = \Drupal::currentUser();
+    } elseif ($uid === TRUE) {
+      $user = User::load($uid);
+    }
+
     // Admin can access everything (user id "1").
-    if ($current_user->id() == 1) {
+    if ($user->id() == 1) {
       return TRUE;
     }
 
@@ -99,7 +106,7 @@ class AccessCheck implements AccessCheckInterface{
     /* At this point permissions are enabled, check to see if this user or one
      * of their roles is allowed.
      */
-    $aUserRoles = $current_user->getRoles();
+    $aUserRoles = $user->getRoles();
 
     foreach ($aUserRoles as $sUserRole) {
 
@@ -109,7 +116,7 @@ class AccessCheck implements AccessCheckInterface{
 
     }
 
-    $iUid = intval($current_user->id());
+    $iUid = intval($user->id());
 
     if ($this->isTermAllowedByUserId($tid, $iUid)) {
       return TRUE;

@@ -13,31 +13,51 @@ class NodeAccessTest extends PHPUnit_Framework_TestCase {
 
   /**
    * @dataProvider provideTableData
+   * @param $permissionsByTermUser
+   * @param $permissionsByTermRole
    */
-  public function testCreateRealms($permissions_by_term_user, $permissions_by_term_role) {
+  public function testCreateRealms($permissionsByTermUser, $permissionsByTermRole) {
     $accessStorage = $this->createMock('Drupal\permissions_by_term\AccessStorage',
       [
         'fetchUidsByRid' => [999, 87, 44],
         'getNidsByTid' => [64, 826, 91, 21],
+        'getAllNids' => [12, 55, 88, 3, 5],
+        'getAllUids' => [6, 84, 2, 99, 2]
       ]
     );
     $nodeAccessStorageFactory = new NodeAccessRecordFactory();
-    $nodeAccess = new NodeAccess($accessStorage, $nodeAccessStorageFactory);
-    $objectStack = $nodeAccess->createGrants($permissions_by_term_user, $permissions_by_term_role);
+
+    $entityManager = $this->createMock('Drupal\Core\Entity\EntityManager',
+      [
+        'getStorage' => FALSE,
+      ]
+    );
+
+    $accessCheck = $this->createMock('Drupal\permissions_by_term\AccessCheck',
+      [
+        'canUserAccessByNodeId' => TRUE
+      ]
+    );
+
+    $nodeAccess = new NodeAccess($accessStorage, $nodeAccessStorageFactory, $entityManager, $accessCheck);
+    $objectStack = $nodeAccess->createGrants($permissionsByTermUser, $permissionsByTermRole);
 
     $this->assertTrue($this->propertiesHaveValues($objectStack));
-    $this->assertTrue($this->realmContainsTwoNumbers($objectStack));
+    $this->assertTrue($this->realmContainsNumber($objectStack));
   }
 
-  private function realmContainsTwoNumbers($objectStack) {
+  /**
+   * @param array $objectStack
+   * @return bool
+   * @throws Exception
+   */
+  private function realmContainsNumber($objectStack) {
     foreach ($objectStack as $object) {
       foreach ($object as $propertyName => $propertyValue) {
         if ($propertyName == 'realm') {
-          if ($this->stringContainsTwoNumbers($propertyValue) === FALSE) {
+          if ($this->stringContainsOneNumbers($propertyValue) === FALSE) {
             throw new \Exception('The realm does not contain two numbers. It must contain the UID and TID.');
-            return FALSE;
           }
-
         }
       }
     }
@@ -45,7 +65,7 @@ class NodeAccessTest extends PHPUnit_Framework_TestCase {
     return TRUE;
   }
 
-  private function stringContainsTwoNumbers($string) {
+  private function stringContainsOneNumbers($string) {
     $numOfNumbers = 0;
     $elements = explode('_', $string);
     foreach ($elements as $element) {
@@ -54,7 +74,7 @@ class NodeAccessTest extends PHPUnit_Framework_TestCase {
       }
     }
 
-    if ($numOfNumbers == 2) {
+    if ($numOfNumbers == 1) {
       return TRUE;
     }
     

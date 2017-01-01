@@ -2,11 +2,13 @@
 
 namespace Drupal\permissions_by_term;
 
+use Drupal\Core\Entity\EntityManager;
 use \Drupal\node\NodeAccessControlHandler;
 use \Drupal\permissions_by_term\Factory\NodeAccessRecordFactory;
 use \Drupal\permissions_by_term\AccessStorage;
 use \Drupal\user\Entity\User;
 use \Drupal\node\Entity\Node;
+use Drupal\permissions_by_term\AccessCheck;
 
 class NodeAccess {
 
@@ -30,34 +32,41 @@ class NodeAccess {
    */
   private $node;
 
-  public function __construct(AccessStorage $accessStorage, NodeAccessRecordFactory $nodeAccessRecordFactory, User $user, Node $node)
+  /**
+   * @var EntityManager $entityManager
+   */
+  private $entityManager;
+
+  /**
+   * @var AccessCheck $accessCheck
+   */
+  private $accessCheck;
+
+  public function __construct(AccessStorage $accessStorage, NodeAccessRecordFactory $nodeAccessRecordFactory, EntityManager $entityManager, AccessCheck $accessCheck)
   {
     $this->accessStorage = $accessStorage;
     $this->nodeAccessRecordFactory = $nodeAccessRecordFactory;
-    $this->user = $user;
-    $this->node = $node;
+    $this->entityManager = $entityManager;
+    $this->user = $this->entityManager->getStorage('user');
+    $this->node = $this->entityManager->getStorage('node');
+    $this->accessCheck = $accessCheck;
   }
 
-  public function createRealm($uid, $tid) {
-    return 'permissions_by_term__uid_' . $uid . '_tid_' . $tid;
+  public function createRealm($uid) {
+    return 'permissions_by_term__uid_' . $uid;
   }
 
-  public function createGrants($permissions_by_term_user, $permissions_by_term_role) {
-    foreach ($permissions_by_term_user as $data) {
-      $nids = $this->accessStorage->getNidsByTid($data['tid']);
-      foreach ($nids as $nid) {
-        $realm = $this->createRealm($data['uid'], $data['tid']);
-        $grants[] = $this->nodeAccessRecordFactory->create($realm, $nid, $this->createUniqueGid());
-      }
-    }
+  public function createGrants() {
+    $nids = $this->accessStorage->getAllNids();
 
-    foreach ($permissions_by_term_role as $data) {
-      $uids = $this->accessStorage->fetchUidsByRid($data['rid']);
-      $nids = $this->accessStorage->getNidsByTid($data['tid']);
-      foreach ($nids as $nid) {
-        foreach ($uids as $uid) {
-          $realm = $this->createRealm($uid, $data['tid']);
-          $grants[] = $this->nodeAccessRecordFactory->create($realm, $nid, $this->createUniqueGid());
+    foreach ($nids as $nid) {
+      $uids = $this->accessStorage->getAllUids();
+      foreach ($uids as $uid) {
+        if ($this->accessCheck->canUserAccessByNodeId($nid, $uid)) {
+          $realm = $this->createRealm($uid);
+          $nodeType = $this->accessStorage->getNodeType($nid);
+          $langcode = $this->accessStorage->getLangCode($nid);
+          $grants[] = $this->nodeAccessRecordFactory->create($realm, $nid, $this->createUniqueGid(), $langcode, $this->getGrantUpdate($uid, $nodeType, $nid), $this->getGrantDelete($uid, $nodeType, $nid));
         }
       }
     }
@@ -88,10 +97,14 @@ class NodeAccess {
     $this->uniqueGid = $uniqueGid;
   }
 
-  public function canUserUpdateNode($uid, $nodeType)
+  public function canUserUpdateNode($uid, $nodeType, $nid)
   {
     $user = $this->user->load($uid);
     if ($user->hasPermission('edit any ' . $nodeType . ' content')) {
+      return TRUE;
+    }
+
+    if ($this->isNodeOwner($nid, $uid) && $this->canUpdateOwnNode($uid, $nodeType)) {
       return TRUE;
     }
 
@@ -108,20 +121,73 @@ class NodeAccess {
     return FALSE;
   }
 
-  public function canUserDeleteNode($uid, $nodeType)
+  public function canUserDeleteNode($uid, $nodeType, $nid)
   {
     $user = $this->user->load($uid);
     if ($user->hasPermission('delete any ' . $nodeType . ' content')) {
       return TRUE;
     }
 
+    if ($this->isNodeOwner($nid, $uid) && $this->canDeleteOwnNode($uid, $nodeType)) {
+      return TRUE;
+    }
+
     return FALSE;
   }
 
-  public function getLangcodeForNode($nid)
+  private function getGrantDelete($uid, $nodeType, $nid)
   {
-    $node = $this->node::load($nid);
-    xdebug_break();
+    if ($this->canUserBypassNodeAccess($uid)) {
+      return 1;
+    }
+
+    if ($this->canUserDeleteNode($uid, $nodeType, $nid))
+    {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  private function getGrantUpdate($uid, $nodeType, $nid)
+  {
+    if ($this->canUserBypassNodeAccess($uid)) {
+      return 1;
+    }
+
+    if ($this->canUserUpdateNode($uid, $nodeType, $nid))
+    {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  public function isNodeOwner($nid, $uid) {
+    $node = $this->node->load($nid);
+    if (intval($node->getOwnerId()) == intval($uid)){
+      return TRUE;
+    }
+
+    return FALSE;
+  }
+
+  private function canUpdateOwnNode($uid, $nodeType) {
+    $user = $this->user->load($uid);
+    if ($user->hasPermission('edit own ' . $nodeType . ' content')) {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  private function canDeleteOwnNode($uid, $nodeType) {
+    $user = $this->user->load($uid);
+    if ($user->hasPermission('delete own ' . $nodeType . ' content')) {
+      return 1;
+    }
+
+    return 0;
   }
 
 }

@@ -211,21 +211,40 @@ function permissions_by_term_node_grants(\Drupal\Core\Session\AccountInterface $
  */
 function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $node)
 {
-    if ($node->id() == 9) {
-        $grants[] = [
-            'realm' => 'permissions_by_term__access_granted',
-            'gid' => 1,
-            'grant_view' => 1,
-            'grant_update' => 0,
-            'grant_delete' => 0
+  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
+  $allGrants = $nodeAccess->createGrants();
 
-        ];
+  $grantsForThisNode = getGrantsByNid($node->id(), $allGrants);
 
-        return $grants;
-    }
+  foreach ($grantsForThisNode as $grantObject) {
+    $grants[] = array(
+      'realm' => $grantObject->realm,
+      'gid' => $grantObject->gid,
+      'grant_view' => $grantObject->grant_view,
+      'grant_update' => $grantObject->grant_update,
+      'grant_delete' => $grantObject->grant_delete,
+      'langcode' => $grantObject->langcode,
+      'fallback' => 1,
+      'nid' => $node->id()
+    );
+  }
+
+  return $grants;
 }
 
 function tryNodeAccessByDevel() {
   $nodeAccess = \Drupal::service('permissions_by_term.node_access');
+  $grants = $nodeAccess->createGrants();
   xdebug_break();
+}
+
+function getGrantsByNid($nid, $allGrants) {
+  $grants = [];
+  foreach($allGrants as $grant) {
+    if ($grant->nid == $nid) {
+      $grants[] = $grant;
+    }
+  }
+
+  return $grants;
 }

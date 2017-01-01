@@ -405,4 +405,64 @@ class AccessStorage implements AccessStorageInterface {
 
   }
 
+  /**
+   * @return array
+   */
+  public function getAllNids()
+  {
+    $nodes = \Drupal::entityQuery('node')
+      ->execute();
+
+    return array_values($nodes);
+  }
+
+  public function getTidsByNid($nid)
+  {
+    $node = $this->entityManager->getStorage('node')->load($nid);
+    $tids = [];
+
+    foreach ($node->getFields() as $field) {
+      if ($field->getFieldDefinition()->getType() == 'entity_reference' && $field->getFieldDefinition()->getSetting('target_type') == 'taxonomy_term') {
+        $aReferencedTaxonomyTerms = $field->getValue();
+        if (!empty($aReferencedTaxonomyTerms)) {
+          foreach ($aReferencedTaxonomyTerms as $aReferencedTerm) {
+            if (isset($aReferencedTerm['target_id'])) {
+              $tids[] = $aReferencedTerm['target_id'];
+            }
+          }
+        }
+      }
+    }
+
+    return $tids;
+  }
+
+  public function getAllUids()
+  {
+    $nodes = \Drupal::entityQuery('user')
+      ->execute();
+
+    return array_values($nodes);
+  }
+
+  public function getNodeType($nid)
+  {
+    $query = $this->oDatabase->select('node', 'n')
+      ->fields('n', ['type'])
+      ->condition('n.nid', $nid);
+
+    return $query->execute()
+      ->fetchAssoc()['type'];
+  }
+
+  public function getLangCode($nid)
+  {
+    $query = $this->oDatabase->select('node', 'n')
+      ->fields('n', ['langcode'])
+      ->condition('n.nid', $nid);
+
+    return $query->execute()
+      ->fetchAssoc()['langcode'];
+  }
+
 }
