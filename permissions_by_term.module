@@ -200,7 +200,11 @@ function permissions_by_term_form_alter(&$form, FormStateInterface $oFormState, 
 function permissions_by_term_node_grants(\Drupal\Core\Session\AccountInterface $account, $op)
 {
     if ($op == 'view') {
-        $grants[] = array(999);
+      /**
+       * @var \Drupal\permissions_by_term\AccessStorage $accessStorage
+       */
+      $accessStorage = \Drupal::service('permissions_by_term.access_storage');
+      $grants = $accessStorage->getGidsByRealm('permissions_by_term__uid_' . \Drupal::currentUser()->id());
     }
 
     return $grants;
@@ -208,13 +212,21 @@ function permissions_by_term_node_grants(\Drupal\Core\Session\AccountInterface $
 
 /**
  * Implements hook_node_access_records().
+ *
+ * Permissions can be rebuild at /admin/reports/status/rebuild.
  */
 function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $node)
 {
-  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-  $allGrants = $nodeAccess->createGrants();
+  $nodeAccess = &drupal_static(__FUNCTION__);
+  if (!isset($nodeAccess)) {
+    /**
+     * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
+     */
+    $nodeAccess = \Drupal::service('permissions_by_term.node_access');
+    $nodeAccess->createGrants();
+  }
 
-  $grantsForThisNode = getGrantsByNid($node->id(), $allGrants);
+  $grantsForThisNode = $nodeAccess->getGrantsByNid($node->id());
 
   foreach ($grantsForThisNode as $grantObject) {
     $grants[] = array(
@@ -236,15 +248,4 @@ function tryNodeAccessByDevel() {
   $nodeAccess = \Drupal::service('permissions_by_term.node_access');
   $grants = $nodeAccess->createGrants();
   xdebug_break();
-}
-
-function getGrantsByNid($nid, $allGrants) {
-  $grants = [];
-  foreach($allGrants as $grant) {
-    if ($grant->nid == $nid) {
-      $grants[] = $grant;
-    }
-  }
-
-  return $grants;
 }

@@ -3,12 +3,10 @@
 namespace Drupal\permissions_by_term;
 
 use Drupal\Core\Entity\EntityManager;
-use \Drupal\node\NodeAccessControlHandler;
 use \Drupal\permissions_by_term\Factory\NodeAccessRecordFactory;
-use \Drupal\permissions_by_term\AccessStorage;
+use Drupal\permissions_by_term\Model\NodeAccessRecordModel;
 use \Drupal\user\Entity\User;
 use \Drupal\node\Entity\Node;
-use Drupal\permissions_by_term\AccessCheck;
 
 class NodeAccess {
 
@@ -23,9 +21,9 @@ class NodeAccess {
   private $accessStorage;
 
   /**
-   * @var User $user
+   * @var User $userEntityStorage
    */
-  private $user;
+  private $userEntityStorage;
 
   /**
    * @var Node $node
@@ -42,12 +40,27 @@ class NodeAccess {
    */
   private $accessCheck;
 
+  /**
+   * @var NodeAccessRecordModel[] $grants
+   */
+  private $grants;
+
+  /**
+   * @var int $loadedUid
+   */
+  private $loadedUid;
+
+  /**
+   * @var User $userInstance
+   */
+  private $userInstance;
+
   public function __construct(AccessStorage $accessStorage, NodeAccessRecordFactory $nodeAccessRecordFactory, EntityManager $entityManager, AccessCheck $accessCheck)
   {
     $this->accessStorage = $accessStorage;
     $this->nodeAccessRecordFactory = $nodeAccessRecordFactory;
     $this->entityManager = $entityManager;
-    $this->user = $this->entityManager->getStorage('user');
+    $this->userEntityStorage = $this->entityManager->getStorage('user');
     $this->node = $this->entityManager->getStorage('node');
     $this->accessCheck = $accessCheck;
   }
@@ -66,12 +79,12 @@ class NodeAccess {
           $realm = $this->createRealm($uid);
           $nodeType = $this->accessStorage->getNodeType($nid);
           $langcode = $this->accessStorage->getLangCode($nid);
-          $grants[] = $this->nodeAccessRecordFactory->create($realm, $nid, $this->createUniqueGid(), $langcode, $this->getGrantUpdate($uid, $nodeType, $nid), $this->getGrantDelete($uid, $nodeType, $nid));
+          $grants[] = $this->nodeAccessRecordFactory->create($realm, $this->createUniqueGid(), $nid, $langcode, $this->getGrantUpdate($uid, $nodeType, $nid), $this->getGrantDelete($uid, $nodeType, $nid));
         }
       }
     }
 
-    return $grants;
+    $this->grants = $grants;
   }
 
   public function createUniqueGid() {
@@ -99,7 +112,10 @@ class NodeAccess {
 
   public function canUserUpdateNode($uid, $nodeType, $nid)
   {
-    $user = $this->user->load($uid);
+    $user = $this->getUserInstance($uid);
+
+    $this->setLoadedUid($uid);
+
     if ($user->hasPermission('edit any ' . $nodeType . ' content')) {
       return TRUE;
     }
@@ -113,7 +129,7 @@ class NodeAccess {
 
   public function canUserBypassNodeAccess($uid)
   {
-    $user = $this->user->load($uid);
+    $user = $this->getUserInstance($uid);
     if ($user->hasPermission('bypass node access')) {
       return TRUE;
     }
@@ -123,7 +139,7 @@ class NodeAccess {
 
   public function canUserDeleteNode($uid, $nodeType, $nid)
   {
-    $user = $this->user->load($uid);
+    $user = $this->getUserInstance($uid);
     if ($user->hasPermission('delete any ' . $nodeType . ' content')) {
       return TRUE;
     }
@@ -173,7 +189,7 @@ class NodeAccess {
   }
 
   private function canUpdateOwnNode($uid, $nodeType) {
-    $user = $this->user->load($uid);
+    $user = $this->getUserInstance($uid);
     if ($user->hasPermission('edit own ' . $nodeType . ' content')) {
       return 1;
     }
@@ -182,12 +198,61 @@ class NodeAccess {
   }
 
   private function canDeleteOwnNode($uid, $nodeType) {
-    $user = $this->user->load($uid);
+    $user = $this->getUserInstance($uid);
     if ($user->hasPermission('delete own ' . $nodeType . ' content')) {
       return 1;
     }
 
     return 0;
+  }
+
+  public function getGrantsByNid($nid) {
+    $grants = [];
+    foreach($this->grants as $grant) {
+      if ($grant->nid == $nid) {
+        $grants[] = $grant;
+      }
+    }
+
+    return $grants;
+  }
+
+  /**
+   * @return int
+   */
+  public function getLoadedUid()
+  {
+    return $this->loadedUid;
+  }
+
+  /**
+   * @param int $loadedUid
+   */
+  public function setLoadedUid($loadedUid)
+  {
+    $this->loadedUid = $loadedUid;
+  }
+
+  /**
+   * @return User
+   */
+  public function getUserInstance($uid)
+  {
+    if ($this->getLoadedUid() !== $uid) {
+      $user = $this->userEntityStorage->load($uid);
+      $this->setUserInstance($user);
+      return $user;
+    }
+
+    return $this->userInstance;
+  }
+
+  /**
+   * @param User $userInstance
+   */
+  public function setUserInstance($userInstance)
+  {
+    $this->userInstance = $userInstance;
   }
 
 }

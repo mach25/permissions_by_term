@@ -465,4 +465,19 @@ class AccessStorage implements AccessStorageInterface {
       ->fetchAssoc()['langcode'];
   }
 
+  public function getGidsByRealm($realm)
+  {
+    $query = $this->oDatabase->select('node_access', 'na')
+      ->fields('na', ['gid'])
+      ->condition('na.realm', $realm);
+
+    $gids = $query->execute()->fetchCol();
+
+    foreach ($gids as $gid) {
+      $grants[$realm][] = $gid;
+    }
+
+    return $grants;
+  }
+
 }
