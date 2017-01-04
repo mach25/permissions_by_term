@@ -30,7 +30,7 @@ class AccessCheck implements AccessCheckInterface{
         $aReferencedTaxonomyTerms = $field->getValue();
         if (!empty($aReferencedTaxonomyTerms)) {
           foreach ($aReferencedTaxonomyTerms as $aReferencedTerm) {
-            if (isset($aReferencedTerm['target_id']) && !$this->isAccessAllowedByDatabase($aReferencedTerm['target_id'])) {
+            if (isset($aReferencedTerm['target_id']) && !$this->isAccessAllowedByDatabase($aReferencedTerm['target_id'], $uid)) {
               $access_allowed = FALSE;
             }
           }
@@ -88,7 +88,7 @@ class AccessCheck implements AccessCheckInterface{
 
     if ($uid === FALSE) {
       $user = \Drupal::currentUser();
-    } elseif ($uid === TRUE) {
+    } elseif (is_numeric($uid)) {
       $user = User::load($uid);
     }
 

@@ -205,9 +205,9 @@ function permissions_by_term_node_grants(\Drupal\Core\Session\AccountInterface $
        */
       $accessStorage = \Drupal::service('permissions_by_term.access_storage');
       $grants = $accessStorage->getGidsByRealm('permissions_by_term__uid_' . \Drupal::currentUser()->id());
+      return $grants;
     }
 
-    return $grants;
 }
 
 /**
@@ -242,10 +242,4 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
   }
 
   return $grants;
-}
-
-function tryNodeAccessByDevel() {
-  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-  $grants = $nodeAccess->createGrants();
-  xdebug_break();
 }
