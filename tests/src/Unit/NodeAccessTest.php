@@ -11,26 +11,26 @@ class NodeAccessTest extends PHPUnit_Framework_TestCase {
 
   use Base;
 
-  /**
-   * @dataProvider provideTableData
-   * @param $permissionsByTermUser
-   * @param $permissionsByTermRole
-   */
-  public function testCreateRealms($permissionsByTermUser, $permissionsByTermRole) {
+  public function testCreateRealms() {
     $accessStorage = $this->createMock('Drupal\permissions_by_term\AccessStorage',
       [
         'fetchUidsByRid' => [999, 87, 44],
         'getNidsByTid' => [64, 826, 91, 21],
         'getAllNids' => [12, 55, 88, 3, 5],
-        'getAllUids' => [6, 84, 2, 99, 2]
+        'getAllUids' => [6, 84, 2, 99, 2],
+        'getNodeType' => 'article',
+        'getLangCode' => 'en'
       ]
     );
     $nodeAccessStorageFactory = new NodeAccessRecordFactory();
 
     $entityManager = $this->createMock('Drupal\Core\Entity\EntityManager',
       [
-        'getStorage' => FALSE,
-      ]
+        'getStorage' => $this->createMock('Storage', [
+          'load' => $this->createMock('Entity', [
+            'hasPermission' => true
+        ]),
+      ])]
     );
 
     $accessCheck = $this->createMock('Drupal\permissions_by_term\AccessCheck',
@@ -40,17 +40,12 @@ class NodeAccessTest extends PHPUnit_Framework_TestCase {
     );
 
     $nodeAccess = new NodeAccess($accessStorage, $nodeAccessStorageFactory, $entityManager, $accessCheck);
-    $objectStack = $nodeAccess->createGrants($permissionsByTermUser, $permissionsByTermRole);
+    $nodeAccess->createGrants();
 
-    $this->assertTrue($this->propertiesHaveValues($objectStack));
-    $this->assertTrue($this->realmContainsNumber($objectStack));
+    $this->assertTrue($this->propertiesHaveValues($nodeAccess->getGrants()));
+    $this->assertTrue($this->realmContainsNumber($nodeAccess->getGrants()));
   }
 
-  /**
-   * @param array $objectStack
-   * @return bool
-   * @throws Exception
-   */
   private function realmContainsNumber($objectStack) {
     foreach ($objectStack as $object) {
       foreach ($object as $propertyName => $propertyValue) {
@@ -92,71 +87,6 @@ class NodeAccessTest extends PHPUnit_Framework_TestCase {
     }
 
     return TRUE;
-  }
-
-  public function provideTableData() {
-    return [
-      [
-        'permissions_by_term_user' => [
-          [
-            'tid' => 2,
-            'uid' => 4,
-          ],
-          [
-            'tid' => 1,
-            'uid' => 99,
-          ],
-          [
-            'tid' => 32,
-            'uid' => 14,
-          ],
-        ],
-        'permissions_by_term_role' => [
-          [
-            'tid' => 1,
-            'rid' => 5,
-          ],
-          [
-            'tid' => 4,
-            'rid' => 8,
-          ],
-          [
-            'tid' => 9,
-            'rid' => 3,
-          ],
-        ],
-      ],
-      [
-        'permissions_by_term_user' => [
-          [
-            'tid' => 7,
-            'uid' => 9,
-          ],
-          [
-            'tid' => 3,
-            'uid' => 8,
-          ],
-          [
-            'tid' => 12,
-            'uid' => 4,
-          ],
-        ],
-        'permissions_by_term_role' => [
-          [
-            'tid' => 8,
-            'rid' => 45,
-          ],
-          [
-            'tid' => 40,
-            'rid' => 8,
-          ],
-          [
-            'tid' => 19,
-            'rid' => 30,
-          ],
-        ],
-      ],
-    ];
   }
 
 }

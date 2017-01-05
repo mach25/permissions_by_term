@@ -255,4 +255,12 @@ class NodeAccess {
     $this->userInstance = $userInstance;
   }
 
+  /**
+   * @return NodeAccessRecordModel[]
+   */
+  public function getGrants()
+  {
+    return $this->grants;
+  }
+
 }

@@ -74,6 +74,7 @@ function permissions_by_term_submit($form, FormState $oFormState) {
   /* @var \Drupal\permissions_by_term\AccessStorage $access_storage */
   $access_storage = \Drupal::service('permissions_by_term.access_storage');
   $access_storage->saveTermPermissions($oFormState, $iTermId);
+  node_access_rebuild();
 }
 
 /**
@@ -87,7 +88,7 @@ function permissions_by_term_submit($form, FormState $oFormState) {
  * through the administrative interface.
  */
 function permissions_by_term_node_access(NodeInterface $node, $op, AccountInterface $account) {
-  if (method_exists($node, 'id') && $op == 'view' && $node->isPublished()) {
+  if (method_exists($node, 'id') && $op == 'view') {
     /* @var \Drupal\permissions_by_term\AccessCheck $access_check_service */
     $access_check_service = \Drupal::service('permissions_by_term.access_check');
     $oPermissionsByTermController = new PermissionsByTermController($access_check_service);
@@ -242,4 +243,9 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
   }
 
   return $grants;
+}
+
+function permissions_by_term_node_presave($node)
+{
+  permissions_by_term_node_access_records($node);
 }

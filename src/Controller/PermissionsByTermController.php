@@ -40,7 +40,7 @@ class PermissionsByTermController extends ControllerBase {
    */
   public function handleNode($node_id) {
     if ($this->oAccessCheckService->canUserAccessByNodeId($node_id) === TRUE) {
-      return AccessResult::allowed();
+      return AccessResult::neutral();
     }
     else {
       return AccessResult::forbidden();
