@@ -57,3 +57,17 @@ function permissions_by_term_schema() {
   return $schema;
 
 }
+
+/**
+ * Implements hook_install().
+ */
+function permissions_by_term_install() {
+  node_access_rebuild();
+}
+
+/**
+ * Mandatory initial run of node_access_rebuild() Drupal core function.
+ */
+function permissions_by_term_update_8113() {
+  node_access_rebuild();
+}
