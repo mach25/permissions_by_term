@@ -229,6 +229,7 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
 
   $grantsForThisNode = $nodeAccess->getGrantsByNid($node->id());
 
+  $grants = [];
   foreach ($grantsForThisNode as $grantObject) {
     $grants[] = array(
       'realm' => $grantObject->realm,
@@ -238,7 +239,7 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
       'grant_delete' => $grantObject->grant_delete,
       'langcode' => $grantObject->langcode,
       'fallback' => 1,
-      'nid' => $node->id()
+      'nid' => $node->id(),
     );
   }
 
