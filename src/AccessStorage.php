@@ -397,14 +397,6 @@ class AccessStorage implements AccessStorageInterface {
     return $sUserInfos;
   }
 
-  public function fetchUidsByRid(){
-    // TBD
-  }
-
-  public function getNidsByTid($tid){
-
-  }
-
   /**
    * @return array
    */
@@ -478,6 +470,16 @@ class AccessStorage implements AccessStorageInterface {
     }
 
     return $grants;
+  }
+
+  public function getAllNidsUserCanAccess($uid)
+  {
+    $query = $this->oDatabase->select('node_access', 'na')
+      ->fields('na', ['nid'])
+      ->condition('na.realm', 'permissions_by_term__uid_' . $uid);
+
+    return $query->execute()
+      ->fetchCol();
   }
 
 }
