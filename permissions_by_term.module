@@ -226,20 +226,22 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
     $nodeAccess->createGrants();
   }
 
-  $grantsForThisNode = $nodeAccess->getGrantsByNid($node->id());
-
   $grants = [];
-  foreach ($grantsForThisNode as $grantObject) {
-    $grants[] = array(
-      'realm' => $grantObject->realm,
-      'gid' => $grantObject->gid,
-      'grant_view' => $grantObject->grant_view,
-      'grant_update' => $grantObject->grant_update,
-      'grant_delete' => $grantObject->grant_delete,
-      'langcode' => $grantObject->langcode,
-      'fallback' => 1,
-      'nid' => $node->id(),
-    );
+  if (!empty($nodeAccess->getGrants())) {
+    $grantsForThisNode = $nodeAccess->getGrantsByNid($node->id());
+
+    foreach ($grantsForThisNode as $grantObject) {
+      $grants[] = array(
+        'realm' => $grantObject->realm,
+        'gid' => $grantObject->gid,
+        'grant_view' => $grantObject->grant_view,
+        'grant_update' => $grantObject->grant_update,
+        'grant_delete' => $grantObject->grant_delete,
+        'langcode' => $grantObject->langcode,
+        'fallback' => 1,
+        'nid' => $node->id(),
+      );
+    }
   }
 
   return $grants;
