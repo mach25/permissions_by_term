@@ -216,8 +216,7 @@ function permissions_by_term_node_grants(\Drupal\Core\Session\AccountInterface $
  *
  * Permissions can be rebuild at /admin/reports/status/rebuild.
  */
-function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $node)
-{
+function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $node) {
   $nodeAccess = &drupal_static(__FUNCTION__);
   if (!isset($nodeAccess)) {
     /**
@@ -246,7 +245,17 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
   return $grants;
 }
 
-function permissions_by_term_node_presave($node)
-{
+/**
+ * Implements hook_node_presave().
+ */
+function permissions_by_term_node_presave($node) {
   permissions_by_term_node_access_records($node);
+  node_access_rebuild();
+}
+
+/**
+ * Implements hook_user_insert().
+ */
+function permissions_by_term_user_insert($account) {
+  node_access_rebuild();
 }
