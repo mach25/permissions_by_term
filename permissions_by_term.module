@@ -28,6 +28,7 @@ function permissions_by_term_help($route_name, RouteMatchInterface $arg) {
         Administer >> Content Management >> Taxonomy, and add or
         edit a term. If the permissions are left blank, the term is
         available to all users.') . '</p>';
+
       return $output;
   }
 }
@@ -69,12 +70,16 @@ function permissions_by_term_validate($form, FormState $oFormState) {
 /**
  * Submit handler for permissions_by_term_form_alter().
  */
-function permissions_by_term_submit($form, FormState $oFormState) {
-  $iTermId = $oFormState->getFormObject()->getEntity()->id();
+function permissions_by_term_submit($form, FormState $formState) {
+  $termId = $formState->getFormObject()->getEntity()->id();
   /* @var \Drupal\permissions_by_term\AccessStorage $access_storage */
   $access_storage = \Drupal::service('permissions_by_term.access_storage');
-  $access_storage->saveTermPermissions($oFormState, $iTermId);
-  node_access_rebuild();
+  $access_storage->saveTermPermissions($formState, $termId);
+  /**
+   * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
+   */
+  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
+  $nodeAccess->rebuildByTid($termId, $formState);
 }
 
 /**
@@ -206,9 +211,9 @@ function permissions_by_term_node_grants(\Drupal\Core\Session\AccountInterface $
        */
       $accessStorage = \Drupal::service('permissions_by_term.access_storage');
       $grants = $accessStorage->getGidsByRealm('permissions_by_term__uid_' . \Drupal::currentUser()->id());
+
       return $grants;
     }
-
 }
 
 /**
@@ -217,19 +222,14 @@ function permissions_by_term_node_grants(\Drupal\Core\Session\AccountInterface $
  * Permissions can be rebuild at /admin/reports/status/rebuild.
  */
 function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $node) {
-  $nodeAccess = &drupal_static(__FUNCTION__);
-  if (!isset($nodeAccess)) {
-    /**
-     * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
-     */
-    $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-    $nodeAccess->createGrants();
-  }
+  /**
+   * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
+   */
+  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
+  $grantsForThisNode = $nodeAccess->createGrants($node->id());
 
   $grants = [];
-  if (!empty($nodeAccess->getGrants())) {
-    $grantsForThisNode = $nodeAccess->getGrantsByNid($node->id());
-
+  if (!empty($grantsForThisNode)) {
     foreach ($grantsForThisNode as $grantObject) {
       $grants[] = array(
         'realm' => $grantObject->realm,
@@ -250,6 +250,21 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
 /**
  * Implements hook_user_insert().
  */
-function permissions_by_term_user_insert($account) {
-  node_access_rebuild();
+function permissions_by_term_user_insert($user) {
+  /**
+   * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
+   */
+  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
+  $nodeAccess->rebuildByUid($user->id(), TRUE);
+}
+
+/**
+ * Implements hook_user_update().
+ */
+function  permissions_by_term_user_update($user) {
+  /**
+   * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
+   */
+  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
+  $nodeAccess->rebuildByUid($user->id());
 }

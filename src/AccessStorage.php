@@ -2,9 +2,9 @@
 
 namespace Drupal\permissions_by_term;
 
-use \Drupal\Core\Database\Driver\mysql\Connection;
-use \Drupal\Component\Utility\Tags;
-use \Drupal\Core\Form\FormState;
+use Drupal\Core\Database\Driver\mysql\Connection;
+use Drupal\Component\Utility\Tags;
+use Drupal\Core\Form\FormState;
 
 /**
  * Class AccessStorage.
@@ -64,7 +64,7 @@ class AccessStorage implements AccessStorageInterface {
    * @return array
    *   An array with chosen roles.
    */
-  protected function getSubmittedRolesGrantedAccess(FormState $form_state) {
+  public function getSubmittedRolesGrantedAccess(FormState $form_state) {
     $aRoles       = $form_state->getValue('access')['role'];
     $aChosenRoles = array();
     foreach ($aRoles as $sRole) {
@@ -225,7 +225,7 @@ class AccessStorage implements AccessStorageInterface {
    * @return array
    *   The user ids which have been submitted.
    */
-  protected function getSubmittedUserIds() {
+  public function getSubmittedUserIds() {
     /* There's a $this->oFormState->getValues() method, but
      * it is loosing multiple form values. Don't know why.
      * So there're some custom lines on the $_REQUEST array. */
@@ -480,6 +480,15 @@ class AccessStorage implements AccessStorageInterface {
 
     return $query->execute()
       ->fetchCol();
+  }
+
+  public function getNidsByTid($tid)
+  {
+      $query = $this->oDatabase->select('taxonomy_index', 'ti')
+        ->fields('ti', ['nid'])
+        ->condition('ti.tid', $tid);
+
+      return $query->execute()->fetchCol();
   }
 
 }

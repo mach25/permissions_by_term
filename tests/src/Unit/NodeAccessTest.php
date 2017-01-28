@@ -39,11 +39,12 @@ class NodeAccessTest extends PHPUnit_Framework_TestCase {
       ]
     );
 
-    $nodeAccess = new NodeAccess($accessStorage, $nodeAccessStorageFactory, $entityManager, $accessCheck);
-    $nodeAccess->createGrants();
+    $database = $this->createMock('Drupal\Core\Database\Driver\mysql\Connection');
 
-    $this->assertTrue($this->propertiesHaveValues($nodeAccess->getGrants()));
-    $this->assertTrue($this->realmContainsNumber($nodeAccess->getGrants()));
+    $nodeAccess = new NodeAccess($accessStorage, $nodeAccessStorageFactory, $entityManager, $accessCheck, $database);
+
+    $this->assertTrue($this->propertiesHaveValues($nodeAccess->createGrants(1)));
+    $this->assertTrue($this->realmContainsNumber($nodeAccess->createGrants(1)));
   }
 
   private function realmContainsNumber($objectStack) {
