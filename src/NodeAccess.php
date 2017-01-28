@@ -299,4 +299,16 @@ class NodeAccess {
 
   }
 
+  public function rebuildByNid($nid) {
+    $grants = $this->createGrants($nid);
+    foreach ($grants as $grant) {
+      $this->database->insert('node_access')
+        ->fields(
+          ['nid', 'langcode', 'fallback', 'gid', 'realm', 'grant_view', 'grant_update', 'grant_delete'],
+          [$nid, $grant->langcode, 1, $grant->gid, $grant->realm, $grant->grant_view, $grant->grant_update, $grant->grant_delete]
+        )
+        ->execute();
+    }
+  }
+
 }

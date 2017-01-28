@@ -261,10 +261,18 @@ function permissions_by_term_user_insert($user) {
 /**
  * Implements hook_user_update().
  */
-function  permissions_by_term_user_update($user) {
+function permissions_by_term_user_update($user) {
   /**
    * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
    */
   $nodeAccess = \Drupal::service('permissions_by_term.node_access');
   $nodeAccess->rebuildByUid($user->id());
+}
+
+function permissions_by_term_node_insert($node) {
+  /**
+   * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
+   */
+  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
+  $nodeAccess->rebuildByNid($node->id());
 }
