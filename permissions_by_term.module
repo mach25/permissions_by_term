@@ -83,26 +83,6 @@ function permissions_by_term_submit($form, FormState $formState) {
 }
 
 /**
- * Implements hook_node_access().
- *
- * Forwards user by drupal_access_denied(); to an access denied page, if a
- * single restricted node is called.
- *
- * This hook is not fired if admin is logged in. Users with the
- * "bypass node access" permission may always view and edit content
- * through the administrative interface.
- */
-function permissions_by_term_node_access(NodeInterface $node, $op, AccountInterface $account) {
-  if (method_exists($node, 'id') && $op == 'view') {
-    /* @var \Drupal\permissions_by_term\AccessCheck $access_check_service */
-    $access_check_service = \Drupal::service('permissions_by_term.access_check');
-    $oPermissionsByTermController = new PermissionsByTermController($access_check_service);
-
-    return $oPermissionsByTermController->handleNode($node->id());
-  }
-}
-
-/**
  * Implements hook_form_alter().
  */
 function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInterface $oFormState, $form_id) {
@@ -201,6 +181,26 @@ function permissions_by_term_form_alter(&$form, FormStateInterface $oFormState, 
 }
 
 /**
+ * Implements hook_node_access().
+ *
+ * Forwards user by drupal_access_denied(); to an access denied page, if a
+ * single restricted node is called.
+ *
+ * This hook is not fired if admin is logged in. Users with the
+ * "bypass node access" permission may always view and edit content
+ * through the administrative interface.
+ */
+function permissions_by_term_node_access(NodeInterface $node, $op, AccountInterface $account) {
+  if (method_exists($node, 'id') && $op == 'view') {
+    /* @var \Drupal\permissions_by_term\AccessCheck $access_check_service */
+    $access_check_service = \Drupal::service('permissions_by_term.access_check');
+    $oPermissionsByTermController = new PermissionsByTermController($access_check_service);
+
+    return $oPermissionsByTermController->handleNode($node->id());
+  }
+}
+
+/**
  * Implements hook_node_grants().
  */
 function permissions_by_term_node_grants(\Drupal\Core\Session\AccountInterface $account, $op)
@@ -269,6 +269,9 @@ function permissions_by_term_user_update($user) {
   $nodeAccess->rebuildByUid($user->id());
 }
 
+/**
+ * Implements hook_node_insert().
+ */
 function permissions_by_term_node_insert($node) {
   /**
    * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
