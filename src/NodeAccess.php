@@ -246,7 +246,9 @@ class NodeAccess {
 
   public function rebuildByTid($tid, $formState) {
     $nids = $this->accessStorage->getNidsByTid($tid);
-    $this->dropRecordsByNids($nids);
+    if (!empty($nids)) {
+      $this->dropRecordsByNids($nids);
+    }
 
     if (empty($this->accessStorage->getSubmittedUserIds()) && empty($this->accessStorage->getSubmittedRolesGrantedAccess($formState))) {
       return;
