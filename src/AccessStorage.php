@@ -402,10 +402,11 @@ class AccessStorage implements AccessStorageInterface {
    */
   public function getAllNids()
   {
-    $nodes = \Drupal::entityQuery('node')
-      ->execute();
+    $query = $this->oDatabase->select('node', 'n')
+        ->fields('n', ['nid']);
 
-    return array_values($nodes);
+    return $query->execute()
+        ->fetchCol();
   }
 
   public function getTidsByNid($nid)
