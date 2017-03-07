@@ -21,16 +21,25 @@ use Drupal\Core\Cache\Cache;
 function permissions_by_term_help($route_name, RouteMatchInterface $arg) {
   switch ($route_name) {
     case 'help.page.permissions_by_term':
-      $output = '<p>' . t('This module allows taxonomy administrators the
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The "Permissions by Term" (PbT) module allows taxonomy administrators the
         ability to restrict setting individual terms on nodes by user
         or role. If a user is unable to set any terms for a required
         vocabulary, they are blocked from adding or editing content with
-        that vocabulary.') . '</p>';
-      $output .= '<p>' . t('To add permissions for a term, go to
-        Administer >> Content Management >> Taxonomy, and add or
-        edit a term. If the permissions are left blank, the term is
-        available to all users.') . '</p>';
-
+        that vocabulary. For more information, see the online documentation for <a href=":PbT-documentation" target="_blan" title="Online Documentation">Permissions by Term</a>.', array(':PbT-documentation' => 'https://www.drupal.org/project/permissions_by_term')) . '</p>';
+      $output .= '<h3>' . t('Uses') . '</h3>';
+      $output .= '<dl>';
+      $output .= '<dt>' . t('General') . '</dt>';
+      $output .= '<dd>' . t('Use Permissions by Term to easily build access-restricted content areas on your websites.') . '</dd>';
+      $output .= '<dt>' . t('Lightweight Access Control') . '</dt>';
+      $output .= '<dd>' . t('Permissions by Term restricts user access to specified Drupal nodes based on taxonomy terms - a core part of Drupal’s functionality. PbT lets you restrict content access while relying on very little contributed code.') . '</dd>';
+      $output .= '<dt>' . t('Example use cases') . '</dt>';
+      $output .= '<dd>' . t('A club or service site with premium- or member-only content.') . '</dd>';
+      $output .= '<dd>' . t('School websites with content intended for teachers only and content aimed at individual classes within the school.') . '</dd>';
+      $output .= '<dd>' . t('Company intranets with sensitive or proprietary content alongside non-restricted content.') . '</dd>';
+      $output .= '</dl>';
+      
       return $output;
   }
 }
