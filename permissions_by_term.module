@@ -5,6 +5,7 @@
  * Allows access to terms in a vocabulary to be limited by user or role.
  */
 
+use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormState;
 use Drupal\permissions_by_term\Controller\PermissionsByTermController;
 use Drupal\Core\Form\FormStateInterface;
@@ -194,6 +195,10 @@ function permissions_by_term_form_alter(&$form, FormStateInterface $oFormState, 
  */
 function permissions_by_term_node_access(NodeInterface $node, $op, AccountInterface $account) {
   if (method_exists($node, 'id') && $op == 'view') {
+    if (!$node->isPublished() && $account->isAnonymous()) {
+      return AccessResult::forbidden();
+    }
+
     /* @var \Drupal\permissions_by_term\AccessCheck $access_check_service */
     $access_check_service = \Drupal::service('permissions_by_term.access_check');
     $oPermissionsByTermController = new PermissionsByTermController($access_check_service);
