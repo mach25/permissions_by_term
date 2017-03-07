@@ -66,6 +66,13 @@ function permissions_by_term_install() {
 }
 
 /**
+ * Implements hook_uninstall().
+ */
+function permissions_by_term_uninstall() {
+  node_access_rebuild(TRUE);
+}
+
+/**
  * Mandatory initial run of node_access_rebuild() Drupal core function.
  */
 function permissions_by_term_update_8113() {
