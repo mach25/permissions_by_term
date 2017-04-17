@@ -69,7 +69,7 @@ class KernelEventListener implements EventSubscriberInterface
     ) {
       $json_suggested_terms = $event->getResponse()->getContent();
       $suggested_terms = json_decode($json_suggested_terms);
-      $allowed_terms = array();
+      $allowed_terms = [];
       foreach ($suggested_terms as $term) {
         $tid = $this->accessStorageService->getTermIdByName($term->label);
         if ($this->accessCheckService->isAccessAllowedByDatabase($tid)) {

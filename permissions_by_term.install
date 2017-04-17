@@ -10,49 +10,49 @@
  */
 function permissions_by_term_schema() {
 
-  $schema = array();
+  $schema = [];
 
   // Specifications for tabe 'permissions_by_term_user'.
-  $schema['permissions_by_term_user'] = array(
+  $schema['permissions_by_term_user'] = [
     'description' => "Stores the tid's to which a user has permission by his uid.",
-    'fields' => array(
-      'tid' => array(
+    'fields' => [
+      'tid' => [
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-      ),
-      'uid' => array(
+      ],
+      'uid' => [
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-      ),
-    ),
-    'primary key' => array(
+      ],
+    ],
+    'primary key' => [
       'tid',
       'uid',
-    ),
-  );
+    ],
+  ];
 
   // Specifications for tabe 'permissions_by_term_role'.
-  $schema['permissions_by_term_role'] = array(
+  $schema['permissions_by_term_role'] = [
     'description' => "Stores the tid's to which user's are allowed to by rid.",
-    'fields' => array(
-      'tid' => array(
+    'fields' => [
+      'tid' => [
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-      ),
-      'rid' => array(
+      ],
+      'rid' => [
         'type' => 'varchar',
         'length' => 60,
         'not null' => TRUE,
-      ),
-    ),
-    'primary key' => array(
+      ],
+    ],
+    'primary key' => [
       'tid',
       'rid',
-    ),
-  );
+    ],
+  ];
 
   return $schema;
 

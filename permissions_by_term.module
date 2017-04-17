@@ -27,7 +27,7 @@ function permissions_by_term_help($route_name, RouteMatchInterface $arg) {
         ability to restrict setting individual terms on nodes by user
         or role. If a user is unable to set any terms for a required
         vocabulary, they are blocked from adding or editing content with
-        that vocabulary. For more information, see the online documentation for <a href=":PbT-documentation" target="_blan" title="Online Documentation">Permissions by Term</a>.', array(':PbT-documentation' => 'https://www.drupal.org/project/permissions_by_term')) . '</p>';
+        that vocabulary. For more information, see the online documentation for <a href=":PbT-documentation" target="_blan" title="Online Documentation">Permissions by Term</a>.', [':PbT-documentation' => 'https://www.drupal.org/project/permissions_by_term']) . '</p>';
       $output .= '<h3>' . t('Uses') . '</h3>';
       $output .= '<dl>';
       $output .= '<dt>' . t('General') . '</dt>';
@@ -52,7 +52,7 @@ function permissions_by_term_validate($form, FormState $oFormState) {
     if (!is_object($field) && !empty($field['widget']['target_id']['#target_type']) && $field['widget']['target_id']['#target_type'] == 'taxonomy_term') {
       $field_name = $field['widget']['#field_name'];
       $terms = $oFormState->getValues()[$field_name]['target_id'];
-      $not_allowed_term_names = array();
+      $not_allowed_term_names = [];
       if (!empty($terms)) {
         foreach ($terms as $term) {
           $term_id = $term['target_id'];
@@ -104,7 +104,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
     /* @var \Drupal\permissions_by_term\AccessStorage $access_storage */
     $access_storage = \Drupal::service('permissions_by_term.access_storage');
 
-    $form['access'] = array(
+    $form['access'] = [
       '#type' => 'fieldset',
       '#title' => t('Permissions'),
       '#description' => t('To limit access to this term by user or roles,
@@ -113,10 +113,10 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
       term selection by all users.'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
-      '#attributes' => array('id' => 'fieldset_term_access'),
+      '#attributes' => ['id' => 'fieldset_term_access'],
       '#weight' => -5,
       '#tree' => TRUE,
-    );
+    ];
 
     $aAllowedUsers = $access_storage->getAllowedUserIds($iTermId);
     if (!empty($aAllowedUsers)) {
@@ -130,7 +130,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
     // Note that the autocomplete widget will only enable for users with the
     // 'access profiles' permission. Other users will have to specify the name
     // manually.
-    $form['access']['user'] = array(
+    $form['access']['user'] = [
       '#type' => 'entity_autocomplete',
       '#target_type' => 'user',
       '#title' => t('Allowed users'),
@@ -141,18 +141,18 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
       '#size' => 60,
       '#autocomplete_route_name' => 'permissions_by_term.autocomplete_multiple',
       '#weight' => -10,
-    );
+    ];
 
     $aAllowedRoles = $access_storage->getExistingRoleTermPermissionsByTid($iTermId);
 
     // Firstly fetch all translated allowed role names.
-    $aTranslatedAllowedRoleNames = array();
+    $aTranslatedAllowedRoleNames = [];
     foreach ($aAllowedRoles as $role) {
       $aTranslatedAllowedRoleNames[] = $role;
     }
 
     // Get all roles for the complete form and translate them.
-    $aTranslatedUserRoles = array();
+    $aTranslatedUserRoles = [];
     $array_key_counter = 1;
     foreach (user_roles() as $user_role_id => $user_role_name) {
       $aTranslatedUserRoles[$user_role_id] = $user_role_name->label();
@@ -160,7 +160,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
     }
 
     // Generate the default values for the form.
-    $aSetRoles = array();
+    $aSetRoles = [];
     if (!empty($aTranslatedAllowedRoleNames)) {
       foreach ($aTranslatedAllowedRoleNames as $role_name) {
         $aSetRoles[] = $role_name;
@@ -168,7 +168,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
     }
 
     // Now, lets do the Roles table.
-    $form['access']['role'] = array(
+    $form['access']['role'] = [
       '#type' => 'checkboxes',
       '#title' => t('Allowed roles'),
       '#description' => t('Select a role to allow all members of this role to
@@ -178,7 +178,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
       '#options' => $aTranslatedUserRoles,
       '#multiple' => FALSE,
       '#weight' => 5,
-    );
+    ];
 
     $form['#validate'][] = 'permissions_by_term_validate';
     $form['actions']['submit']['#submit'][] = 'permissions_by_term_submit';
@@ -247,7 +247,7 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
   $grants = [];
   if (!empty($grantsForThisNode)) {
     foreach ($grantsForThisNode as $grantObject) {
-      $grants[] = array(
+      $grants[] = [
         'realm' => $grantObject->realm,
         'gid' => $grantObject->gid,
         'grant_view' => $grantObject->grant_view,
@@ -256,7 +256,7 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
         'langcode' => $grantObject->langcode,
         'fallback' => 1,
         'nid' => $node->id(),
-      );
+      ];
     }
   }
 

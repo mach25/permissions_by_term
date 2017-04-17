@@ -21,7 +21,7 @@ class PermissionsByTerm extends InOperator {
   public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
     parent::init($view, $display, $options);
     $this->valueTitle = t('Allowed node titles');
-    $this->definition['options callback'] = array($this, 'generateOptions');
+    $this->definition['options callback'] = [$this, 'generateOptions'];
   }
 
   /**
@@ -54,10 +54,10 @@ class PermissionsByTerm extends InOperator {
    *   Array keys are used to compare with the table field values.
    */
   public function generateOptions() {
-    return array(
+    return [
       'my title' => 'my title',
       'another title' => 'another title',
-    );
+    ];
   }
 
 }

@@ -66,7 +66,7 @@ class AccessStorage implements AccessStorageInterface {
    */
   public function getSubmittedRolesGrantedAccess(FormState $form_state) {
     $aRoles       = $form_state->getValue('access')['role'];
-    $aChosenRoles = array();
+    $aChosenRoles = [];
     foreach ($aRoles as $sRole) {
       if ($sRole !== 0) {
         $aChosenRoles[] = $sRole;
@@ -88,7 +88,7 @@ class AccessStorage implements AccessStorageInterface {
       if (empty($aUserId)) {
         $form_state->setErrorByName('access][user',
           t('The user with ID %user_id does not exist.',
-          array('%user_id' => $sUserId)));
+          ['%user_id' => $sUserId]));
       }
     }
   }
@@ -130,7 +130,7 @@ class AccessStorage implements AccessStorageInterface {
    * {@inheritdoc}
    */
   public function getUserIdsByNames($aUserNames) {
-    $aUserIds = array();
+    $aUserIds = [];
     foreach ($aUserNames as $userName) {
       $iUserId    = $this->getUserIdByName($userName)['uid'];
       $aUserIds[] = $iUserId['uid'];
@@ -232,11 +232,11 @@ class AccessStorage implements AccessStorageInterface {
     $sRawUsers = $_REQUEST['access']['user'];
 
     if (empty($sRawUsers)) {
-      return array();
+      return [];
     }
 
     $aRawUsers = explode('),', $sRawUsers);
-    $aUserIds = array();
+    $aUserIds = [];
     if (!empty($aRawUsers)) {
       foreach ($aRawUsers as $sRawUser) {
         $aTempRawUser = explode(' (', $sRawUser);
@@ -302,7 +302,7 @@ class AccessStorage implements AccessStorageInterface {
    *   The array items to remove.
    */
   private function getArrayItemsToRemove($aExistingItems, $aNewItems) {
-    $aRet = array();
+    $aRet = [];
 
     foreach ($aExistingItems as $existingItem) {
       if (!in_array($existingItem, $aNewItems)) {
@@ -328,7 +328,7 @@ class AccessStorage implements AccessStorageInterface {
    *   The items which needs to be added.
    */
   private function getArrayItemsToAdd($aNewItems, $aExistingItems) {
-    $aRet = array();
+    $aRet = [];
 
     foreach ($aNewItems as $newItem) {
       if (!in_array($newItem, $aExistingItems)) {

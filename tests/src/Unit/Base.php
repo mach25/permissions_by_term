@@ -69,11 +69,11 @@ trait Base
   public function getContainerMock($methodReturnValues = null, $methodReturnValuesMap = null)
   {
     if (!is_array($methodReturnValues)) {
-      $methodReturnValues = array();
+      $methodReturnValues = [];
     }
 
     if (!is_array($methodReturnValuesMap)) {
-      $methodReturnValuesMap = array();
+      $methodReturnValuesMap = [];
     }
 
     $container = $this->getMockBuilder(Container::class)->disableOriginalConstructor()->setMethods(array_merge(array_keys($methodReturnValues), array_keys($methodReturnValuesMap)))->getMock();

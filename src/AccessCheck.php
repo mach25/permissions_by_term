@@ -60,7 +60,7 @@ class AccessCheck implements AccessCheckInterface{
    * {@inheritdoc}
    */
   public function removeForbiddenNodesFromView(&$view) {
-    $aNodesToHideInView = array();
+    $aNodesToHideInView = [];
 
     // Iterate over all nodes in view.
     foreach ($view->result as $v) {
@@ -132,7 +132,7 @@ class AccessCheck implements AccessCheckInterface{
   public function isTermAllowedByUserId($tid, $iUid) {
 
     $query_result = db_query("SELECT uid FROM {permissions_by_term_user} WHERE tid = :tid AND uid = :uid",
-      array(':tid' => $tid, ':uid' => $iUid))->fetchField();
+      [':tid' => $tid, ':uid' => $iUid])->fetchField();
 
     if (!empty($query_result)) {
       return TRUE;
@@ -148,7 +148,7 @@ class AccessCheck implements AccessCheckInterface{
    */
   public function isTermAllowedByUserRole($tid, $sUserRole) {
     $query_result = db_query("SELECT rid FROM {permissions_by_term_role} WHERE tid = :tid AND rid IN (:user_roles)",
-      array(':tid' => $tid, ':user_roles' => $sUserRole))->fetchField();
+      [':tid' => $tid, ':user_roles' => $sUserRole])->fetchField();
 
     if (!empty($query_result)) {
       return TRUE;
@@ -165,10 +165,10 @@ class AccessCheck implements AccessCheckInterface{
   public function isAnyPermissionSetForTerm($tid) {
 
     $iUserTableResults = intval(db_query("SELECT COUNT(1) FROM {permissions_by_term_user} WHERE tid = :tid",
-      array(':tid' => $tid))->fetchField());
+      [':tid' => $tid])->fetchField());
 
     $iRoleTableResults = intval(db_query("SELECT COUNT(1) FROM {permissions_by_term_role} WHERE tid = :tid",
-      array(':tid' => $tid))->fetchField());
+      [':tid' => $tid])->fetchField());
 
     if ($iUserTableResults > 0 ||
       $iRoleTableResults > 0) {
