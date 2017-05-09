@@ -1,13 +1,16 @@
 <?php
 
-use Drupal\Tests\permissions_by_term\Unit\Base;
+namespace Drupal\Tests\permissions_by_term\Unit;
+
 use Drupal\permissions_by_term\NodeAccess;
 use \Drupal\permissions_by_term\Factory\NodeAccessRecordFactory;
 
 /**
  * Class NodeAccess
+ *
+ * @group permissions_by_term
  */
-class NodeAccessTest extends PHPUnit_Framework_TestCase {
+class NodeAccessTest extends \PHPUnit_Framework_TestCase {
 
   use Base;
 
@@ -73,7 +76,7 @@ class NodeAccessTest extends PHPUnit_Framework_TestCase {
     if ($numOfNumbers == 1) {
       return TRUE;
     }
-    
+
     return FALSE;
   }
 
