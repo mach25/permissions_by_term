@@ -107,7 +107,8 @@ class KernelEventListener implements EventSubscriberInterface
   }
 
   private function sendUserToAccessDeniedPage() {
-    $response = new RedirectResponse('/system/403');
+    $redirect_url = new \Drupal\Core\Url('system.403');
+    $response = new RedirectResponse($redirect_url->toString());
     $response->send();
     return $response;
   }
