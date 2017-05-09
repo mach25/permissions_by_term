@@ -39,7 +39,7 @@ function permissions_by_term_help($route_name, RouteMatchInterface $arg) {
       $output .= '<dd>' . t('School websites with content intended for teachers only and content aimed at individual classes within the school.') . '</dd>';
       $output .= '<dd>' . t('Company intranets with sensitive or proprietary content alongside non-restricted content.') . '</dd>';
       $output .= '</dl>';
-      
+
       return $output;
   }
 }
@@ -204,7 +204,7 @@ function permissions_by_term_form_alter(&$form, FormStateInterface $oFormState, 
  */
 function permissions_by_term_node_access(NodeInterface $node, $op, AccountInterface $account) {
   if (method_exists($node, 'id') && $op == 'view') {
-    if (!$node->isPublished() && $account->isAnonymous()) {
+    if (!$node->isPublished()) {
       return AccessResult::forbidden();
     }
 
