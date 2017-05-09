@@ -204,7 +204,7 @@ function permissions_by_term_form_alter(&$form, FormStateInterface $oFormState, 
  */
 function permissions_by_term_node_access(NodeInterface $node, $op, AccountInterface $account) {
   if (method_exists($node, 'id') && $op == 'view') {
-    if (!$node->isPublished()) {
+    if (!$node->isPublished() || !$account->hasPermission('Bypass content access control', $account)) {
       return AccessResult::forbidden();
     }
 
