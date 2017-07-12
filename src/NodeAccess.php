@@ -244,27 +244,23 @@ class NodeAccess {
     $this->userInstance = $userInstance;
   }
 
-  public function rebuildByTid($tid, $formState) {
-    $nids = $this->accessStorage->getNidsByTid($tid);
-    if (!empty($nids)) {
-      $this->dropRecordsByNids($nids);
-    }
-
-    if (empty($this->accessStorage->getSubmittedUserIds()) && empty($this->accessStorage->getSubmittedRolesGrantedAccess($formState))) {
-      return;
-    }
-
-    foreach ($nids as $nid) {
-      $grants = $this->createGrants($nid);
-      foreach ($grants as $grant) {
-        $this->database->insert('node_access')
-          ->fields(
-            ['nid', 'langcode', 'fallback', 'gid', 'realm', 'grant_view', 'grant_update', 'grant_delete'],
-            [$nid, $grant->langcode, 1, $grant->gid, $grant->realm, $grant->grant_view, $grant->grant_update, $grant->grant_delete]
-          )
-          ->execute();
+  /**
+   * @param int $tid
+   * @return bool
+   *   True if access records have been rebuilt, false no.
+   */
+  public function rebuildByTid($tid) {
+    if (!empty($nids = $this->accessStorage->getNidsByTid($tid))) {
+      foreach ($nids as $nid) {
+        $this->dropRecordsByNids([$nid]);
+        $this->rebuildByNid($nid);
       }
+
+      return true;
+
     }
+
+    return false;
 
   }
 

@@ -85,13 +85,29 @@ function permissions_by_term_submit($form, FormState $formState) {
   $termId = $formState->getFormObject()->getEntity()->id();
   /* @var \Drupal\permissions_by_term\AccessStorage $access_storage */
   $access_storage = \Drupal::service('permissions_by_term.access_storage');
-  $access_storage->saveTermPermissions($formState, $termId);
-  /**
-   * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
-   */
-  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-  $nodeAccess->rebuildByTid($termId, $formState);
-  Cache::invalidateTags(['search_index:node_search']);
+  $access_update = $access_storage->saveTermPermissions($formState, $termId);
+
+  // Check if we need to rebuild node_access by term id
+  $update_node_access = false;
+
+  // Has anything has changed?
+  foreach($access_update as $values) {
+    if(!empty($values)) {
+      $update_node_access = true;
+      break;
+    }
+  }
+
+  // Do we rebuild node access?
+  if($update_node_access === true) {
+    /**
+     * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
+     */
+    $nodeAccess = \Drupal::service('permissions_by_term.node_access');
+    if ($nodeAccess->rebuildByTid($termId)) {
+      Cache::invalidateTags(['search_index:node_search']);
+    }
+  }
 }
 
 /**
