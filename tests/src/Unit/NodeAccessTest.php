@@ -3,14 +3,15 @@
 namespace Drupal\Tests\permissions_by_term\Unit;
 
 use Drupal\permissions_by_term\NodeAccess;
-use \Drupal\permissions_by_term\Factory\NodeAccessRecordFactory;
+use Drupal\permissions_by_term\Factory\NodeAccessRecordFactory;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class NodeAccess
  *
  * @group permissions_by_term
  */
-class NodeAccessTest extends \PHPUnit_Framework_TestCase {
+class NodeAccessTest extends TestCase {
 
   use Base;
 
