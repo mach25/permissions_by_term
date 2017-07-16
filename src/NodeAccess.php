@@ -4,14 +4,19 @@ namespace Drupal\permissions_by_term;
 
 use Drupal\Core\Entity\EntityManager;
 use Drupal\permissions_by_term\Factory\NodeAccessRecordFactory;
-use Drupal\user\Entity\User;
 use Drupal\node\Entity\Node;
-use Drupal\Core\Database\Driver\mysql\Connection;
+use Drupal\Core\Database\Connection;
+use Drupal\user\Entity\User;
 
+/**
+ * Class NodeAccess
+ *
+ * @package Drupal\permissions_by_term
+ */
 class NodeAccess {
 
   /**
-   * @var array $uniqueGid
+   * @var int $uniqueGid
    */
   private $uniqueGid = 0;
 
@@ -51,11 +56,28 @@ class NodeAccess {
   private $userInstance;
 
   /**
-   * @var Connection $database
+   * The database connection.
+   *
+   * @var Connection
    */
   private $database;
 
-  public function __construct(AccessStorage $accessStorage, NodeAccessRecordFactory $nodeAccessRecordFactory, EntityManager $entityManager, AccessCheck $accessCheck, Connection $database) {
+  /**
+   * NodeAccess constructor.
+   *
+   * @param AccessStorage           $accessStorage
+   * @param NodeAccessRecordFactory $nodeAccessRecordFactory
+   * @param EntityManager           $entityManager
+   * @param AccessCheck             $accessCheck
+   * @param Connection              $database
+   */
+  public function __construct(
+    AccessStorage $accessStorage,
+    NodeAccessRecordFactory $nodeAccessRecordFactory,
+    EntityManager $entityManager,
+    AccessCheck $accessCheck,
+    Connection $database
+  ) {
     $this->accessStorage = $accessStorage;
     $this->nodeAccessRecordFactory = $nodeAccessRecordFactory;
     $this->entityManager = $entityManager;
@@ -65,10 +87,21 @@ class NodeAccess {
     $this->database = $database;
   }
 
+  /**
+   * @param $uid
+   *
+   * @return string
+   */
   public function createRealm($uid) {
     return 'permissions_by_term__uid_' . $uid;
   }
 
+  /**
+   * @param $nid
+   * @param bool $uid
+   *
+   * @return array
+   */
   public function createGrants($nid, $uid = FALSE) {
     if (empty($uid)) {
       $uids = $this->accessStorage->getAllUids();
@@ -89,6 +122,9 @@ class NodeAccess {
     return $grants;
   }
 
+  /**
+   * @return int
+   */
   public function createUniqueGid() {
     $uniqueGid = $this->getUniqueGid();
     $uniqueGid++;
@@ -97,19 +133,26 @@ class NodeAccess {
   }
 
   /**
-   * @return array
+   * @return int
    */
   public function getUniqueGid() {
     return $this->uniqueGid;
   }
 
   /**
-   * @param array $uniqueGid
+   * @param int $uniqueGid
    */
   public function setUniqueGid($uniqueGid) {
     $this->uniqueGid = $uniqueGid;
   }
 
+  /**
+   * @param $uid
+   * @param $nodeType
+   * @param $nid
+   *
+   * @return bool
+   */
   public function canUserUpdateNode($uid, $nodeType, $nid) {
     $user = $this->getUserInstance($uid);
 
@@ -135,6 +178,13 @@ class NodeAccess {
     return FALSE;
   }
 
+  /**
+   * @param $uid
+   * @param $nodeType
+   * @param $nid
+   *
+   * @return bool
+   */
   public function canUserDeleteNode($uid, $nodeType, $nid) {
     $user = $this->getUserInstance($uid);
     if ($user->hasPermission('delete any ' . $nodeType . ' content')) {
@@ -172,6 +222,12 @@ class NodeAccess {
     return 0;
   }
 
+  /**
+   * @param $nid
+   * @param $uid
+   *
+   * @return bool
+   */
   public function isNodeOwner($nid, $uid) {
     $node = $this->node->load($nid);
     if (intval($node->getOwnerId()) == intval($uid)) {
@@ -199,6 +255,11 @@ class NodeAccess {
     return 0;
   }
 
+  /**
+   * @param $nid
+   *
+   * @return array
+   */
   public function getGrantsByNid($nid) {
     $grants = [];
     foreach ($this->grants as $grant) {
@@ -276,6 +337,10 @@ class NodeAccess {
       ->execute();
   }
 
+  /**
+   * @param $uid
+   * @param bool $noDrop
+   */
   public function rebuildByUid($uid, $noDrop = FALSE) {
     if ($noDrop === FALSE) {
       $this->dropRecordsByUid($uid);
@@ -297,6 +362,9 @@ class NodeAccess {
 
   }
 
+  /**
+   * @param $nid
+   */
   public function rebuildByNid($nid) {
     $grants = $this->createGrants($nid);
     foreach ($grants as $grant) {

@@ -6,7 +6,7 @@ services:
             - { name: event_subscriber }
     permissions_by_term.access_check:
         class: Drupal\permissions_by_term\AccessCheck
-        arguments: ['@entity.manager']
+        arguments: ['@entity.manager', '@database']
     permissions_by_term.access_storage:
         class: Drupal\permissions_by_term\AccessStorage
         arguments: ['@database']

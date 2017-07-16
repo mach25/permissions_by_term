@@ -2,7 +2,7 @@
 
 namespace Drupal\permissions_by_term;
 
-use Drupal\Core\Database\Driver\mysql\Connection;
+use Drupal\Core\Database\Connection;
 use Drupal\Component\Utility\Tags;
 use Drupal\Core\Form\FormState;
 
@@ -21,9 +21,9 @@ use Drupal\Core\Form\FormState;
 class AccessStorage implements AccessStorageInterface {
 
   /**
-   * Drupal\Core\Database\Driver\mysql\Connection definition.
+   * The database connection.
    *
-   * @var Drupal\Core\Database\Driver\mysql\Connection
+   * @var \Drupal\Core\Database\Connection
    */
   protected $oDatabase;
 
@@ -51,7 +51,7 @@ class AccessStorage implements AccessStorageInterface {
   /**
    * AccessStorageService constructor.
    *
-   * @param \Drupal\Core\Database\Driver\mysql\Connection $database
+   * @param Connection $database
    *   The connection to the database.
    */
   public function __construct(Connection $database) {
@@ -409,6 +409,11 @@ class AccessStorage implements AccessStorageInterface {
         ->fetchCol();
   }
 
+  /**
+   * @param $nid
+   *
+   * @return array
+   */
   public function getTidsByNid($nid)
   {
     $node = $this->entityManager->getStorage('node')->load($nid);
@@ -430,6 +435,9 @@ class AccessStorage implements AccessStorageInterface {
     return $tids;
   }
 
+  /**
+   * @return array
+   */
   public function getAllUids()
   {
     $nodes = \Drupal::entityQuery('user')
@@ -438,6 +446,11 @@ class AccessStorage implements AccessStorageInterface {
     return array_values($nodes);
   }
 
+  /**
+   * @param $nid
+   *
+   * @return mixed
+   */
   public function getNodeType($nid)
   {
     $query = $this->oDatabase->select('node', 'n')
@@ -448,6 +461,11 @@ class AccessStorage implements AccessStorageInterface {
       ->fetchAssoc()['type'];
   }
 
+  /**
+   * @param $nid
+   *
+   * @return mixed
+   */
   public function getLangCode($nid)
   {
     $query = $this->oDatabase->select('node', 'n')
@@ -458,6 +476,11 @@ class AccessStorage implements AccessStorageInterface {
       ->fetchAssoc()['langcode'];
   }
 
+  /**
+   * @param $realm
+   *
+   * @return mixed
+   */
   public function getGidsByRealm($realm)
   {
     $query = $this->oDatabase->select('node_access', 'na')
@@ -473,6 +496,11 @@ class AccessStorage implements AccessStorageInterface {
     return $grants;
   }
 
+  /**
+   * @param $uid
+   *
+   * @return mixed
+   */
   public function getAllNidsUserCanAccess($uid)
   {
     $query = $this->oDatabase->select('node_access', 'na')
@@ -483,6 +511,11 @@ class AccessStorage implements AccessStorageInterface {
       ->fetchCol();
   }
 
+  /**
+   * @param $tid
+   *
+   * @return mixed
+   */
   public function getNidsByTid($tid)
   {
       $query = $this->oDatabase->select('taxonomy_index', 'ti')

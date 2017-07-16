@@ -2,3 +2,6 @@
 tests/codeception/tests/_output/*
 
 tests/build.xml
+
+# Ignore PhpStorm IDE files
+.idea

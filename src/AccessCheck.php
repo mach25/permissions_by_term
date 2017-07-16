@@ -2,6 +2,7 @@
 
 namespace Drupal\permissions_by_term;
 
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\user\Entity\User;
 
@@ -11,10 +12,23 @@ use Drupal\user\Entity\User;
 class AccessCheck implements AccessCheckInterface{
 
   /**
-   * AccessCheckService constructor.
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
    */
-  public function __construct(EntityManagerInterface $entity_manager) {
+  protected $database;
+
+  /**
+   * Constructs AccessCheck object.
+   *
+   * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
+   *   The entity manager.
+   * @param \Drupal\Core\Database\Connection $database
+   *   The database connection.
+   */
+  public function __construct(EntityManagerInterface $entity_manager, Connection $database) {
     $this->entityManager = $entity_manager;
+    $this->database  = $database;
   }
 
   /**
@@ -131,7 +145,7 @@ class AccessCheck implements AccessCheckInterface{
    */
   public function isTermAllowedByUserId($tid, $iUid) {
 
-    $query_result = db_query("SELECT uid FROM {permissions_by_term_user} WHERE tid = :tid AND uid = :uid",
+    $query_result = $this->database->query("SELECT uid FROM {permissions_by_term_user} WHERE tid = :tid AND uid = :uid",
       [':tid' => $tid, ':uid' => $iUid])->fetchField();
 
     if (!empty($query_result)) {
@@ -147,7 +161,7 @@ class AccessCheck implements AccessCheckInterface{
    * {@inheritdoc}
    */
   public function isTermAllowedByUserRole($tid, $sUserRole) {
-    $query_result = db_query("SELECT rid FROM {permissions_by_term_role} WHERE tid = :tid AND rid IN (:user_roles)",
+    $query_result = $this->database->query("SELECT rid FROM {permissions_by_term_role} WHERE tid = :tid AND rid IN (:user_roles)",
       [':tid' => $tid, ':user_roles' => $sUserRole])->fetchField();
 
     if (!empty($query_result)) {
@@ -164,10 +178,10 @@ class AccessCheck implements AccessCheckInterface{
    */
   public function isAnyPermissionSetForTerm($tid) {
 
-    $iUserTableResults = intval(db_query("SELECT COUNT(1) FROM {permissions_by_term_user} WHERE tid = :tid",
+    $iUserTableResults = intval($this->database->query("SELECT COUNT(1) FROM {permissions_by_term_user} WHERE tid = :tid",
       [':tid' => $tid])->fetchField());
 
-    $iRoleTableResults = intval(db_query("SELECT COUNT(1) FROM {permissions_by_term_role} WHERE tid = :tid",
+    $iRoleTableResults = intval($this->database->query("SELECT COUNT(1) FROM {permissions_by_term_role} WHERE tid = :tid",
       [':tid' => $tid])->fetchField());
 
     if ($iUserTableResults > 0 ||
