@@ -4,8 +4,8 @@ namespace Drupal\permissions_by_term\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use \Drupal\Component\Utility\Tags;
+use Drupal\permissions_by_term\Service\ServiceInterface\AccessCheckInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use \Drupal\permissions_by_term\AccessCheckInterface;
 use \Drupal\Component\Utility\Html;
 use \Drupal\Core\Access\AccessResult;
 

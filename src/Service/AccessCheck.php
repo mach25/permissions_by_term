@@ -1,15 +1,16 @@
 <?php
 
-namespace Drupal\permissions_by_term;
+namespace Drupal\permissions_by_term\Service;
 
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Drupal\user\Entity\User;
+use Drupal\permissions_by_term\Service\ServiceInterface\AccessCheckInterface;
 
 /**
  * AccessCheckService class.
  */
-class AccessCheck implements AccessCheckInterface{
+class AccessCheck implements AccessCheckInterface {
 
   /**
    * The database connection.

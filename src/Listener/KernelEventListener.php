@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\permissions_by_term;
+namespace Drupal\permissions_by_term\Listener;
 
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\KernelEvents;

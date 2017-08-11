@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\permissions_by_term;
+namespace Drupal\permissions_by_term\Service;
 
 use Drupal\Core\Entity\EntityManager;
 use Drupal\permissions_by_term\Factory\NodeAccessRecordFactory;

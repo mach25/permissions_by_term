@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\permissions_by_term;
+namespace Drupal\permissions_by_term\Service\ServiceInterface;
 
 interface AccessCheckInterface {
 

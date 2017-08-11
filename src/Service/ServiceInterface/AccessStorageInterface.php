@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\permissions_by_term;
+namespace Drupal\permissions_by_term\Service\ServiceInterface;
 
 use \Drupal\Core\Form\FormState;
 
@@ -26,7 +26,7 @@ interface AccessStorageInterface {
    * @return mixed
    *   Existing term permissions.
    */
-  public function getExistingUserTermPermissionsByTid($term_id);
+  public function getUserTermPermissionsByTid($term_id);
 
   /**
    * Gets role term permissions by tid.
@@ -36,7 +36,7 @@ interface AccessStorageInterface {
    * @return mixed
    *   Existing role term permissions.
    */
-  public function getExistingRoleTermPermissionsByTid($term_id);
+  public function getRoleTermPermissionsByTid($term_id);
 
   /**
    * Gets single user id by user name.

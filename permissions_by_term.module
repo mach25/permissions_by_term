@@ -56,7 +56,7 @@ function permissions_by_term_validate($form, FormState $oFormState) {
       if (!empty($terms)) {
         foreach ($terms as $term) {
           $term_id = $term['target_id'];
-          /* @var \Drupal\permissions_by_term\AccessCheck $access_check_service */
+          /* @var \Drupal\permissions_by_term\Service\AccessCheck $access_check_service */
           $access_check_service = \Drupal::service('permissions_by_term.access_check');
           if (!$access_check_service->isAccessAllowedByDatabase($term_id)) {
             $term = Term::load($term_id);
@@ -83,7 +83,7 @@ function permissions_by_term_validate($form, FormState $oFormState) {
  */
 function permissions_by_term_submit($form, FormState $formState) {
   $termId = $formState->getFormObject()->getEntity()->id();
-  /* @var \Drupal\permissions_by_term\AccessStorage $access_storage */
+  /* @var \Drupal\permissions_by_term\Service\AccessStorage $access_storage */
   $access_storage = \Drupal::service('permissions_by_term.access_storage');
   $access_update = $access_storage->saveTermPermissions($formState, $termId);
 
@@ -101,7 +101,7 @@ function permissions_by_term_submit($form, FormState $formState) {
   // Do we rebuild node access?
   if($update_node_access === true) {
     /**
-     * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
+     * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
      */
     $nodeAccess = \Drupal::service('permissions_by_term.node_access');
     if ($nodeAccess->rebuildByTid($termId)) {
@@ -117,7 +117,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
   if (\Drupal::currentUser()->hasPermission('show term permission form on term page')) {
     $iTermId = $oFormState->getFormObject()->getEntity()->id();
 
-    /* @var \Drupal\permissions_by_term\AccessStorage $access_storage */
+    /* @var \Drupal\permissions_by_term\Service\AccessStorage $access_storage */
     $access_storage = \Drupal::service('permissions_by_term.access_storage');
 
     $form['access'] = [
@@ -159,7 +159,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
       '#weight' => -10,
     ];
 
-    $aAllowedRoles = $access_storage->getExistingRoleTermPermissionsByTid($iTermId);
+    $aAllowedRoles = $access_storage->getRoleTermPermissionsByTid($iTermId);
 
     // Firstly fetch all translated allowed role names.
     $aTranslatedAllowedRoleNames = [];
@@ -206,6 +206,36 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
  */
 function permissions_by_term_form_alter(&$form, FormStateInterface $oFormState, $form_id) {
   $form['#validate'][] = 'permissions_by_term_validate';
+  if (isNodeEditForm()) {
+    $form['permissions_by_term_info'] = [
+      '#type' => 'details',
+      '#group' => 'advanced',
+      '#title' => t('Permissions by Term'),
+      '#access' => \Drupal::currentUser()->hasPermission('show term permissions on node edit page'),
+    ];
+
+    $nid = \Drupal::routeMatch()->getParameter('node')->id();
+
+    $viewFilePath = drupal_get_path('module', 'permissions_by_term') . '/src/View/node-details.html.twig';
+    /**
+     * @var \Drupal\permissions_by_term\Service\Info $info
+     */
+    $info = \Drupal::service('permissions_by_term.info');
+
+    $form['permissions_by_term_info']['revision'] = array(
+      '#type' => 'item',
+      '#markup' => $info->renderNodeDetails($nid, $viewFilePath),
+    );
+  }
+}
+
+function isNodeEditForm() {
+  $currentPath = \Drupal::service('path.current')->getPath();
+  if (is_numeric(strpos($currentPath, '/node/'))
+    && is_numeric(strpos($currentPath, '/edit'))) {
+    return TRUE;
+  }
+  return FALSE;
 }
 
 /**
@@ -224,7 +254,7 @@ function permissions_by_term_node_access(NodeInterface $node, $op, AccountInterf
       return AccessResult::forbidden();
     }
 
-    /* @var \Drupal\permissions_by_term\AccessCheck $access_check_service */
+    /* @var \Drupal\permissions_by_term\Service\AccessCheck $access_check_service */
     $access_check_service = \Drupal::service('permissions_by_term.access_check');
     $oPermissionsByTermController = new PermissionsByTermController($access_check_service);
 
@@ -239,7 +269,7 @@ function permissions_by_term_node_grants(\Drupal\Core\Session\AccountInterface $
 {
     if ($op == 'view') {
       /**
-       * @var \Drupal\permissions_by_term\AccessStorage $accessStorage
+       * @var \Drupal\permissions_by_term\Service\AccessStorage $accessStorage
        */
       $accessStorage = \Drupal::service('permissions_by_term.access_storage');
       $grants = $accessStorage->getGidsByRealm('permissions_by_term__uid_' . \Drupal::currentUser()->id());
@@ -255,7 +285,7 @@ function permissions_by_term_node_grants(\Drupal\Core\Session\AccountInterface $
  */
 function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $node) {
   /**
-   * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
+   * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
    */
   $nodeAccess = \Drupal::service('permissions_by_term.node_access');
   $grantsForThisNode = $nodeAccess->createGrants($node->id());
@@ -284,7 +314,7 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
  */
 function permissions_by_term_user_insert($user) {
   /**
-   * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
+   * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
    */
   $nodeAccess = \Drupal::service('permissions_by_term.node_access');
   $nodeAccess->rebuildByUid($user->id(), TRUE);
@@ -296,7 +326,7 @@ function permissions_by_term_user_insert($user) {
  */
 function permissions_by_term_user_update($user) {
   /**
-   * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
+   * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
    */
   $nodeAccess = \Drupal::service('permissions_by_term.node_access');
   $nodeAccess->rebuildByUid($user->id());
@@ -308,7 +338,7 @@ function permissions_by_term_user_update($user) {
  */
 function permissions_by_term_node_insert($node) {
   /**
-   * @var \Drupal\permissions_by_term\NodeAccess $nodeAccess
+   * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
    */
   $nodeAccess = \Drupal::service('permissions_by_term.node_access');
   $nodeAccess->rebuildByNid($node->id());

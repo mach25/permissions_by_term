@@ -1,10 +1,11 @@
 <?php
 
-namespace Drupal\permissions_by_term;
+namespace Drupal\permissions_by_term\Service;
 
 use Drupal\Core\Database\Connection;
 use Drupal\Component\Utility\Tags;
 use Drupal\Core\Form\FormState;
+use Drupal\permissions_by_term\Service\ServiceInterface\AccessStorageInterface;
 
 /**
  * Class AccessStorage.
@@ -96,7 +97,7 @@ class AccessStorage implements AccessStorageInterface {
   /**
    * {@inheritdoc}
    */
-  public function getExistingUserTermPermissionsByTid($term_id) {
+  public function getUserTermPermissionsByTid($term_id) {
     return $this->oDatabase->select('permissions_by_term_user', 'pu')
       ->condition('tid', $term_id)
       ->fields('pu', ['uid'])
@@ -105,14 +106,44 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
+   * @param array $tids
+   *
+   * @return array
+   */
+  public function getUserTermPermissionsByTids($tids) {
+    $uids = [];
+
+    foreach ($tids as $tid) {
+      $uids[] = array_shift($this->getUserTermPermissionsByTid($tid));
+    }
+
+    return $uids;
+  }
+
+  /**
    * {@inheritdoc}
    */
-  public function getExistingRoleTermPermissionsByTid($term_id) {
+  public function getRoleTermPermissionsByTid($term_id) {
     return $this->oDatabase->select('permissions_by_term_role', 'pr')
       ->condition('tid', $term_id)
       ->fields('pr', ['rid'])
       ->execute()
       ->fetchCol();
+  }
+
+  /**
+   * @param array $tids
+   *
+   * @return array
+   */
+  public function getRoleTermPermissionsByTids($tids) {
+    $rids = [];
+
+    foreach ($tids as $tid) {
+      $rids[] = array_shift($this->getRoleTermPermissionsByTid($tid));
+    }
+
+    return $rids;
   }
 
   /**
@@ -267,10 +298,10 @@ class AccessStorage implements AccessStorageInterface {
    * {@inheritdoc}
    */
   public function saveTermPermissions(FormState $form_state, $term_id) {
-    $aExistingUserPermissions       = $this->getExistingUserTermPermissionsByTid($term_id);
+    $aExistingUserPermissions       = $this->getUserTermPermissionsByTid($term_id);
     $aSubmittedUserIdsGrantedAccess = $this->getSubmittedUserIds();
 
-    $aExistingRoleIdsGrantedAccess = $this->getExistingRoleTermPermissionsByTid($term_id);
+    $aExistingRoleIdsGrantedAccess = $this->getRoleTermPermissionsByTid($term_id);
     $aSubmittedRolesGrantedAccess  = $this->getSubmittedRolesGrantedAccess($form_state);
 
     $aRet = $this->getPreparedDataForDatabaseQueries($aExistingUserPermissions,
