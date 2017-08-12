@@ -2,7 +2,7 @@
 
 namespace Drupal\Tests\permissions_by_term\Unit;
 
-use Drupal\permissions_by_term\NodeAccess;
+use Drupal\permissions_by_term\Service\NodeAccess;
 use Drupal\permissions_by_term\Factory\NodeAccessRecordFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -16,7 +16,7 @@ class NodeAccessTest extends TestCase {
   use Base;
 
   public function testCreateRealms() {
-    $accessStorage = $this->createMock('Drupal\permissions_by_term\AccessStorage',
+    $accessStorage = $this->createMock('Drupal\permissions_by_term\Service\AccessStorage',
       [
         'fetchUidsByRid' => [999, 87, 44],
         'getNidsByTid' => [64, 826, 91, 21],
@@ -37,7 +37,7 @@ class NodeAccessTest extends TestCase {
       ])]
     );
 
-    $accessCheck = $this->createMock('Drupal\permissions_by_term\AccessCheck',
+    $accessCheck = $this->createMock('Drupal\permissions_by_term\Service\AccessCheck',
       [
         'canUserAccessByNodeId' => TRUE
       ]
