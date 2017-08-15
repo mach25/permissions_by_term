@@ -3,7 +3,7 @@
 namespace Drupal\permissions_by_term\Service;
 
 use Drupal\Core\Database\Connection;
-use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\user\Entity\User;
 use Drupal\permissions_by_term\Service\ServiceInterface\AccessCheckInterface;
 
@@ -22,34 +22,28 @@ class AccessCheck implements AccessCheckInterface {
   /**
    * Constructs AccessCheck object.
    *
-   * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
-   *   The entity manager.
-   * @param \Drupal\Core\Database\Connection $database
+   * @param Connection $database
    *   The database connection.
    */
-  public function __construct(EntityManagerInterface $entity_manager, Connection $database) {
-    $this->entityManager = $entity_manager;
+  public function __construct(Connection $database) {
     $this->database  = $database;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function canUserAccessByNodeId($iNid, $uid = FALSE) {
-    $node = $this->entityManager->getStorage('node')->load($iNid);
-
+  public function canUserAccessByNodeId($nid, $uid = FALSE) {
     $access_allowed = TRUE;
 
-    foreach ($node->getFields() as $field) {
-      if ($field->getFieldDefinition()->getType() == 'entity_reference' && $field->getFieldDefinition()->getSetting('target_type') == 'taxonomy_term') {
-        $aReferencedTaxonomyTerms = $field->getValue();
-        if (!empty($aReferencedTaxonomyTerms)) {
-          foreach ($aReferencedTaxonomyTerms as $aReferencedTerm) {
-            if (isset($aReferencedTerm['target_id']) && !$this->isAccessAllowedByDatabase($aReferencedTerm['target_id'], $uid)) {
-              $access_allowed = FALSE;
-            }
-          }
-        }
+    $terms = $this->database
+      ->query("SELECT tid FROM {taxonomy_index} WHERE nid = :nid",
+      [':nid' => $nid])->fetchAll();
+
+    foreach ($terms as $term) {
+      if (!$this->isAccessAllowedByDatabase($term->tid, $uid)) {
+        $access_allowed = FALSE;
+
+        return $access_allowed;
       }
     }
 
