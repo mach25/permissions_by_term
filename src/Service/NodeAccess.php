@@ -331,50 +331,21 @@ class NodeAccess {
       ->execute();
   }
 
-  private function dropRecordsByUid($uid) {
-    $this->database->delete('node_access')
-      ->condition('realm', 'permissions_by_term__uid_' . $uid)
-      ->execute();
-  }
-
   /**
-   * @param $uid
-   * @param bool $noDrop
+   * @param int      $nid
+   * @param int|bool $uid
    */
-  public function rebuildByUid($uid, $noDrop = FALSE) {
-    if ($noDrop === FALSE) {
-      $this->dropRecordsByUid($uid);
-    }
+  public function rebuildByNid($nid, $uid = false) {
+    $grants = $this->createGrants($nid, $uid);
 
-    $nids = $this->accessStorage->getAllNids();
+    $query = $this->database->insert('node_access');
+    $query->fields(['nid', 'langcode', 'fallback', 'gid', 'realm', 'grant_view', 'grant_update', 'grant_delete']);
 
-    foreach ($nids as $nid) {
-      $grants = $this->createGrants($nid, $uid);
-      foreach ($grants as $grant) {
-        $this->database->insert('node_access')
-          ->fields(
-            ['nid', 'langcode', 'fallback', 'gid', 'realm', 'grant_view', 'grant_update', 'grant_delete'],
-            [$nid, $grant->langcode, 1, $grant->gid, $grant->realm, $grant->grant_view, $grant->grant_update, $grant->grant_delete]
-          )
-          ->execute();
-      }
-    }
-
-  }
-
-  /**
-   * @param $nid
-   */
-  public function rebuildByNid($nid) {
-    $grants = $this->createGrants($nid);
     foreach ($grants as $grant) {
-      $this->database->insert('node_access')
-        ->fields(
-          ['nid', 'langcode', 'fallback', 'gid', 'realm', 'grant_view', 'grant_update', 'grant_delete'],
-          [$nid, $grant->langcode, 1, $grant->gid, $grant->realm, $grant->grant_view, $grant->grant_update, $grant->grant_delete]
-        )
-        ->execute();
+      $query->values([$nid, $grant->langcode, 1, $grant->gid, $grant->realm, $grant->grant_view, $grant->grant_update, $grant->grant_delete]);
     }
+
+    $query->execute();
   }
 
 }

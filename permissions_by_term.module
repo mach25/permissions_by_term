@@ -313,11 +313,7 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
  * Implements hook_user_insert().
  */
 function permissions_by_term_user_insert($user) {
-  /**
-   * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
-   */
-  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-  $nodeAccess->rebuildByUid($user->id(), TRUE);
+  node_access_rebuild(TRUE);
   Cache::invalidateTags(['search_index:node_search']);
 }
 
@@ -325,12 +321,10 @@ function permissions_by_term_user_insert($user) {
  * Implements hook_user_update().
  */
 function permissions_by_term_user_update($user) {
-  /**
-   * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
-   */
-  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-  $nodeAccess->rebuildByUid($user->id());
-  Cache::invalidateTags(['search_index:node_search']);
+  if (\Drupal::currentUser()->hasPermission('administer permissions')) {
+    node_access_rebuild(TRUE);
+    Cache::invalidateTags(['search_index:node_search']);
+  }
 }
 
 /**
