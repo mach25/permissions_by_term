@@ -336,6 +336,7 @@ class NodeAccess {
    * @param int|bool $uid
    */
   public function rebuildByNid($nid, $uid = false) {
+    $this->dropRecordsByNids([$nid]);
     $grants = $this->createGrants($nid, $uid);
 
     $query = $this->database->insert('node_access');

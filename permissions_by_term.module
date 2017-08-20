@@ -338,3 +338,15 @@ function permissions_by_term_node_insert($node) {
   $nodeAccess->rebuildByNid($node->id());
   Cache::invalidateTags(['search_index:node_search']);
 }
+
+/**
+ * Implements hook_node_update().
+ */
+function permissions_by_term_node_update(Drupal\Core\Entity\EntityInterface $node) {
+  /**
+   * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
+   */
+  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
+  $nodeAccess->rebuildByNid($node->id());
+  Cache::invalidateTags(['search_index:node_search']);
+}
