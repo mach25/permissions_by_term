@@ -58,7 +58,7 @@ class Info {
     $roles = Role::loadMultiple($rids);
     $users = User::loadMultiple($uids);
 
-    $template = $this->twig->load($viewFilePath);
+    $template = $this->twig->loadTemplate($viewFilePath);
 
     return $template->render(['roles' => $roles, 'users' => $users]);
 
