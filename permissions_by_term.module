@@ -104,7 +104,7 @@ function permissions_by_term_submit($form, FormState $formState) {
      * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
      */
     $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-    if ($nodeAccess->rebuildByTid($termId)) {
+    if ($nodeAccess->insertByTid($termId)) {
       Cache::invalidateTags(['search_index:node_search']);
     }
   }
@@ -272,7 +272,7 @@ function permissions_by_term_node_grants(\Drupal\Core\Session\AccountInterface $
        * @var \Drupal\permissions_by_term\Service\AccessStorage $accessStorage
        */
       $accessStorage = \Drupal::service('permissions_by_term.access_storage');
-      $grants = $accessStorage->getGidsByRealm('permissions_by_term__uid_' . \Drupal::currentUser()->id());
+      $grants = $accessStorage->getGids(\Drupal::currentUser());
 
       return $grants;
     }
@@ -288,7 +288,7 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
    * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
    */
   $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-  $grantsForThisNode = $nodeAccess->createGrants($node->id());
+  $grantsForThisNode = $nodeAccess->createGrant($node->id());
 
   $grants = [];
   if (!empty($grantsForThisNode)) {
@@ -335,18 +335,6 @@ function permissions_by_term_node_insert($node) {
    * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
    */
   $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-  $nodeAccess->rebuildByNid($node->id());
-  Cache::invalidateTags(['search_index:node_search']);
-}
-
-/**
- * Implements hook_node_update().
- */
-function permissions_by_term_node_update(Drupal\Core\Entity\EntityInterface $node) {
-  /**
-   * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
-   */
-  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-  $nodeAccess->rebuildByNid($node->id());
+  $nodeAccess->insertNodeAccessRecord($node->id());
   Cache::invalidateTags(['search_index:node_search']);
 }

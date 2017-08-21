@@ -5,17 +5,11 @@ namespace Drupal\permissions_by_term\Service;
 use Drupal\Core\Database\Connection;
 use Drupal\Component\Utility\Tags;
 use Drupal\Core\Form\FormState;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\permissions_by_term\Service\ServiceInterface\AccessStorageInterface;
 
 /**
  * Class AccessStorage.
- *
- * Defines an API to the database in the term access context.
- *
- * The "protected" class methods are meant for protection regarding Drupal's
- * forms and presentation layer.
- *
- * The "public" class methods can be used for extensions.
  *
  * @package Drupal\permissions_by_term
  */
@@ -50,13 +44,24 @@ class AccessStorage implements AccessStorageInterface {
   protected $aSubmittedRolesGrantedAccess;
 
   /**
+   * @var Term
+   */
+  protected $term;
+
+  /**
+   * @var string
+   */
+  const NODE_ACCESS_REALM = 'permissions_by_term';
+
+  /**
    * AccessStorageService constructor.
    *
    * @param Connection $database
    *   The connection to the database.
    */
-  public function __construct(Connection $database) {
+  public function __construct(Connection $database, Term $term) {
     $this->oDatabase  = $database;
+    $this->term = $term;
   }
 
   /**
@@ -103,6 +108,33 @@ class AccessStorage implements AccessStorageInterface {
       ->fields('pu', ['uid'])
       ->execute()
       ->fetchCol();
+  }
+
+  /**
+   * @param int   $uid
+   * @param array $rids
+   *
+   * @return array
+   */
+  public function getPermittedTids($uid, $rids) {
+    $permittedTids = $this->oDatabase->select('permissions_by_term_user', 'pu')
+      ->condition('uid', $uid)
+      ->fields('pu', ['tid'])
+      ->execute()
+      ->fetchCol();
+
+    foreach ($rids as $rid) {
+      $permittedTidsByRid = $this->oDatabase->select('permissions_by_term_role', 'pr')
+        ->condition('rid', $rid)
+        ->fields('pr', ['tid'])
+        ->execute()
+        ->fetchCol();
+
+      $permittedTids = array_merge($permittedTidsByRid, $permittedTids);
+
+    }
+
+    return array_unique($permittedTids);
   }
 
   /**
@@ -508,20 +540,27 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * @param $realm
+   * @param AccountInterface $user
    *
-   * @return mixed
+   * @return array
    */
-  public function getGidsByRealm($realm)
+  public function getGids(AccountInterface $user)
   {
-    $query = $this->oDatabase->select('node_access', 'na')
-      ->fields('na', ['gid'])
-      ->condition('na.realm', $realm);
+    $permittedNids = $this->term->getNidsByTids($this->getPermittedTids($user->id(), $user->getRoles()));
 
-    $gids = $query->execute()->fetchCol();
+    $grants = null;
 
-    foreach ($gids as $gid) {
-      $grants[$realm][] = $gid;
+    if (!empty($permittedNids)) {
+      $query = $this->oDatabase->select('node_access', 'na')
+        ->fields('na', ['gid'])
+        ->condition('na.nid', $permittedNids, 'IN')
+        ->condition('na.realm', self::NODE_ACCESS_REALM);
+
+      $gids = $query->execute()->fetchCol();
+
+      foreach ($gids as $gid) {
+        $grants[self::NODE_ACCESS_REALM][] = $gid;
+      }
     }
 
     return $grants;
@@ -555,5 +594,8 @@ class AccessStorage implements AccessStorageInterface {
 
       return $query->execute()->fetchCol();
   }
+
+
+
 
 }

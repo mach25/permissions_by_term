@@ -9,7 +9,7 @@ services:
         arguments: ['@database']
     permissions_by_term.access_storage:
         class: Drupal\permissions_by_term\Service\AccessStorage
-        arguments: ['@database']
+        arguments: ['@database',  '@permissions_by_term.term']
     permissions_by_term.node_access_record_factory:
         class: \Drupal\permissions_by_term\Factory\NodeAccessRecordFactory
     permissions_by_term.node_access:

@@ -88,36 +88,13 @@ class NodeAccess {
   }
 
   /**
-   * @param $uid
-   *
-   * @return string
-   */
-  public function createRealm($uid) {
-    return 'permissions_by_term__uid_' . $uid;
-  }
-
-  /**
    * @param $nid
-   * @param bool $uid
    *
    * @return array
    */
-  public function createGrants($nid, $uid = FALSE) {
-    if (empty($uid)) {
-      $uids = $this->accessStorage->getAllUids();
-    } else {
-      $uids[] = $uid;
-    }
-
-    $grants = [];
-    foreach ($uids as $uid) {
-      if ($this->accessCheck->canUserAccessByNodeId($nid, $uid)) {
-        $realm = $this->createRealm($uid);
-        $nodeType = $this->accessStorage->getNodeType($nid);
-        $langcode = $this->accessStorage->getLangCode($nid);
-        $grants[] = $this->nodeAccessRecordFactory->create($realm, $this->createUniqueGid(), $nid, $langcode, $this->getGrantUpdate($uid, $nodeType, $nid), $this->getGrantDelete($uid, $nodeType, $nid));
-      }
-    }
+  public function createGrant($nid) {
+    $langcode = $this->accessStorage->getLangCode($nid);
+    $grants[] = $this->nodeAccessRecordFactory->create(AccessStorage::NODE_ACCESS_REALM, $this->createUniqueGid(), $nid, $langcode, 0, 0);
 
     return $grants;
   }
@@ -310,34 +287,26 @@ class NodeAccess {
    * @return bool
    *   True if access records have been rebuilt, false no.
    */
-  public function rebuildByTid($tid) {
+  public function insertByTid($tid) {
+    $isNodeAccessRecordInserted = FALSE;
     if (!empty($nids = $this->accessStorage->getNidsByTid($tid))) {
       foreach ($nids as $nid) {
-        $this->dropRecordsByNids([$nid]);
-        $this->rebuildByNid($nid);
+        if (!$this->isAccessRecordExisting($nid)) {
+          $this->insertNodeAccessRecord($nid);
+          $isNodeAccessRecordInserted = TRUE;
+        }
       }
-
-      return true;
-
     }
 
-    return false;
-
-  }
-
-  private function dropRecordsByNids($nids) {
-    $this->database->delete('node_access')
-      ->condition('nid', $nids, 'IN')
-      ->execute();
+    return $isNodeAccessRecordInserted;
   }
 
   /**
    * @param int      $nid
    * @param int|bool $uid
    */
-  public function rebuildByNid($nid, $uid = false) {
-    $this->dropRecordsByNids([$nid]);
-    $grants = $this->createGrants($nid, $uid);
+  public function insertNodeAccessRecord($nid, $uid = false) {
+    $grants = $this->createGrant($nid, $uid);
 
     $query = $this->database->insert('node_access');
     $query->fields(['nid', 'langcode', 'fallback', 'gid', 'realm', 'grant_view', 'grant_update', 'grant_delete']);
@@ -347,6 +316,27 @@ class NodeAccess {
     }
 
     $query->execute();
+  }
+
+  /**
+   * @param int $nid
+   *
+   * @return bool
+   */
+  public function isAccessRecordExisting($nid) {
+    $query = $this->database->select('node_access', 'na')
+      ->fields('na', ['nid'])
+      ->condition('na.nid', $nid)
+      ->condition('na.realm', AccessStorage::NODE_ACCESS_REALM);
+
+    $result = $query->execute()
+      ->fetchCol();
+
+    if (empty($result)) {
+      return FALSE;
+    }
+
+    return TRUE;
   }
 
 }

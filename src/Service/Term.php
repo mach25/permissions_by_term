@@ -43,4 +43,18 @@ class Term {
       ->fetchCol();
   }
 
+  /**
+   * @param array $tids
+   *
+   * @return array
+   */
+  public function getNidsByTids($tids) {
+    $query = $this->database->select('taxonomy_index', 'ti')
+      ->fields('ti', ['nid'])
+      ->condition('ti.tid', $tids, 'IN');
+
+    return $query->execute()
+      ->fetchCol();
+  }
+
 }

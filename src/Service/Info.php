@@ -50,13 +50,22 @@ class Info {
    * @return string
    */
   public function renderNodeDetails($nid, $viewFilePath) {
+    $roles = null;
+    $users = null;
 
     $tids = $this->term->getTidsByNid($nid);
-    $uids = $this->accessStorage->getUserTermPermissionsByTids($tids);
-    $rids = $this->accessStorage->getRoleTermPermissionsByTids($tids);
+    if (!empty($tids)) {
+      $uids = $this->accessStorage->getUserTermPermissionsByTids($tids);
+      $rids = $this->accessStorage->getRoleTermPermissionsByTids($tids);
+    }
 
-    $roles = Role::loadMultiple($rids);
-    $users = User::loadMultiple($uids);
+    if (!empty($rids)) {
+      $roles = Role::loadMultiple($rids);
+    }
+
+    if (!empty($uids)) {
+      $users = User::loadMultiple($uids);
+    }
 
     $template = $this->twig->loadTemplate($viewFilePath);
 
