@@ -4,7 +4,7 @@ namespace Drupal\permissions_by_term\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use \Drupal\Component\Utility\Tags;
-use Drupal\permissions_by_term\Service\ServiceInterface\AccessCheckInterface;
+use Drupal\permissions_by_term\Service\AccessCheck;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use \Drupal\Component\Utility\Html;
 use \Drupal\Core\Access\AccessResult;
@@ -17,9 +17,9 @@ class PermissionsByTermController extends ControllerBase {
   /**
    * PermissionsByTermController constructor.
    *
-   * @param \Drupal\permissions_by_term\AccessCheckInterface
+   * @param AccessCheck $access_check_service
    */
-  public function __construct(AccessCheckInterface $access_check_service) {
+  public function __construct(AccessCheck $access_check_service) {
     $this->oAccessCheckService = $access_check_service;
   }
 

@@ -3,14 +3,12 @@
 namespace Drupal\permissions_by_term\Service;
 
 use Drupal\Core\Database\Connection;
-use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\user\Entity\User;
-use Drupal\permissions_by_term\Service\ServiceInterface\AccessCheckInterface;
 
 /**
  * AccessCheckService class.
  */
-class AccessCheck implements AccessCheckInterface {
+class AccessCheck {
 
   /**
    * The database connection.
@@ -30,7 +28,7 @@ class AccessCheck implements AccessCheckInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @return bool
    */
   public function canUserAccessByNodeId($nid, $uid = FALSE) {
     $access_allowed = TRUE;
@@ -51,7 +49,8 @@ class AccessCheck implements AccessCheckInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Returns a boolean if the view is containing nodes.
+   * @return bool
    */
   public function viewContainsNode($view) {
     $bViewContainsNodes = FALSE;
@@ -66,7 +65,7 @@ class AccessCheck implements AccessCheckInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @return void
    */
   public function removeForbiddenNodesFromView(&$view) {
     $aNodesToHideInView = [];
@@ -91,7 +90,9 @@ class AccessCheck implements AccessCheckInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param int      $tid
+   * @param bool|int $uid
+   * @return array
    */
   public function isAccessAllowedByDatabase($tid, $uid = FALSE) {
 
@@ -136,7 +137,10 @@ class AccessCheck implements AccessCheckInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param int $tid
+   * @param int $iUid
+   *
+   * @return bool
    */
   public function isTermAllowedByUserId($tid, $iUid) {
 
@@ -153,7 +157,10 @@ class AccessCheck implements AccessCheckInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param int    $tid
+   * @param string $sUserRole
+   *
+   * @return bool
    */
   public function isTermAllowedByUserRole($tid, $sUserRole) {
     $query_result = $this->database->query("SELECT rid FROM {permissions_by_term_role} WHERE tid = :tid AND rid IN (:user_roles)",
@@ -169,7 +176,9 @@ class AccessCheck implements AccessCheckInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param int $tid
+   *
+   * @return bool
    */
   public function isAnyPermissionSetForTerm($tid) {
 

@@ -6,19 +6,18 @@ use Drupal\Core\Database\Connection;
 use Drupal\Component\Utility\Tags;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\permissions_by_term\Service\ServiceInterface\AccessStorageInterface;
 
 /**
  * Class AccessStorage.
  *
  * @package Drupal\permissions_by_term
  */
-class AccessStorage implements AccessStorageInterface {
+class AccessStorage {
 
   /**
    * The database connection.
    *
-   * @var \Drupal\Core\Database\Connection
+   * @var Connection
    */
   protected $oDatabase;
 
@@ -57,7 +56,7 @@ class AccessStorage implements AccessStorageInterface {
    * AccessStorageService constructor.
    *
    * @param Connection $database
-   *   The connection to the database.
+   * @param Term       $term
    */
   public function __construct(Connection $database, Term $term) {
     $this->oDatabase  = $database;
@@ -82,7 +81,7 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param FormState $form_state
    */
   public function checkIfUsersExists(FormState $form_state) {
     $sAllowedUsers = $form_state->getValue('access')['user'];
@@ -100,7 +99,9 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param int $term_id
+   *
+   * @return array
    */
   public function getUserTermPermissionsByTid($term_id) {
     return $this->oDatabase->select('permissions_by_term_user', 'pu')
@@ -153,7 +154,9 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param int $term_id
+   *
+   * @return array
    */
   public function getRoleTermPermissionsByTid($term_id) {
     return $this->oDatabase->select('permissions_by_term_role', 'pr')
@@ -179,7 +182,9 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param string $sUsername
+   *
+   * @return int
    */
   public function getUserIdByName($sUsername) {
     return $this->oDatabase->select('users_field_data', 'ufd')
@@ -190,7 +195,9 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param array $aUserNames
+   *
+   * @return array
    */
   public function getUserIdsByNames($aUserNames) {
     $aUserIds = [];
@@ -202,7 +209,9 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param int $term_id
+   *
+   * @return array
    */
   public function getAllowedUserIds($term_id) {
     $query = $this->oDatabase->select('permissions_by_term_user', 'p')
@@ -215,7 +224,8 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param array $aUserIdsAccessRemove
+   * @param int   $term_id
    */
   public function deleteTermPermissionsByUserIds($aUserIdsAccessRemove, $term_id) {
     foreach ($aUserIdsAccessRemove as $iUserId) {
@@ -227,7 +237,8 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param array $aRoleIdsAccessRemove
+   * @param int   $term_id
    */
   public function deleteTermPermissionsByRoleIds($aRoleIdsAccessRemove, $term_id) {
     foreach ($aRoleIdsAccessRemove as $sRoleId) {
@@ -239,7 +250,10 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param array $aUserIdsGrantedAccess
+   * @param int   $term_id
+   *
+   * @throws \Exception
    */
   public function addTermPermissionsByUserIds($aUserIdsGrantedAccess, $term_id) {
     foreach ($aUserIdsGrantedAccess as $iUserIdGrantedAccess) {
@@ -250,7 +264,10 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param array $aRoleIdsGrantedAccess
+   * @param int   $term_id
+   *
+   * @throws \Exception
    */
   public function addTermPermissionsByRoleIds($aRoleIdsGrantedAccess, $term_id) {
     foreach ($aRoleIdsGrantedAccess as $sRoleIdGrantedAccess) {
@@ -261,7 +278,9 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param string $sTermName
+   *
+   * @return int
    */
   public function getTermIdByName($sTermName) {
     $aTermId = \Drupal::entityQuery('taxonomy_term')
@@ -271,7 +290,9 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @param int $term_id
+   *
+   * @return string
    */
   public function getTermNameById($term_id) {
     $term_name = \Drupal::entityQuery('taxonomy_term')
@@ -327,7 +348,15 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Saves term permissions by users.
+   *
+   * Opposite to save term permission by roles.
+   *
+   * @param FormState $form_state
+   * @param int       $term_id
+   *
+   * @return array
+   *   Data for database queries.
    */
   public function saveTermPermissions(FormState $form_state, $term_id) {
     $aExistingUserPermissions       = $this->getUserTermPermissionsByTid($term_id);
@@ -403,7 +432,19 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Prepares the data which has to be applied to the database.
+   *
+   * @param array $aExistingUserPermissions
+   *   The permissions for existing user.
+   * @param array $aSubmittedUserIdsGrantedAccess
+   *   The user ids which get access.
+   * @param array $aExistingRoleIdsGrantedAccess
+   *   The existing role ids.
+   * @param array $aSubmittedRolesGrantedAccess
+   *   The user roles which get access.
+   *
+   * @return array
+   *   User ID and role data.
    */
   public function getPreparedDataForDatabaseQueries($aExistingUserPermissions,
                                                     $aSubmittedUserIdsGrantedAccess,
@@ -433,7 +474,13 @@ class AccessStorage implements AccessStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * The form value for allowed users as string to be shown to the user.
+   *
+   * @param User[] $aAllowedUsers
+   *   An array with the allowed users.
+   *
+   * @return null|string
+   *   Either null or the user name.
    */
   public function getUserFormValue($aAllowedUsers) {
 
@@ -512,7 +559,7 @@ class AccessStorage implements AccessStorageInterface {
   /**
    * @param $nid
    *
-   * @return mixed
+   * @return array
    */
   public function getNodeType($nid)
   {
@@ -527,7 +574,7 @@ class AccessStorage implements AccessStorageInterface {
   /**
    * @param $nid
    *
-   * @return mixed
+   * @return array
    */
   public function getLangCode($nid)
   {
@@ -569,7 +616,7 @@ class AccessStorage implements AccessStorageInterface {
   /**
    * @param $uid
    *
-   * @return mixed
+   * @return array
    */
   public function getAllNidsUserCanAccess($uid)
   {
@@ -584,7 +631,7 @@ class AccessStorage implements AccessStorageInterface {
   /**
    * @param $tid
    *
-   * @return mixed
+   * @return array
    */
   public function getNidsByTid($tid)
   {
