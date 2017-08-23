@@ -49,12 +49,14 @@ class Term {
    * @return array
    */
   public function getNidsByTids($tids) {
-    $query = $this->database->select('taxonomy_index', 'ti')
-      ->fields('ti', ['nid'])
-      ->condition('ti.tid', $tids, 'IN');
+    if (!empty($tids)) {
+      $query = $this->database->select('taxonomy_index', 'ti')
+          ->fields('ti', ['nid'])
+          ->condition('ti.tid', $tids, 'IN');
 
-    return $query->execute()
-      ->fetchCol();
+      return $query->execute()
+          ->fetchCol();
+    }
   }
 
 }
