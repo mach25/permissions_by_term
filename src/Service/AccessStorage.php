@@ -604,7 +604,7 @@ class AccessStorage {
   public function getGids(AccountInterface $user)
   {
     $permittedNids = array_merge(
-      $this->getNidsWithNoTids(),
+      $this->getNidsWithNoTidRestriction(),
       $this->term->getNidsByTids($this->getPermittedTids($user->id(), $user->getRoles()))
     );
 
@@ -626,7 +626,7 @@ class AccessStorage {
     return $grants;
   }
 
-  private function getNidsWithNoTids() {
+  private function getNidsWithNoTidRestriction() {
     $queryNidsNoRestriction = $this->oDatabase->select('node', 'n')
       ->fields('n', ['nid']);
 
