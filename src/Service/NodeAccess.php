@@ -6,6 +6,7 @@ use Drupal\Core\Entity\EntityManager;
 use Drupal\permissions_by_term\Factory\NodeAccessRecordFactory;
 use Drupal\node\Entity\Node;
 use Drupal\Core\Database\Connection;
+use Drupal\permissions_by_term\Model\NodeAccessRecordModel;
 use Drupal\user\Entity\User;
 
 /**
@@ -88,25 +89,17 @@ class NodeAccess {
   }
 
   /**
-   * @param $nid
-   *
-   * @return array
+   * @return NodeAccessRecordModel
    */
-  public function createGrant($nid) {
-    $langcode = $this->accessStorage->getLangCode($nid);
-    $grants[] = $this->nodeAccessRecordFactory->create(AccessStorage::NODE_ACCESS_REALM, $this->createUniqueGid(), $nid, $langcode, 0, 0);
-
-    return $grants;
-  }
-
-  /**
-   * @return int
-   */
-  public function createUniqueGid() {
-    $uniqueGid = $this->getUniqueGid();
-    $uniqueGid++;
-    $this->setUniqueGid($uniqueGid);
-    return $this->getUniqueGid();
+  public function createGrant($nid, $gid) {
+    return $this->nodeAccessRecordFactory->create(
+      AccessStorage::NODE_ACCESS_REALM,
+      $gid,
+      $nid,
+      $this->accessStorage->getLangCode($nid),
+      0,
+      0
+    );
   }
 
   /**
@@ -283,39 +276,62 @@ class NodeAccess {
   }
 
   /**
-   * @param int $tid
-   * @return bool
-   *   True if access records have been rebuilt, false no.
+   * @param int          $nid
+   * @return string|bool $uid
    */
-  public function insertByTid($tid) {
-    $isNodeAccessRecordInserted = FALSE;
-    if (!empty($nids = $this->accessStorage->getNidsByTid($tid))) {
-      foreach ($nids as $nid) {
-        if (!$this->isAccessRecordExisting($nid)) {
-          $this->insertNodeAccessRecord($nid);
-          $isNodeAccessRecordInserted = TRUE;
-        }
+  public function insertNodeAccessRecord($nid) {
+    if (!$this->isAccessRecordExisting($nid)) {
+      if (empty($gid = $this->getIncreasedExistingGid())) {
+        $gid = 1;
       }
-    }
 
-    return $isNodeAccessRecordInserted;
+      $grant = $this->createGrant($nid, $gid);
+
+      $query = $this->database->insert('node_access');
+      $query->fields([
+        'nid',
+        'langcode',
+        'fallback',
+        'gid',
+        'realm',
+        'grant_view',
+        'grant_update',
+        'grant_delete'
+      ]);
+      $query->values([
+        $nid,
+        $grant->langcode,
+        1,
+        $grant->gid,
+        $grant->realm,
+        $grant->grant_view,
+        $grant->grant_update,
+        $grant->grant_delete
+      ]);
+
+      return $query->execute();
+    }
   }
 
   /**
-   * @param int      $nid
-   * @param int|bool $uid
+   * @return bool|int
    */
-  public function insertNodeAccessRecord($nid, $uid = false) {
-    $grants = $this->createGrant($nid, $uid);
+  public function getIncreasedExistingGid() {
+    $gidQuery = $this->database->select('node_access', 'na')
+      ->orderBy('gid', 'DESC')
+      ->fields('na', ['gid']);
 
-    $query = $this->database->insert('node_access');
-    $query->fields(['nid', 'langcode', 'fallback', 'gid', 'realm', 'grant_view', 'grant_update', 'grant_delete']);
+    $result = $gidQuery->execute()
+      ->fetchCol();
 
-    foreach ($grants as $grant) {
-      $query->values([$nid, $grant->langcode, 1, $grant->gid, $grant->realm, $grant->grant_view, $grant->grant_update, $grant->grant_delete]);
+    if (!empty($result)) {
+      $gid = intval($result[0]);
+      $gid++;
+
+      return $gid;
     }
 
-    $query->execute();
+    return false;
   }
 
   /**

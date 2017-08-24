@@ -88,25 +88,19 @@ function permissions_by_term_submit($form, FormState $formState) {
   $access_update = $access_storage->saveTermPermissions($formState, $termId);
 
   // Check if we need to rebuild node_access by term id
-  $update_node_access = false;
+  $invalidate_cache_tag = false;
 
   // Has anything has changed?
   foreach($access_update as $values) {
     if(!empty($values)) {
-      $update_node_access = true;
+      $invalidate_cache_tag = true;
       break;
     }
   }
 
-  // Do we rebuild node access?
-  if($update_node_access === true) {
-    /**
-     * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
-     */
-    $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-    if ($nodeAccess->insertByTid($termId)) {
-      Cache::invalidateTags(['search_index:node_search']);
-    }
+  // Do we need to flush the cache?
+  if($invalidate_cache_tag === true) {
+    Cache::invalidateTags(['search_index:node_search']);
   }
 }
 
@@ -284,27 +278,27 @@ function permissions_by_term_node_grants(\Drupal\Core\Session\AccountInterface $
  * Permissions can be rebuild at /admin/reports/status/rebuild.
  */
 function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $node) {
+  if (empty($gid = \Drupal::service('permissions_by_term.node_access')->getIncreasedExistingGid())) {
+    static $gid = 0;
+    $gid++;
+  }
+
   /**
    * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
    */
   $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-  $grantsForThisNode = $nodeAccess->createGrant($node->id());
+  $grantObject = $nodeAccess->createGrant($node->id(), $gid);
 
-  $grants = [];
-  if (!empty($grantsForThisNode)) {
-    foreach ($grantsForThisNode as $grantObject) {
-      $grants[] = [
-        'realm' => $grantObject->realm,
-        'gid' => $grantObject->gid,
-        'grant_view' => $grantObject->grant_view,
-        'grant_update' => $grantObject->grant_update,
-        'grant_delete' => $grantObject->grant_delete,
-        'langcode' => $grantObject->langcode,
-        'fallback' => 1,
-        'nid' => $node->id(),
-      ];
-    }
-  }
+  $grants[] = [
+    'realm' => $grantObject->realm,
+    'gid' => $grantObject->gid,
+    'grant_view' => $grantObject->grant_view,
+    'grant_update' => $grantObject->grant_update,
+    'grant_delete' => $grantObject->grant_delete,
+    'langcode' => $grantObject->langcode,
+    'fallback' => 1,
+    'nid' => $node->id(),
+  ];
 
   return $grants;
 }
@@ -335,6 +329,7 @@ function permissions_by_term_node_insert($node) {
    * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
    */
   $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-  $nodeAccess->insertNodeAccessRecord($node->id());
-  Cache::invalidateTags(['search_index:node_search']);
+  if (!empty($nodeAccess->insertNodeAccessRecord($node->id()))) {
+    Cache::invalidateTags(['search_index:node_search']);
+  }
 }

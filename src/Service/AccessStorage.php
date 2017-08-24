@@ -132,8 +132,18 @@ class AccessStorage {
         ->fetchCol();
 
       $permittedTids = array_merge($permittedTidsByRid, $permittedTids);
-
     }
+
+    $queryNidsNoTerms = $this->oDatabase->select('node', 'n')
+      ->fields('n', ['nid']);
+
+    $queryNidsNoTerms->leftJoin('taxonomy_index', 'ti', 'ti.nid = n.nid');
+    $queryNidsNoTerms->condition('ti.nid', NULL, 'IS');
+    $nidsNoTerms = $queryNidsNoTerms
+      ->execute()
+      ->fetchCol();
+
+    $permittedTids = array_merge($nidsNoTerms, $permittedTids);
 
     return array_unique($permittedTids);
   }
@@ -593,7 +603,10 @@ class AccessStorage {
    */
   public function getGids(AccountInterface $user)
   {
-    $permittedNids = $this->term->getNidsByTids($this->getPermittedTids($user->id(), $user->getRoles()));
+    $permittedNids = array_merge(
+      $this->getNidsWithNoTids(),
+      $this->term->getNidsByTids($this->getPermittedTids($user->id(), $user->getRoles()))
+    );
 
     $grants = null;
 
@@ -612,6 +625,22 @@ class AccessStorage {
 
     return $grants;
   }
+
+  private function getNidsWithNoTids() {
+    $queryNidsNoRestriction = $this->oDatabase->select('node', 'n')
+      ->fields('n', ['nid']);
+
+    $queryNidsNoRestriction->leftJoin('taxonomy_index', 'ti', 'n.nid = ti.nid');
+    $queryNidsNoRestriction->leftJoin('permissions_by_term_user', 'ptu', 'ptu.tid = ti.tid');
+    $queryNidsNoRestriction->condition('ptu.tid', NULL, 'IS');
+    $queryNidsNoRestriction->leftJoin('permissions_by_term_role', 'ptr', 'ptr.tid = ti.tid');
+    $queryNidsNoRestriction->condition('ptr.tid', NULL, 'IS');
+
+     return $queryNidsNoRestriction
+      ->execute()
+      ->fetchCol();
+  }
+
 
   /**
    * @param $uid
