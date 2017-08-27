@@ -2,7 +2,7 @@
 
 namespace Drupal\permissions_by_term\Service;
 
-use Drupal\Core\Entity\EntityManager;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\permissions_by_term\Factory\NodeAccessRecordFactory;
 use Drupal\node\Entity\Node;
 use Drupal\Core\Database\Connection;
@@ -37,9 +37,9 @@ class NodeAccess {
   private $node;
 
   /**
-   * @var EntityManager $entityManager
+   * @var EntityTypeManagerInterface $entityTypeManager
    */
-  private $entityManager;
+  private $entityTypeManager;
 
   /**
    * @var AccessCheck $accessCheck
@@ -68,22 +68,22 @@ class NodeAccess {
    *
    * @param AccessStorage           $accessStorage
    * @param NodeAccessRecordFactory $nodeAccessRecordFactory
-   * @param EntityManager           $entityManager
+   * @param EntityTypeManagerInterface           $entityTypeManager
    * @param AccessCheck             $accessCheck
    * @param Connection              $database
    */
   public function __construct(
     AccessStorage $accessStorage,
     NodeAccessRecordFactory $nodeAccessRecordFactory,
-    EntityManager $entityManager,
+    EntityTypeManagerInterface $entityTypeManager,
     AccessCheck $accessCheck,
     Connection $database
   ) {
     $this->accessStorage = $accessStorage;
     $this->nodeAccessRecordFactory = $nodeAccessRecordFactory;
-    $this->entityManager = $entityManager;
-    $this->userEntityStorage = $this->entityManager->getStorage('user');
-    $this->node = $this->entityManager->getStorage('node');
+    $this->entityTypeManager = $entityTypeManager;
+    $this->userEntityStorage = $this->entityTypeManager->getStorage('user');
+    $this->node = $this->entityTypeManager->getStorage('node');
     $this->accessCheck = $accessCheck;
     $this->database = $database;
   }

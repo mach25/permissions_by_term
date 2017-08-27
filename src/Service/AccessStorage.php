@@ -533,7 +533,7 @@ class AccessStorage {
    */
   public function getTidsByNid($nid)
   {
-    $node = $this->entityManager->getStorage('node')->load($nid);
+    $node = $this->entityTypeManager->getStorage('node')->load($nid);
     $tids = [];
 
     foreach ($node->getFields() as $field) {

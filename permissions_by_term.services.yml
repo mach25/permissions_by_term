@@ -14,7 +14,7 @@ services:
         class: \Drupal\permissions_by_term\Factory\NodeAccessRecordFactory
     permissions_by_term.node_access:
         class: \Drupal\permissions_by_term\Service\NodeAccess
-        arguments: ['@permissions_by_term.access_storage', '@permissions_by_term.node_access_record_factory', '@entity.manager', '@permissions_by_term.access_check', '@database']
+        arguments: ['@permissions_by_term.access_storage', '@permissions_by_term.node_access_record_factory', '@entity_type.manager', '@permissions_by_term.access_check', '@database']
     permissions_by_term.term:
         class: \Drupal\permissions_by_term\Service\Term
         arguments: ['@database']
