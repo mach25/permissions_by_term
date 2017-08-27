@@ -31,62 +31,31 @@ class AccessCheck {
    * @return bool
    */
   public function canUserAccessByNodeId($nid, $uid = FALSE) {
-    $access_allowed = TRUE;
+    if (!$singleTermRestriction = \Drupal::config('permissions_by_term.settings.single_term_restriction')->get('value')) {
+      $access_allowed = TRUE;
+    } else {
+      $access_allowed = FALSE;
+    }
 
     $terms = $this->database
       ->query("SELECT tid FROM {taxonomy_index} WHERE nid = :nid",
       [':nid' => $nid])->fetchAll();
 
     foreach ($terms as $term) {
-      if (!$this->isAccessAllowedByDatabase($term->tid, $uid)) {
+      if ($singleTermRestriction && !$this->isAccessAllowedByDatabase($term->tid, $uid)) {
         $access_allowed = FALSE;
+
+        return $access_allowed;
+      }
+
+      if (!$singleTermRestriction && $this->isAccessAllowedByDatabase($term->tid, $uid)) {
+        $access_allowed = TRUE;
 
         return $access_allowed;
       }
     }
 
     return $access_allowed;
-  }
-
-  /**
-   * Returns a boolean if the view is containing nodes.
-   * @return bool
-   */
-  public function viewContainsNode($view) {
-    $bViewContainsNodes = FALSE;
-
-    foreach ($view->result as $view_result) {
-      if (array_key_exists('nid', $view_result) === TRUE) {
-        $bViewContainsNodes = TRUE;
-        break;
-      }
-    }
-    return $bViewContainsNodes;
-  }
-
-  /**
-   * @return void
-   */
-  public function removeForbiddenNodesFromView(&$view) {
-    $aNodesToHideInView = [];
-
-    // Iterate over all nodes in view.
-    foreach ($view->result as $v) {
-
-      if ($this->canUserAccessByNodeId($v->nid) === FALSE) {
-        $aNodesToHideInView[] = $v->nid;
-      }
-
-    }
-
-    $counter = 0;
-
-    foreach ($view->result as $v) {
-      if (in_array($v->nid, $aNodesToHideInView)) {
-        unset($view->result[$counter]);
-      }
-      $counter++;
-    }
   }
 
   /**

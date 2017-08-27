@@ -6,6 +6,7 @@ use Drupal\Core\Database\Connection;
 use Drupal\Component\Utility\Tags;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\permissions_by_term\Service\AccessCheck;
 
 /**
  * Class AccessStorage.
@@ -53,14 +54,21 @@ class AccessStorage {
   const NODE_ACCESS_REALM = 'permissions_by_term';
 
   /**
+   * @var AccessCheck
+   */
+  protected $accessCheck;
+
+  /**
    * AccessStorageService constructor.
    *
-   * @param Connection $database
-   * @param Term       $term
+   * @param Connection  $database
+   * @param Term        $term
+   * @param AccessCheck $accessCheck
    */
-  public function __construct(Connection $database, Term $term) {
+  public function __construct(Connection $database, Term $term, AccessCheck $accessCheck) {
     $this->oDatabase  = $database;
     $this->term = $term;
+    $this->accessCheck = $accessCheck;
   }
 
   /**
@@ -133,17 +141,6 @@ class AccessStorage {
 
       $permittedTids = array_merge($permittedTidsByRid, $permittedTids);
     }
-
-    $queryNidsNoTerms = $this->oDatabase->select('node', 'n')
-      ->fields('n', ['nid']);
-
-    $queryNidsNoTerms->leftJoin('taxonomy_index', 'ti', 'ti.nid = n.nid');
-    $queryNidsNoTerms->condition('ti.nid', NULL, 'IS');
-    $nidsNoTerms = $queryNidsNoTerms
-      ->execute()
-      ->fetchCol();
-
-    $permittedTids = array_merge($nidsNoTerms, $permittedTids);
 
     return array_unique($permittedTids);
   }
@@ -603,14 +600,9 @@ class AccessStorage {
    */
   public function getGids(AccountInterface $user)
   {
-    $permittedNids = array_merge(
-      $this->getNidsWithNoTidRestriction(),
-      $this->term->getNidsByTids($this->getPermittedTids($user->id(), $user->getRoles()))
-    );
-
     $grants = null;
 
-    if (!empty($permittedNids)) {
+    if (!empty($permittedNids = $this->computePermittedTids($user))) {
       $query = $this->oDatabase->select('node_access', 'na')
         ->fields('na', ['gid'])
         ->condition('na.nid', $permittedNids, 'IN')
@@ -624,6 +616,31 @@ class AccessStorage {
     }
 
     return $grants;
+  }
+
+  private function computePermittedTids(AccountInterface $user)
+  {
+    $nidsWithNoTidRestriction = $this->getNidsWithNoTidRestriction();
+    $nidsByTids = $this->term->getNidsByTids($this->getPermittedTids($user->id(), $user->getRoles()));
+
+    if (\Drupal::config('permissions_by_term.settings.single_term_restriction')->get('value')) {
+      $permittedNids = [];
+      foreach ($nidsByTids as $nid) {
+        if($this->accessCheck->canUserAccessByNodeId($nid)) {
+          $permittedNids[] = $nid;
+        }
+      }
+      $nidsByTids = $permittedNids;
+    }
+
+    if (!empty($nidsByTids)) {
+      return array_merge(
+        $this->getNidsWithNoTidRestriction(),
+        $this->term->getNidsByTids($this->getPermittedTids($user->id(), $user->getRoles()))
+      );
+    }
+
+    return $nidsWithNoTidRestriction;
   }
 
   private function getNidsWithNoTidRestriction() {
@@ -670,8 +687,5 @@ class AccessStorage {
 
       return $query->execute()->fetchCol();
   }
-
-
-
 
 }

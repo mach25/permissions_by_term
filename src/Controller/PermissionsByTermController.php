@@ -24,15 +24,6 @@ class PermissionsByTermController extends ControllerBase {
   }
 
   /**
-   * Handles views in module's logic.
-   */
-  public function handleViews(&$view) {
-    if ($this->oAccessCheckService->viewContainsNode($view) === TRUE) {
-      $this->oAccessCheckService->removeForbiddenNodesFromView($view);
-    }
-  }
-
-  /**
    * Handles nodes in module's logic.
    *
    * @return \Drupal\Core\Access\AccessResult

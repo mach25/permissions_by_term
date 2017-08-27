@@ -1,7 +1,5 @@
-# Ignore test run data like screenshots etc.
-tests/codeception/tests/_output/*
-
-tests/build.xml
+# Copy the .dist file and modify the copy as your local PHPUnit configuration file.
+tests/phpunit.xml
 
 # Ignore PhpStorm IDE files
 .idea
