@@ -209,28 +209,28 @@ class AccessCheckTest extends KernelTestBase {
   /**
    * @return int
    */
-  public function getNidOneGrantedTerm() {
+  protected function getNidOneGrantedTerm() {
     return $this->nidOneGrantedTerm;
   }
 
   /**
    * @param int $nidOneGrantedTerm
    */
-  public function setNidOneGrantedTerm($nidOneGrantedTerm) {
+  protected function setNidOneGrantedTerm($nidOneGrantedTerm) {
     $this->nidOneGrantedTerm = $nidOneGrantedTerm;
   }
 
   /**
    * @return int
    */
-  public function getNidAllGrantedTerms() {
+  protected function getNidAllGrantedTerms() {
     return $this->nidAllGrantedTerms;
   }
 
   /**
    * @param int $nidAllGrantedTerms
    */
-  public function setNidAllGrantedTerms($nidAllGrantedTerms) {
+  protected function setNidAllGrantedTerms($nidAllGrantedTerms) {
     $this->nidAllGrantedTerms = $nidAllGrantedTerms;
   }
 
