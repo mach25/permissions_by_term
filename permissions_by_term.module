@@ -307,7 +307,6 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
  * Implements hook_user_insert().
  */
 function permissions_by_term_user_insert($user) {
-  node_access_rebuild(TRUE);
   Cache::invalidateTags(['search_index:node_search']);
 }
 
@@ -316,7 +315,6 @@ function permissions_by_term_user_insert($user) {
  */
 function permissions_by_term_user_update($user) {
   if (\Drupal::currentUser()->hasPermission('administer permissions')) {
-    node_access_rebuild(TRUE);
     Cache::invalidateTags(['search_index:node_search']);
   }
 }
