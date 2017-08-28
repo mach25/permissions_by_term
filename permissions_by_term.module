@@ -73,8 +73,8 @@ function permissions_by_term_validate($form, FormState $oFormState) {
     else {
       $term_names = $not_allowed_term_names['0'];
     }
-    $oFormState->setErrorByName('field_tags', t('You are not allowed to use specific taxonomy terms like the following: "term-names". Remove the restricted taxonomy terms from the form field and try again.',
-      ['term-names' => $term_names]));
+    $oFormState->setErrorByName('field_tags', t('You are not allowed to use taxonomy terms like: "@termNames". Remove the restricted taxonomy terms from the form field and try again.',
+      ['@termNames' => $term_names]));
   }
 }
 
