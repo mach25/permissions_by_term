@@ -9,6 +9,8 @@ use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Drupal\permissions_by_term\Service\AccessCheck;
+use Drupal\permissions_by_term\Service\Term;
 
 /**
  * Class KernelEventListener.
@@ -19,12 +21,22 @@ class KernelEventListener implements EventSubscriberInterface
 {
 
   /**
+   * @var AccessCheck
+   */
+  private $accessCheckService;
+
+  /**
+   * @var Term
+   */
+  private $term;
+
+  /**
    * Instantiating of objects on class construction.
    */
   public function __construct()
   {
     $this->accessCheckService = \Drupal::service('permissions_by_term.access_check');
-    $this->accessStorageService = \Drupal::service('permissions_by_term.access_storage');
+    $this->term = \Drupal::service('permissions_by_term.term');
   }
 
   /**
@@ -46,7 +58,7 @@ class KernelEventListener implements EventSubscriberInterface
       $query_string = $event->getRequest()->get('q');
       $query_string = trim($query_string);
 
-      $tid = $this->accessStorageService->getTermIdByName($query_string);
+      $tid = $this->term->getTermIdByName($query_string);
       if (!$this->accessCheckService->isAccessAllowedByDatabase($tid)) {
         $this->sendUserToAccessDeniedPage();
       }
@@ -71,7 +83,7 @@ class KernelEventListener implements EventSubscriberInterface
       $suggested_terms = json_decode($json_suggested_terms);
       $allowed_terms = [];
       foreach ($suggested_terms as $term) {
-        $tid = $this->accessStorageService->getTermIdByName($term->label);
+        $tid = $this->term->getTermIdByName($term->label);
         if ($this->accessCheckService->isAccessAllowedByDatabase($tid)) {
           $allowed_terms[] = [
             'value' => $term->value,
