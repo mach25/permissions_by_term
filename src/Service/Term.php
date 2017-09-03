@@ -53,10 +53,36 @@ class Term {
       $query = $this->database->select('taxonomy_index', 'ti')
           ->fields('ti', ['nid'])
           ->condition('ti.tid', $tids, 'IN');
-      
-      return $query->execute()
-          ->fetchCol();
+
+      $nids = $query->execute()
+        ->fetchCol();
+
+      return array_unique($nids);
     }
+  }
+
+  /**
+   * @param string $sTermName
+   *
+   * @return int
+   */
+  public function getTermIdByName($sTermName) {
+    $aTermId = \Drupal::entityQuery('taxonomy_term')
+      ->condition('name', $sTermName)
+      ->execute();
+    return key($aTermId);
+  }
+
+  /**
+   * @param int $term_id
+   *
+   * @return string
+   */
+  public function getTermNameById($term_id) {
+    $term_name = \Drupal::entityQuery('taxonomy_term')
+      ->condition('id', $term_id)
+      ->execute();
+    return key($term_name);
   }
 
 }

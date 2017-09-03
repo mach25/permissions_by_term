@@ -46,7 +46,17 @@ class AccessCheckTest extends KernelTestBase {
   /**
    * @var int
    */
+  protected $nidNoGrantedTerm;
+
+  /**
+   * @var int
+   */
   protected $nidAllGrantedTerms;
+
+  /**
+   * @var int
+   */
+  protected $nidNoTerms;
 
   /**
    * {@inheritdoc}
@@ -67,8 +77,6 @@ class AccessCheckTest extends KernelTestBase {
     \Drupal::configFactory()->getEditable('taxonomy.settings')->set('maintain_index_table', TRUE)->save();
     $this->createTestVocabulary();
     $this->createPageNodeType();
-    $this->createRelationOneGrantedTerm();
-    $this->createRelationAllGrantedTerms();
     $this->createCurrentUser();
   }
 
@@ -76,6 +84,11 @@ class AccessCheckTest extends KernelTestBase {
    * @return void
    */
   public function testDisabledSingleTermRestriction() {
+    $database = $this->container->get('database');
+    $database->truncate('node_access')->execute();
+    $this->createRelationOneGrantedTerm();
+    $this->createRelationAllGrantedTerms();
+
     \Drupal::configFactory()->getEditable('permissions_by_term.settings.single_term_restriction')->set('value', FALSE)->save();
     $this->assertTrue($this->accessCheck->canUserAccessByNodeId($this->getNidOneGrantedTerm()));
 
@@ -83,7 +96,58 @@ class AccessCheckTest extends KernelTestBase {
 
     $gids = $this->accessStorage->getGids(\Drupal::service('current_user'));
 
+    $nodeAccess = $database->select('node_access', 'na')
+      ->fields('na', ['nid'])
+      ->condition('na.gid', $gids['permissions_by_term'], 'IN')
+      ->condition('na.realm', AccessStorage::NODE_ACCESS_REALM);
+    $permittedNids = $nodeAccess
+      ->execute()
+      ->fetchCol();
+
+    $this->assertCount(2, $permittedNids);
+  }
+
+  /**
+   * @return void
+   */
+  public function testNoGrantedTermRestriction() {
     $database = $this->container->get('database');
+    $database->truncate('node_access')->execute();
+    $this->createRelationNoGrantedTerm();
+
+    \Drupal::configFactory()->getEditable('permissions_by_term.settings.single_term_restriction')->set('value', FALSE)->save();
+    $this->assertFalse($this->accessCheck->canUserAccessByNodeId($this->getNidNoGrantedTerm()));
+
+    node_access_rebuild();
+
+    $gids = $this->accessStorage->getGids(\Drupal::service('current_user'));
+
+    $nodeAccess = $database->select('node_access', 'na')
+      ->fields('na', ['nid'])
+      ->condition('na.gid', $gids['permissions_by_term'], 'IN')
+      ->condition('na.realm', AccessStorage::NODE_ACCESS_REALM);
+    $permittedNids = $nodeAccess
+      ->execute()
+      ->fetchCol();
+
+    $this->assertCount(0, $permittedNids);
+  }
+
+  /**
+   * @return void
+   */
+  public function testNoTermRestriction() {
+    $database = $this->container->get('database');
+    $database->truncate('node_access')->execute();
+    $this->createRelationNoTerms();
+
+    \Drupal::configFactory()->getEditable('permissions_by_term.settings.single_term_restriction')->set('value', FALSE)->save();
+    $this->assertTrue($this->accessCheck->canUserAccessByNodeId($this->getNidNoTerms()));
+
+    node_access_rebuild();
+
+    $gids = $this->accessStorage->getGids(\Drupal::service('current_user'));
+
     $nodeAccess = $database->select('node_access', 'na')
       ->fields('na', ['nid'])
       ->condition('na.gid', $gids['permissions_by_term'], 'IN')
@@ -99,6 +163,11 @@ class AccessCheckTest extends KernelTestBase {
    * @return void
    */
   public function testEnabledSingleTermRestriction() {
+    $database = $this->container->get('database');
+    $database->truncate('node_access')->execute();
+    $this->createRelationOneGrantedTerm();
+    $this->createRelationAllGrantedTerms();
+
     \Drupal::configFactory()->getEditable('permissions_by_term.settings.single_term_restriction')->set('value', TRUE)->save();
     $this->assertFalse($this->accessCheck->canUserAccessByNodeId($this->getNidOneGrantedTerm()));
 
@@ -106,7 +175,6 @@ class AccessCheckTest extends KernelTestBase {
 
     $gids = $this->accessStorage->getGids(\Drupal::service('current_user'));
 
-    $database = $this->container->get('database');
     $nodeAccess = $database->select('node_access', 'na')
       ->fields('na', ['nid'])
       ->condition('na.gid', $gids['permissions_by_term'], 'IN')
@@ -115,7 +183,7 @@ class AccessCheckTest extends KernelTestBase {
       ->execute()
       ->fetchCol();
 
-    $this->assertCount(0, $permittedNids);
+    $this->assertCount(1, $permittedNids);
   }
 
   protected function createTestVocabulary() {
@@ -145,7 +213,7 @@ class AccessCheckTest extends KernelTestBase {
     $term->save();
     $tids[] = $term->id();
 
-    $this->accessStorage->addTermPermissionsByUserIds([2], $term->id());
+    $this->accessStorage->addTermPermissionsByUserIds([99], $term->id());
 
     $node = Node::create([
       'type' => 'page',
@@ -161,6 +229,32 @@ class AccessCheckTest extends KernelTestBase {
     ]);
     $node->save();
     $this->setNidOneGrantedTerm($node->id());
+  }
+
+  /**
+   * @return int
+   */
+  protected function createRelationNoGrantedTerm() {
+    $term = Term::create([
+      'name' => 'term2',
+      'vid' => 'test',
+    ]);
+    $term->save();
+    $tids[] = $term->id();
+
+    $this->accessStorage->addTermPermissionsByUserIds([1], $term->id());
+
+    $node = Node::create([
+      'type' => 'page',
+      'title' => 'test_title',
+      'field_tags' => [
+        [
+          'target_id' => $tids[0]
+        ],
+      ]
+    ]);
+    $node->save();
+    $this->setNidNoGrantedTerm($node->id());
   }
 
   protected function createRelationAllGrantedTerms() {
@@ -198,7 +292,42 @@ class AccessCheckTest extends KernelTestBase {
     $this->setNidAllGrantedTerms($node->id());
   }
 
+  protected function createRelationNoTerms() {
+    $term = Term::create([
+      'name' => 'term1',
+      'vid' => 'test',
+    ]);
+    $term->save();
+    $tids[] = $term->id();
 
+    $this->accessStorage->addTermPermissionsByUserIds([\Drupal::service('current_user')->id()], $term->id());
+
+    $term = Term::create([
+      'name' => 'term2',
+      'vid' => 'test',
+    ]);
+    $term->save();
+    $tids[] = $term->id();
+
+    $this->accessStorage->addTermPermissionsByUserIds([\Drupal::service('current_user')->id()], $term->id());
+
+    $node = Node::create([
+      'type' => 'page',
+      'title' => 'test_title',
+      'field_tags' => [
+        [
+          'target_id' => $tids[0]
+        ],
+        [
+          'target_id' => $tids[1]
+        ],
+      ]
+    ]);
+    $node->save();
+    $this->setNidNoTerms($node->id());
+  }
+  
+  
   protected function getTaxonomyIndex() {
     return \Drupal::database()->select('taxonomy_index', 'ti')
       ->fields('ti', ['tid'])
@@ -264,6 +393,34 @@ class AccessCheckTest extends KernelTestBase {
 
     $testUser->save();
     \Drupal::service('current_user')->setAccount($testUser);
+  }
+
+  /**
+   * @return int
+   */
+  protected function getNidNoGrantedTerm() {
+    return $this->nidNoGrantedTerm;
+  }
+
+  /**
+   * @param int $nidNoGrantedTerm
+   */
+  protected function setNidNoGrantedTerm($nidNoGrantedTerm) {
+    $this->nidNoGrantedTerm = $nidNoGrantedTerm;
+  }
+
+  /**
+   * @return int
+   */
+  public function getNidNoTerms() {
+    return $this->nidNoTerms;
+  }
+
+  /**
+   * @param int $nidNoTerms
+   */
+  public function setNidNoTerms($nidNoTerms) {
+    $this->nidNoTerms = $nidNoTerms;
   }
 
 }

@@ -243,7 +243,7 @@ function isNodeEditForm() {
  * through the administrative interface.
  */
 function permissions_by_term_node_access(NodeInterface $node, $op, AccountInterface $account) {
-  if (method_exists($node, 'id') && $op == 'view') {
+  if (method_exists($node, 'id') && ($op == 'view' OR $op == 'update' OR $op == 'delete')) {
     if (!$node->isPublished() && !$account->hasPermission('Bypass content access control', $account)) {
       return AccessResult::forbidden();
     }
@@ -329,5 +329,30 @@ function permissions_by_term_node_insert($node) {
   $nodeAccess = \Drupal::service('permissions_by_term.node_access');
   if (!empty($nodeAccess->insertNodeAccessRecord($node->id()))) {
     Cache::invalidateTags(['search_index:node_search']);
+  }
+}
+
+/**
+ * Implements hook_options_list_alter().
+ */
+function permissions_by_term_options_list_alter(array &$options, array $context) {
+  $fieldDefinitionSettings = $context['fieldDefinition']->getFieldStorageDefinition()->getSettings();
+  if (!empty($fieldDefinitionSettings['target_type']) && $fieldDefinitionSettings['target_type'] == 'taxonomy_term') {
+    foreach ($options as $id => $name) {
+      if ($id !== '_none') {
+        /**
+         * @var \Drupal\permissions_by_term\Service\Term $term
+         */
+        $term = \Drupal::service('permissions_by_term.term');
+
+        /**
+         * @var \Drupal\permissions_by_term\Service\AccessCheck $accessCheck
+         */
+        $accessCheck = \Drupal::service('permissions_by_term.access_check');
+        if (!$accessCheck->isAccessAllowedByDatabase($term->getTermIdByName($name))) {
+          unset($options[$id]);
+        }
+      }
+    }
   }
 }

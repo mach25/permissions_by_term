@@ -289,30 +289,6 @@ class AccessStorage {
   }
 
   /**
-   * @param string $sTermName
-   *
-   * @return int
-   */
-  public function getTermIdByName($sTermName) {
-    $aTermId = \Drupal::entityQuery('taxonomy_term')
-      ->condition('name', $sTermName)
-      ->execute();
-    return key($aTermId);
-  }
-
-  /**
-   * @param int $term_id
-   *
-   * @return string
-   */
-  public function getTermNameById($term_id) {
-    $term_name = \Drupal::entityQuery('taxonomy_term')
-      ->condition('id', $term_id)
-      ->execute();
-    return key($term_name);
-  }
-
-  /**
    * Gets the user ids which have been submitted by form.
    *
    * Users which will gain granted access to taxonomy terms.
@@ -640,7 +616,7 @@ class AccessStorage {
     if (!empty($nidsByTids)) {
       return array_merge(
         $this->getNidsWithNoTidRestriction(),
-        $this->term->getNidsByTids($this->getPermittedTids($user->id(), $user->getRoles()))
+        $nidsByTids
       );
     }
 

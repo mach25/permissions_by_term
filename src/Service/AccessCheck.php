@@ -42,17 +42,17 @@ class AccessCheck {
       [':nid' => $nid])->fetchAll();
 
     foreach ($terms as $term) {
-      if ($singleTermRestriction && !$this->isAccessAllowedByDatabase($term->tid, $uid)) {
-        $access_allowed = FALSE;
+      $access_allowed = $this->isAccessAllowedByDatabase($term->tid, $uid);
+      if (!$access_allowed) {
+        if ($singleTermRestriction) {
+          return $access_allowed;
+        }
+      }
 
+      if ($access_allowed && !$singleTermRestriction) {
         return $access_allowed;
       }
 
-      if (!$singleTermRestriction && $this->isAccessAllowedByDatabase($term->tid, $uid)) {
-        $access_allowed = TRUE;
-
-        return $access_allowed;
-      }
     }
 
     return $access_allowed;
@@ -111,8 +111,7 @@ class AccessCheck {
    *
    * @return bool
    */
-  public function isTermAllowedByUserId($tid, $iUid) {
-
+  private function isTermAllowedByUserId($tid, $iUid) {
     $query_result = $this->database->query("SELECT uid FROM {permissions_by_term_user} WHERE tid = :tid AND uid = :uid",
       [':tid' => $tid, ':uid' => $iUid])->fetchField();
 
@@ -122,7 +121,6 @@ class AccessCheck {
     else {
       return FALSE;
     }
-
   }
 
   /**
