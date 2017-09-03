@@ -154,8 +154,9 @@ class AccessStorage {
     $uids = [];
 
     foreach ($tids as $tid) {
-      $tmpUids = $this->getUserTermPermissionsByTid($tid);
-      $uids[] = array_shift($tmpUids);
+      if (!empty($tmpUids = $this->getUserTermPermissionsByTid($tid))) {
+        $uids[] = array_shift($tmpUids);
+      }
     }
 
     return $uids;
