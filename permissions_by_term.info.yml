@@ -1,5 +1,5 @@
 name: 'Permissions by Term'
-description: 'Limits the selection of specific taxonomy terms by users or roles. Prevents users to display nodes and nodes on views pages, for which which they do not have access by taxonomy term restriction.'
+description: 'Restricts access to nodes and taxonomy terms via user to term relations.'
 dependencies:
   - taxonomy
 type: module
