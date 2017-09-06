@@ -2,6 +2,8 @@
 
 namespace Drupal\permissions_by_term\Listener;
 
+use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
+use Drupal\permissions_by_term\Event\PermissionsByTermDeniedEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -31,12 +33,18 @@ class KernelEventListener implements EventSubscriberInterface
   private $term;
 
   /**
+   * @var ContainerAwareEventDispatcher
+   */
+  private $eventDispatcher;
+
+  /**
    * Instantiating of objects on class construction.
    */
   public function __construct()
   {
     $this->accessCheckService = \Drupal::service('permissions_by_term.access_check');
     $this->term = \Drupal::service('permissions_by_term.term');
+    $this->eventDispatcher = \Drupal::service('event_dispatcher');
   }
 
   /**
@@ -48,6 +56,9 @@ class KernelEventListener implements EventSubscriberInterface
     if ($this->canRequestGetNode($event->getRequest())) {
       $nid = $event->getRequest()->attributes->get('node')->get('nid')->getValue()['0']['value'];
       if (!$this->accessCheckService->canUserAccessByNodeId($nid)) {
+        $accessDeniedEvent = new PermissionsByTermDeniedEvent($nid);
+        $this->eventDispatcher->dispatch(PermissionsByTermDeniedEvent::NAME, $accessDeniedEvent);
+
         $this->sendUserToAccessDeniedPage();
       }
     }

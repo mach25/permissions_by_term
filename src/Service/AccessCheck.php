@@ -2,8 +2,11 @@
 
 namespace Drupal\permissions_by_term\Service;
 
+use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Database\Connection;
 use Drupal\user\Entity\User;
+use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
+use Drupal\permissions_by_term\Event\PermissionsByTermDeniedEvent;
 
 /**
  * AccessCheckService class.
@@ -18,13 +21,19 @@ class AccessCheck {
   protected $database;
 
   /**
+   * @var ContainerAwareEventDispatcher
+   */
+  private $eventDispatcher;
+
+  /**
    * Constructs AccessCheck object.
    *
    * @param Connection $database
    *   The database connection.
    */
-  public function __construct(Connection $database) {
+  public function __construct(Connection $database, ContainerAwareEventDispatcher $eventDispatcher) {
     $this->database  = $database;
+    $this->eventDispatcher = $eventDispatcher;
   }
 
   /**
@@ -160,6 +169,21 @@ class AccessCheck {
       return TRUE;
     }
 
+  }
+
+  /**
+   * @return AccessResult
+   */
+  public function handleNode($nodeId) {
+    if ($this->canUserAccessByNodeId($nodeId) === TRUE) {
+      return AccessResult::neutral();
+    }
+    else {
+      $accessDeniedEvent = new PermissionsByTermDeniedEvent($nodeId);
+      $this->eventDispatcher->dispatch(PermissionsByTermDeniedEvent::NAME, $accessDeniedEvent);
+
+      return AccessResult::forbidden();
+    }
   }
 
 }

@@ -4,38 +4,12 @@ namespace Drupal\permissions_by_term\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use \Drupal\Component\Utility\Tags;
-use Drupal\permissions_by_term\Service\AccessCheck;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use \Drupal\Core\Access\AccessResult;
 
 /**
  * Default controller for the permissions_by_term module.
  */
 class PermissionsByTermController extends ControllerBase {
-
-  /**
-   * PermissionsByTermController constructor.
-   *
-   * @param AccessCheck $access_check_service
-   */
-  public function __construct(AccessCheck $access_check_service) {
-    $this->oAccessCheckService = $access_check_service;
-  }
-
-  /**
-   * Handles nodes in module's logic.
-   *
-   * @return \Drupal\Core\Access\AccessResult
-   *   The AccessResult object.
-   */
-  public function handleNode($node_id) {
-    if ($this->oAccessCheckService->canUserAccessByNodeId($node_id) === TRUE) {
-      return AccessResult::neutral();
-    }
-    else {
-      return AccessResult::forbidden();
-    }
-  }
 
   /**
    * Returns JSON response for user's autocomplete field in permissions form.
