@@ -59,6 +59,9 @@ class Term {
 
       return array_unique($nids);
     }
+    else {
+      return [];
+    }
   }
 
   /**
