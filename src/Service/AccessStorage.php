@@ -7,6 +7,8 @@ use Drupal\Component\Utility\Tags;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\permissions_by_term\Service\AccessCheck;
+use Drupal\user\Entity\Role;
+use Drupal\user\Entity\User;
 
 /**
  * Class AccessStorage.
@@ -20,7 +22,7 @@ class AccessStorage {
    *
    * @var Connection
    */
-  protected $oDatabase;
+  protected $database;
 
   /**
    * The term name for which the access is set.
@@ -66,7 +68,7 @@ class AccessStorage {
    * @param AccessCheck $accessCheck
    */
   public function __construct(Connection $database, Term $term, AccessCheck $accessCheck) {
-    $this->oDatabase  = $database;
+    $this->database  = $database;
     $this->term = $term;
     $this->accessCheck = $accessCheck;
   }
@@ -112,7 +114,7 @@ class AccessStorage {
    * @return array
    */
   public function getUserTermPermissionsByTid($term_id) {
-    return $this->oDatabase->select('permissions_by_term_user', 'pu')
+    return $this->database->select('permissions_by_term_user', 'pu')
       ->condition('tid', $term_id)
       ->fields('pu', ['uid'])
       ->execute()
@@ -126,14 +128,14 @@ class AccessStorage {
    * @return array
    */
   public function getPermittedTids($uid, $rids) {
-    $permittedTids = $this->oDatabase->select('permissions_by_term_user', 'pu')
+    $permittedTids = $this->database->select('permissions_by_term_user', 'pu')
       ->condition('uid', $uid)
       ->fields('pu', ['tid'])
       ->execute()
       ->fetchCol();
 
     foreach ($rids as $rid) {
-      $permittedTidsByRid = $this->oDatabase->select('permissions_by_term_role', 'pr')
+      $permittedTidsByRid = $this->database->select('permissions_by_term_role', 'pr')
         ->condition('rid', $rid)
         ->fields('pr', ['tid'])
         ->execute()
@@ -168,7 +170,7 @@ class AccessStorage {
    * @return array
    */
   public function getRoleTermPermissionsByTid($term_id) {
-    return $this->oDatabase->select('permissions_by_term_role', 'pr')
+    return $this->database->select('permissions_by_term_role', 'pr')
       ->condition('tid', $term_id)
       ->fields('pr', ['rid'])
       ->execute()
@@ -199,7 +201,7 @@ class AccessStorage {
    * @return int
    */
   public function getUserIdByName($sUsername) {
-    return $this->oDatabase->select('users_field_data', 'ufd')
+    return $this->database->select('users_field_data', 'ufd')
       ->condition('name', $sUsername)
       ->fields('ufd', ['uid'])
       ->execute()
@@ -226,7 +228,7 @@ class AccessStorage {
    * @return array
    */
   public function getAllowedUserIds($term_id) {
-    $query = $this->oDatabase->select('permissions_by_term_user', 'p')
+    $query = $this->database->select('permissions_by_term_user', 'p')
       ->fields('p', ['uid'])
       ->condition('p.tid', $term_id);
 
@@ -241,7 +243,7 @@ class AccessStorage {
    */
   public function deleteTermPermissionsByUserIds($aUserIdsAccessRemove, $term_id) {
     foreach ($aUserIdsAccessRemove as $iUserId) {
-      $this->oDatabase->delete('permissions_by_term_user')
+      $this->database->delete('permissions_by_term_user')
         ->condition('uid', $iUserId, '=')
         ->condition('tid', $term_id, '=')
         ->execute();
@@ -254,7 +256,7 @@ class AccessStorage {
    */
   public function deleteTermPermissionsByRoleIds($aRoleIdsAccessRemove, $term_id) {
     foreach ($aRoleIdsAccessRemove as $sRoleId) {
-      $this->oDatabase->delete('permissions_by_term_role')
+      $this->database->delete('permissions_by_term_role')
         ->condition('rid', $sRoleId, '=')
         ->condition('tid', $term_id, '=')
         ->execute();
@@ -269,7 +271,7 @@ class AccessStorage {
    */
   public function addTermPermissionsByUserIds($aUserIdsGrantedAccess, $term_id) {
     foreach ($aUserIdsGrantedAccess as $iUserIdGrantedAccess) {
-      $this->oDatabase->insert('permissions_by_term_user')
+      $this->database->insert('permissions_by_term_user')
         ->fields(['tid', 'uid'], [$term_id, $iUserIdGrantedAccess])
         ->execute();
     }
@@ -283,7 +285,7 @@ class AccessStorage {
    */
   public function addTermPermissionsByRoleIds($aRoleIdsGrantedAccess, $term_id) {
     foreach ($aRoleIdsGrantedAccess as $sRoleIdGrantedAccess) {
-      $this->oDatabase->insert('permissions_by_term_role')
+      $this->database->insert('permissions_by_term_role')
         ->fields(['tid', 'rid'], [$term_id, $sRoleIdGrantedAccess])
         ->execute();
     }
@@ -500,7 +502,7 @@ class AccessStorage {
    */
   public function getAllNids()
   {
-    $query = $this->oDatabase->select('node', 'n')
+    $query = $this->database->select('node', 'n')
         ->fields('n', ['nid']);
 
     return $query->execute()
@@ -551,7 +553,7 @@ class AccessStorage {
    */
   public function getNodeType($nid)
   {
-    $query = $this->oDatabase->select('node', 'n')
+    $query = $this->database->select('node', 'n')
       ->fields('n', ['type'])
       ->condition('n.nid', $nid);
 
@@ -566,7 +568,7 @@ class AccessStorage {
    */
   public function getLangCode($nid)
   {
-    $query = $this->oDatabase->select('node', 'n')
+    $query = $this->database->select('node', 'n')
       ->fields('n', ['langcode'])
       ->condition('n.nid', $nid);
 
@@ -584,7 +586,7 @@ class AccessStorage {
     $grants = null;
 
     if (!empty($permittedNids = $this->computePermittedTids($user))) {
-      $query = $this->oDatabase->select('node_access', 'na')
+      $query = $this->database->select('node_access', 'na')
         ->fields('na', ['gid'])
         ->condition('na.nid', $permittedNids, 'IN')
         ->condition('na.realm', self::NODE_ACCESS_REALM);
@@ -625,7 +627,7 @@ class AccessStorage {
   }
 
   private function getNidsWithNoTidRestriction() {
-    $queryNidsNoRestriction = $this->oDatabase->select('node', 'n')
+    $queryNidsNoRestriction = $this->database->select('node', 'n')
       ->fields('n', ['nid']);
 
     $queryNidsNoRestriction->leftJoin('taxonomy_index', 'ti', 'n.nid = ti.nid');
@@ -647,7 +649,7 @@ class AccessStorage {
    */
   public function getAllNidsUserCanAccess($uid)
   {
-    $query = $this->oDatabase->select('node_access', 'na')
+    $query = $this->database->select('node_access', 'na')
       ->fields('na', ['nid'])
       ->condition('na.realm', 'permissions_by_term__uid_' . $uid);
 
@@ -662,7 +664,7 @@ class AccessStorage {
    */
   public function getNidsByTid($tid)
   {
-      $query = $this->oDatabase->select('taxonomy_index', 'ti')
+      $query = $this->database->select('taxonomy_index', 'ti')
         ->fields('ti', ['nid'])
         ->condition('ti.tid', $tid);
 

@@ -127,4 +127,31 @@ class PermissionsByTermContext extends RawDrupalContext {
     $this->visitPath('/node/' . $query->execute()->fetchField());
   }
 
+  /**
+   * @Then /^I scroll to element with id "([^"]*)"$/
+   * @param $id
+   */
+  public function iScrollToElementWithId($id)
+  {
+    $this->getSession()->executeScript(
+      "
+                var element = document.getElementById('" . $id . "');
+                element.scrollIntoView( true );
+            "
+    );
+  }
+
+  /**
+   * @Then /^I check checkbox with id "([^"]*)" by JavaScript$/
+   * @param $id
+   */
+  public function checkCheckboxWithJS($id)
+  {
+    $this->getSession()->executeScript(
+      "
+                document.getElementById('" . $id . "').checked = true;
+            "
+    );
+  }
+
 }

@@ -209,25 +209,30 @@ function permissions_by_term_form_alter(&$form, FormStateInterface $oFormState, 
       '#access' => \Drupal::currentUser()->hasPermission('show term permissions on node edit page'),
     ];
 
-    $nid = \Drupal::routeMatch()->getParameter('node')->id();
+    $nid = null;
+    if (!empty($node = \Drupal::routeMatch()->getParameter('node'))) {
+      $nid = $node->id();
+    }
 
     $viewFilePath = drupal_get_path('module', 'permissions_by_term') . '/src/View/node-details.html.twig';
     /**
-     * @var \Drupal\permissions_by_term\Service\Info $info
+     * @var \Drupal\permissions_by_term\Service\NodeEntityBundleInfo $nodeEntityBundleInfo
      */
-    $info = \Drupal::service('permissions_by_term.info');
+    $nodeEntityBundleInfo = \Drupal::service('permissions_by_term.node_entity_bundle_info');
 
     $form['permissions_by_term_info']['revision'] = array(
       '#type' => 'item',
-      '#markup' => $info->renderNodeDetails($nid, $viewFilePath),
+      '#markup' => $nodeEntityBundleInfo->renderNodeDetails($viewFilePath, $nid),
     );
+
+    $form['#attached']['library'][] = 'permissions_by_term/nodeForm';
   }
 }
 
 function isNodeEditForm() {
   $currentPath = \Drupal::service('path.current')->getPath();
   if (is_numeric(strpos($currentPath, '/node/'))
-    && is_numeric(strpos($currentPath, '/edit'))) {
+    && (is_numeric(strpos($currentPath, '/edit')) || is_numeric(strpos($currentPath, '/add')))) {
     return TRUE;
   }
   return FALSE;

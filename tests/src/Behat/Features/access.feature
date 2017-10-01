@@ -26,6 +26,19 @@ Feature: Access
     Given I open node view by node title "Authenticated user can access"
     Then I should see text matching "Access denied"
 
+  Scenario: Users see permissions tab in node edit form
+    Given I am logged in as a user with the "administrator" role
+    Then I am on "/admin/content"
+    And I scroll to element with id "edit-submit"
+    And I click "Only admin can access"
+    And I click "Edit"
+    Then I should see "Permissions by Term" in the "#edit-advanced" element
+    And I open open Permissions By Term advanced info
+    And I should see "Administrator" in the "#edit-permissions-by-term-info" element
+    And I should see "Allowed Users: No user restrictions." in the "#edit-permissions-by-term-info" element
+    Then I fill in "edit-field-tags-target-id" with "Tag one (5), Tag two (6)"
+    And I should see "Allowed roles: Administrator, Authenticated user" in the "#edit-permissions-by-term-info" element
+
   Scenario: Anonymous users can see node, which is not connected to any permission.
     Given I am logged in as a user with the "administrator" role
     Then I am on "/admin/config/search/pages"
@@ -56,6 +69,7 @@ Feature: Access
     Then I am logged in as a user with the "administrator" role
     And I am on "/admin/structure/types/manage/article/form-display"
     And I select index 3 in dropdown named "fields[field_tags][type]"
+    And I scroll to element with id "edit-submit"
     And I press "edit-submit"
     Then I am on "/node/add/article"
     Then I should not see "Tag admin" in the "#edit-field-tags" element
@@ -69,25 +83,28 @@ Feature: Access
     And I fill in "edit-id" with "editor"
     Then I press "edit-submit"
     Then I am on "/admin/people/permissions"
-    And I check the box "edit-editor-access-content-overview"
-    And I check the box "edit-editor-administer-nodes"
-    And I check the box "edit-editor-administer-content-types"
-    And I check the box "edit-editor-create-article-content"
-    And I check the box "edit-editor-delete-any-article-content"
-    And I check the box "edit-editor-delete-own-article-content"
-    And I check the box "edit-editor-edit-any-article-content"
-    And I check the box "edit-editor-edit-own-article-content"
+    And I check checkbox with id "edit-editor-access-content-overview" by JavaScript
+    And I check checkbox with id "edit-editor-administer-nodes" by JavaScript
+    And I check checkbox with id "edit-editor-administer-content-types" by JavaScript
+    And I check checkbox with id "edit-editor-create-article-content" by JavaScript
+    And I check checkbox with id "edit-editor-delete-any-article-content" by JavaScript
+    And I check checkbox with id "edit-editor-delete-own-article-content" by JavaScript
+    And I check checkbox with id "edit-editor-edit-any-article-content" by JavaScript
+    And I check checkbox with id "edit-editor-edit-own-article-content" by JavaScript
+    And I scroll to element with id "edit-submit"
     And I press "edit-submit"
     Then I am on "/admin/people/create"
     And I fill in "edit-name" with "editor"
     And I fill in "edit-pass-pass1" with "password"
     And I fill in "edit-pass-pass2" with "password"
-    And I check the box "edit-roles-editor"
+    And I check checkbox with id "edit-roles-editor" by JavaScript
+    And I scroll to element with id "edit-submit"
     And I press "edit-submit"
     Then I am on "/user/logout"
     Then I am on "/user/login"
     And I fill in "edit-name" with "editor"
     And I fill in "edit-pass" with "password"
+    And I scroll to element with id "edit-submit"
     And I press "edit-submit"
     Then I am on "/admin/content"
     And I should not see text matching "Only admin user can edit"
@@ -138,13 +155,3 @@ Feature: Access
     Given I am logged in as "Joe"
     Then I am on "/"
     And I should not see text matching "Only admin can access"
-
-  Scenario: Users see permissions tab in node edit form
-    Given I am logged in as a user with the "administrator" role
-    Then I am on "/admin/content"
-    And I click "Only admin can access"
-    And I click "Edit"
-    Then I should see "Permissions by Term" in the "#edit-advanced" element
-    And I open open Permissions By Term advanced info
-    And I should see "Administrator" in the "#edit-permissions-by-term-info" element
-    And I should see "Allowed Users: No user restrictions." in the "#edit-permissions-by-term-info" element

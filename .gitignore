@@ -1,5 +1,6 @@
 # Copy the .dist file and modify the copy as your local PHPUnit configuration file.
 tests/phpunit.xml
-
 # Ignore PhpStorm IDE files
 .idea
+js/node_modules
+npm-debug.log

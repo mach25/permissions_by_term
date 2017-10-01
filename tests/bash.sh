@@ -8,8 +8,9 @@ function pbtTestingRun {
     pbtTestingPrepare
     echo "Run Behat tests."
     ${project_root_dir}/binaries/behat -vv --strict --config ${project_root_dir}/modules/permissions_by_term/tests/src/Behat/behat.yml
-    echo "Run Unit tests."
-    ${project_root_dir}/vendor/bin/phpunit -c ${project_root_dir}/modules/permissions_by_term/tests/phpunit.xml
+    pbtTestingRunUnitTests
+    cd ${project_root_dir}/modules/permissions_by_term/js
+    yarn test
 }
 
 function pbtTestingPrepare() {
@@ -22,6 +23,11 @@ function pbtTestingPrepare() {
     chmod 777 ${project_root_dir}/sites/default/db*
     pbtTestingRebuildDrupalCache
     pbtTestingSwitchBackToTestingRoot
+}
+
+function pbtTestingRunUnitTests {
+    echo "Run Unit tests."
+    ${project_root_dir}/vendor/bin/phpunit -c ${project_root_dir}/modules/permissions_by_term/tests/phpunit.xml
 }
 
 function pbtTestingRunChromedriver() {

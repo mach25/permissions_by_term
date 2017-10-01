@@ -18,6 +18,6 @@ services:
     permissions_by_term.term:
         class: \Drupal\permissions_by_term\Service\Term
         arguments: ['@database']
-    permissions_by_term.info:
-        class: \Drupal\permissions_by_term\Service\Info
-        arguments: ['@permissions_by_term.access_storage', '@permissions_by_term.term', '@twig']
+    permissions_by_term.node_entity_bundle_info:
+        class: \Drupal\permissions_by_term\Service\NodeEntityBundleInfo
+        arguments: ['@permissions_by_term.access_storage', '@permissions_by_term.term', '@twig', '@database']

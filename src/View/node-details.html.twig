@@ -1,21 +1,19 @@
-<b>{% trans %}Allowed Users:{% endtrans %}</b>
+{% trans %}This widget shows information about taxonomy term related permissions. It's being updated, as soon you make any related changes in the form.{% endtrans %}<br /><br />
+
+<b>{% trans %}Allowed users:{% endtrans %}</b>
 {% if users is not empty %}
-<ul>
   {% for user in users  %}
-  <li>{{ user.displayname }}</li>
+    {{ user.displayname }}{% if not loop.last %},{% endif %}
   {% endfor %}
-</ul>
 {% else %}
   <i>{% trans %}No user restrictions.{% endtrans %}</i>
 {% endif %}
 <br />
-<b>{% trans %}Allowed Roles:{% endtrans %}</b>
+<b>{% trans %}Allowed roles:{% endtrans %}</b>
 {% if roles is not empty %}
-  <ul>
   {% for role in roles %}
-    <li>{{ role.label }}</li>
+    {{ role.label }}{% if not loop.last %},{% endif %}
   {% endfor %}
-</ul>
 {% else %}
   <i>{% trans %}No role restrictions.{% endtrans %}</i>
 {% endif %}
