@@ -43,10 +43,15 @@ class PermissionsByTermContext extends RawDrupalContext {
 
       $accessStorage = \Drupal::Service('permissions_by_term.access_storage');
       if (!empty($termsHash['access_user'])) {
-        $accessStorage->addTermPermissionsByUserIds([$accessStorage->getUserIdByName($termsHash['access_user'])['uid']], $term->tid);
+        $userNames = explode(', ', $termsHash['access_user']);
+        foreach ($userNames as $userName) {
+          $accessStorage->addTermPermissionsByUserIds([$accessStorage->getUserIdByName($userName)['uid']], $term->tid);
+        }
       }
+
       if (!empty($termsHash['access_role'])) {
-        $accessStorage->addTermPermissionsByRoleIds([$termsHash['access_role']], $term->tid);
+        $rolesIds = explode(', ', $termsHash['access_role']);
+        $accessStorage->addTermPermissionsByRoleIds($rolesIds, $term->tid);
       }
     }
   }
