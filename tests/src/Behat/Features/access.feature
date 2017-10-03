@@ -33,19 +33,6 @@ Feature: Access
     And the cache has been cleared
     Then I should see text matching "Anonymous user can access"
 
-  Scenario: Users see permissions tab in node edit form
-    Given I am logged in as a user with the "administrator" role
-    Then I am on "/admin/content"
-    And I scroll to element with id "edit-submit"
-    And I click "Only admin can access"
-    And I click "Edit"
-    Then I should see "Permissions by Term" in the "#edit-advanced" element
-    And I open open Permissions By Term advanced info
-    And I should see "Administrator" in the "#edit-permissions-by-term-info" element
-    And I should see "Allowed Users: No user restrictions." in the "#edit-permissions-by-term-info" element
-    Then I fill in "edit-field-tags-target-id" with "Tag one (5), Tag two (6)"
-    And I should see "Allowed roles: Administrator, Authenticated user" in the "#edit-permissions-by-term-info" element
-
   Scenario: Anonymous users can see node, which is not connected to any permission.
     Given I am logged in as a user with the "administrator" role
     Then I am on "/admin/config/search/pages"
@@ -54,13 +41,13 @@ Feature: Access
     And I am on "/user/logout"
     Then I am on "node/search"
     And I fill in "edit-keys" with "Everybody can"
-    And I press "edit-submit"
+    And I press "edit-submit--2"
     Then I should not see text matching "Your search yielded no results."
 
   Scenario: Anonymous users do not see unpublished nodes.
     Given I am on "node/search"
     And I fill in "edit-keys" with "Unpublished node"
-    And I press "edit-submit"
+    And I press "edit-submit--2"
     Then I should see text matching "Your search yielded no results."
 
   Scenario: Anonymous users see nodes with term and no restriction
@@ -68,7 +55,7 @@ Feature: Access
     Given I am on "/"
     Given I am on "node/search"
     And I fill in "edit-keys" with "Term accessible"
-    And I press "edit-submit"
+    And I press "edit-submit--2"
     Then I should not see text matching "Your search yielded no results."
 
   Scenario: Users cannot access restricted terms in taxonomy term field widgets.

@@ -3,9 +3,9 @@
 namespace Drupal\Tests\permissions_by_term\Behat\Context;
 
 use Behat\Gherkin\Node\TableNode;
-use Behat\Mink\Exception\ElementNotFoundException;
 use Drupal\Driver\DrupalDriver;
 use Drupal\DrupalExtension\Context\RawDrupalContext;
+use Drupal\taxonomy\Entity\Vocabulary;
 
 /**
  * Class PermissionsByTermContext
@@ -53,6 +53,23 @@ class PermissionsByTermContext extends RawDrupalContext {
         $rolesIds = explode(', ', $termsHash['access_role']);
         $accessStorage->addTermPermissionsByRoleIds($rolesIds, $term->tid);
       }
+    }
+  }
+
+  /**
+   * @Given /^I create vocabulary with name "([^"]*)" and vid "([^"]*)"$/
+   */
+  public function createVocabulary($name, $vid) {
+    $vocabulary = \Drupal::entityQuery('taxonomy_vocabulary')
+      ->condition('vid', $vid)
+      ->execute();
+
+    if (empty($vocabulary)) {
+      $vocabulary = Vocabulary::create([
+        'name' => $name,
+        'vid' => $vid,
+      ]);
+      $vocabulary->save();
     }
   }
 
@@ -134,7 +151,7 @@ class PermissionsByTermContext extends RawDrupalContext {
 
   /**
    * @Then /^I scroll to element with id "([^"]*)"$/
-   * @param $id
+   * @param string $id
    */
   public function iScrollToElementWithId($id)
   {
@@ -148,7 +165,7 @@ class PermissionsByTermContext extends RawDrupalContext {
 
   /**
    * @Then /^I check checkbox with id "([^"]*)" by JavaScript$/
-   * @param $id
+   * @param string $id
    */
   public function checkCheckboxWithJS($id)
   {
@@ -157,6 +174,42 @@ class PermissionsByTermContext extends RawDrupalContext {
                 document.getElementById('" . $id . "').checked = true;
             "
     );
+  }
+
+  /**
+   * @Then /^I check checkbox with id "([^"]*)"$/
+   * @param string $id
+   */
+  public function checkCheckbox($id)
+  {
+    $page          = $this->getSession()->getPage();
+    $selectElement = $page->find('xpath', '//input[@id = "' . $id . '"]');
+
+    $selectElement->check();
+  }
+
+  /**
+   * @Then /^I uncheck checkbox with id "([^"]*)"$/
+   * @param string $id
+   */
+  public function uncheckCheckbox($id)
+  {
+    $page          = $this->getSession()->getPage();
+    $selectElement = $page->find('xpath', '//input[@id = "' . $id . '"]');
+
+    $selectElement->uncheck();
+  }
+
+  /**
+   * @Then /^I select "([^"]*)" in "([^"]*)"$/
+   * @param string $label
+   * @param string $id
+   */
+  public function selectOption($label, $id)
+  {
+    $page          = $this->getSession()->getPage();
+    $selectElement = $page->find('xpath', '//select[@id = "' . $id . '"]');
+    $selectElement->selectOption($label);
   }
 
 }

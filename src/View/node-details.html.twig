@@ -3,7 +3,7 @@
 <b>{% trans %}Allowed users:{% endtrans %}</b>
 {% if users is not empty %}
   {% for user in users  %}
-    {{ user.displayname }}{% if not loop.last %},{% endif %}
+    {{ user.displayname }}{% if not loop.last %}, {% endif %}
   {% endfor %}
 {% else %}
   <i>{% trans %}No user restrictions.{% endtrans %}</i>
@@ -12,7 +12,7 @@
 <b>{% trans %}Allowed roles:{% endtrans %}</b>
 {% if roles is not empty %}
   {% for role in roles %}
-    {{ role.label }}{% if not loop.last %},{% endif %}
+    {{ role.label }}{% if not loop.last %}, {% endif %}
   {% endfor %}
 {% else %}
   <i>{% trans %}No role restrictions.{% endtrans %}</i>

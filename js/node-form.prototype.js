@@ -9,6 +9,7 @@ NodeForm.prototype.getSelectedTids = function() {
 
   for (var index = 0; index < this.formElementCssClasses.length; ++index) {
     if (this.selectedTids[this.formElementCssClasses[index]] !== undefined && this.selectedTids[this.formElementCssClasses[index]].constructor === Array) {
+
       this.selectedTids[this.formElementCssClasses[index]].forEach(function(tid){
         tids.push(tid);
       })
@@ -22,9 +23,26 @@ NodeForm.prototype.addFormElementCssClass = function(formElementCssClass) {
   this.formElementCssClasses.push(formElementCssClass);
 }
 
+
+NodeForm.prototype.keyExists = function(key, array) {
+  if (!array || (array.constructor !== Array && array.constructor !== Object)) {
+    return false;
+  }
+  for (var i = 0; i < array.length; i++) {
+    if (array[i] === key) {
+      return true;
+    }
+  }
+  return key in array;
+}
+
 NodeForm.prototype.addSelectedTid = function(tid, formElementCssClass) {
-  if (this.selectedTids[formElementCssClass] === undefined) {
+  if (!this.keyExists(formElementCssClass, this.formElementCssClasses)) {
     this.formElementCssClasses.push(formElementCssClass);
+  }
+
+  if (this.selectedTids[formElementCssClass] === undefined) {
+
     this.selectedTids[formElementCssClass] = [];
   }
 
@@ -57,9 +75,9 @@ NodeForm.prototype.computeFieldWrapperCSSClasses = function(fieldNames) {
 
 NodeForm.prototype.displayPermissionsByCheckbox = function(tid, checked, permissions) {
   if (checked === false) {
-    this.resetData(tid);
+    this.resetData('checkbox_tid_' + tid);
   } else if (checked === true){
-    this.addSelectedTid(parseInt(tid), tid);
+    this.addSelectedTid(parseInt(tid), 'checkbox_tid_' + tid);
   }
 
   this.renderPermissionsInfo(permissions);
@@ -124,14 +142,11 @@ NodeForm.prototype.displayPermissionsByAutocomplete = function(fieldWrapperCSSCl
 }
 
 NodeForm.prototype.separateByComma = function(values) {
-  if (values !== null && values.constructor === Array && values.length > 1) {
-    return values.join(', ');
-  }
-
-  return values;
+  return values.join(', ');
 }
 
 NodeForm.prototype.renderPermissionsInfo = function(permissions) {
+
   var permissionsToDisplay = this.getPermissionsByTids(this.getSelectedTids(), permissions);
 
   var allowedUsersHtml = '<b>' + Drupal.t('Allowed users:') + '</b> ';
@@ -175,7 +190,20 @@ NodeForm.prototype.pushUserDisplayNames = function(tids, permissionsToDisplay, p
   for (var index = 0; index < tids.length; ++index) {
     if (permissions['userDisplayNames'][tids[index]] !== undefined && permissions['userDisplayNames'][tids[index]] !== null &&
         permissionsToDisplay['permittedUsers'].indexOf(permissions['userDisplayNames'][tids[index]]) === -1) {
-      permissionsToDisplay['permittedUsers'].push(permissions['userDisplayNames'][tids[index]]);
+
+      var userDisplayNames = permissions['userDisplayNames'][tids[index]];
+
+      if (userDisplayNames.constructor === Array && userDisplayNames.length > 1) {
+        userDisplayNames.forEach(function(value){
+          if (permissionsToDisplay['permittedUsers'].indexOf(value) === -1) {
+            permissionsToDisplay['permittedUsers'].push(value);
+          }
+        });
+      } else {
+        if (permissionsToDisplay['permittedUsers'].indexOf(userDisplayNames) === -1) {
+          permissionsToDisplay['permittedUsers'].push(userDisplayNames);
+        }
+      }
     }
   }
 
@@ -184,8 +212,12 @@ NodeForm.prototype.pushUserDisplayNames = function(tids, permissionsToDisplay, p
 
 NodeForm.prototype.pushRoles = function(tids, permissionsToDisplay, permissions) {
   for (var index = 0; index < tids.length; ++index) {
-    if (permissions['roleLabels'][tids[index]] !== undefined && permissions['roleLabels'][tids[index]] !== null && permissionsToDisplay['permittedRoles'].indexOf(permissions['roleLabels'][tids[index]]) === -1) {
-      permissionsToDisplay['permittedRoles'].push(permissions['roleLabels'][tids[index]]);
+    if (permissions['roleLabels'][tids[index]] !== undefined && permissions['roleLabels'][tids[index]] !== null) {
+      permissions['roleLabels'][tids[index]].forEach(function(role){
+        if (permissionsToDisplay['permittedRoles'].indexOf(role) === -1) {
+          permissionsToDisplay['permittedRoles'].push(role);
+        }
+      });
     }
   }
 

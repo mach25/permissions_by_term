@@ -28,8 +28,11 @@
       $.when(getFormInfo).done(function(formInfo){
 
         if (formInfo['taxonomyRelationFieldNames'] !== null) {
+
           var nodeForm = new NodeForm($),
               fieldWrapperCSSClasses = nodeForm.computeFieldWrapperCSSClasses(formInfo['taxonomyRelationFieldNames']);
+
+          initPermissionInfoByFormElements(nodeForm, fieldWrapperCSSClasses, formInfo);
 
           for (var index = 0; index < fieldWrapperCSSClasses.length; ++index) {
 
@@ -45,7 +48,7 @@
               nodeForm.displayPermissionsByAutocomplete(fieldWrapperCSSClasses, formInfo['permissions']);
             });
 
-            $(formElementCssClass + ' input[type="text"]').on('keydown', function (){
+            $(formElementCssClass + ' input[type="text"]').on('keyup', function (){
               nodeForm.displayPermissionsByAutocomplete(fieldWrapperCSSClasses, formInfo['permissions']);
             });
 
@@ -56,6 +59,12 @@
         }
 
       });
+
+      function initPermissionInfoByFormElements(nodeForm, fieldWrapperCSSClasses, formInfo) {
+        nodeForm.displayPermissionsBySelect(fieldWrapperCSSClasses, formInfo['permissions']);
+        nodeForm.displayPermissionsByAutocomplete(fieldWrapperCSSClasses, formInfo['permissions']);
+        nodeForm.displayPermissionsByCheckbox($(this).prop('value'), $(this).prop('checked'), formInfo['permissions']);
+      }
 
       function getContentType() {
         if (window.location.href.indexOf('/node/add') !== -1) {

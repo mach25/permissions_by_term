@@ -157,7 +157,9 @@ class AccessStorage {
 
     foreach ($tids as $tid) {
       if (!empty($tmpUids = $this->getUserTermPermissionsByTid($tid))) {
-        $uids[] = array_shift($tmpUids);
+        foreach ($tmpUids as $tmpUid) {
+          $uids[] = $tmpUid;
+        }
       }
     }
 
@@ -186,9 +188,11 @@ class AccessStorage {
     $rids = [];
 
     foreach ($tids as $tid) {
-      $rid = $this->getRoleTermPermissionsByTid($tid);
-      if (!empty($rid)) {
-        $rids[] = array_shift($rid);
+      $tmpRids = $this->getRoleTermPermissionsByTid($tid);
+      if (!empty($tmpRids)) {
+        foreach ($tmpRids as $tmpRid) {
+          $rids[] = $tmpRid;
+        }
       }
     }
 

@@ -347,7 +347,7 @@ function permissions_by_term_node_insert($node) {
 function permissions_by_term_options_list_alter(array &$options, array $context) {
   $fieldDefinitionSettings = $context['fieldDefinition']->getFieldStorageDefinition()->getSettings();
   if (!empty($fieldDefinitionSettings['target_type']) && $fieldDefinitionSettings['target_type'] == 'taxonomy_term') {
-    foreach ($options as $id => $name) {
+    foreach ($options as $id => $names) {
       if ($id !== '_none') {
         /**
          * @var \Drupal\permissions_by_term\Service\Term $term
@@ -358,10 +358,20 @@ function permissions_by_term_options_list_alter(array &$options, array $context)
          * @var \Drupal\permissions_by_term\Service\AccessCheck $accessCheck
          */
         $accessCheck = \Drupal::service('permissions_by_term.access_check');
-        if (!$accessCheck->isAccessAllowedByDatabase($term->getTermIdByName($name))) {
-          unset($options[$id]);
+
+        if (is_array($names)) {
+          foreach ($names as $name) {
+            if (!$accessCheck->isAccessAllowedByDatabase($term->getTermIdByName($name))) {
+              unset($options[$id]);
+            }
+          }
+        } elseif(is_string($names)) {
+          if (!$accessCheck->isAccessAllowedByDatabase($term->getTermIdByName($names))) {
+            unset($options[$id]);
+          }
         }
       }
+
     }
   }
 }

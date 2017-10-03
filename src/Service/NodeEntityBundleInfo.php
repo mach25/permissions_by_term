@@ -6,6 +6,7 @@ use Drupal\Core\Template\TwigEnvironment;
 use Drupal\user\Entity\Role;
 use Drupal\user\Entity\User;
 use Drupal\Core\Database\Connection;
+use PDO;
 
 /**
  * Class Info
@@ -95,18 +96,20 @@ class NodeEntityBundleInfo {
     $permittedUsers = $this->database->select('permissions_by_term_user', 'pu')
       ->fields('pu', ['uid', 'tid'])
       ->execute()
-      ->fetchAllAssoc('tid');
+      ->fetchAll();
 
     $permittedRoles = $this->database->select('permissions_by_term_role', 'pr')
       ->fields('pr', ['rid', 'tid'])
       ->execute()
-      ->fetchAllAssoc('tid');
+      ->fetchAll();
 
     if (!empty($permittedRoles)) {
       $returnArray['roleLabels'] = [];
       foreach ($permittedRoles as $permittedRole) {
         $role = Role::load($permittedRole->rid);
-        $returnArray['roleLabels'][$permittedRole->tid][] = $role->label();
+        if (!empty($role)) {
+          $returnArray['roleLabels'][$permittedRole->tid][] = $role->label();
+        }
       }
     }
 
@@ -114,7 +117,9 @@ class NodeEntityBundleInfo {
       $returnArray['userDisplayNames'] = [];
       foreach ($permittedUsers as $permittedUser) {
         $user = User::load($permittedUser->uid);
-        $returnArray['userDisplayNames'][$permittedUser->tid][] = $user->getDisplayName();
+        if (!empty($user)) {
+          $returnArray['userDisplayNames'][$permittedUser->tid][] = $user->getDisplayName();
+        }
       }
     }
 

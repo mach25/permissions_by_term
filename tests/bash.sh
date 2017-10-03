@@ -5,12 +5,18 @@ drush_executable_path=~/.config/composer/vendor/bin/drush
 chromedriver_binary_path=${project_root_dir}/binaries/chromedriver/chromedriver
 
 function pbtTestingRun {
-    pbtTestingPrepare
-    echo "Run Behat tests."
-    ${project_root_dir}/binaries/behat -vv --strict --config ${project_root_dir}/modules/permissions_by_term/tests/src/Behat/behat.yml
+    pbtBehatRunFeature access
+    pbtBehatRunFeature entityMetaInfo
     pbtTestingRunUnitTests
     cd ${project_root_dir}/modules/permissions_by_term/js
     yarn test
+}
+
+function pbtBehatRunFeature {
+    featureName=$1
+    pbtTestingPrepare
+    echo "Run Behat tests."
+    ${project_root_dir}/binaries/behat -vv --strict --config ${project_root_dir}/modules/permissions_by_term/tests/src/Behat/behat.yml ${project_root_dir}/modules/permissions_by_term/tests/src/Behat/Features/${featureName}.feature
 }
 
 function pbtTestingPrepare() {
