@@ -268,7 +268,7 @@ class AccessStorage {
   }
 
   /**
-   * @param int   $userId
+   * @param int $userId
    */
   public function deleteAllTermPermissionsByUserId($userId) {
     $this->database->delete('permissions_by_term_user')
