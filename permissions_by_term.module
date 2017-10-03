@@ -375,3 +375,16 @@ function permissions_by_term_options_list_alter(array &$options, array $context)
     }
   }
 }
+
+/**
+ * Implements hook_user_cancel().
+ *
+ * Deletes all term permissions for a user when their account is cancelled.
+ */
+function permissions_by_term_user_cancel($edit, $account, $method) {
+  $deleted_user_id = $account->id();
+
+  /* @var \Drupal\permissions_by_term\Service\AccessStorage $access_storage */
+  $access_storage = \Drupal::service('permissions_by_term.access_storage');
+  $access_storage->deleteAllTermPermissionsByUserId($deleted_user_id);
+}
