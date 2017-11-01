@@ -212,6 +212,11 @@ NodeForm.prototype.pushUserDisplayNames = function(tids, permissionsToDisplay, p
 
 NodeForm.prototype.pushRoles = function(tids, permissionsToDisplay, permissions) {
   for (var index = 0; index < tids.length; ++index) {
+
+    if (permissions['roleLabels'] === undefined) {
+      return permissionsToDisplay;
+    }
+
     if (permissions['roleLabels'][tids[index]] !== undefined && permissions['roleLabels'][tids[index]] !== null) {
       permissions['roleLabels'][tids[index]].forEach(function(role){
         if (permissionsToDisplay['permittedRoles'].indexOf(role) === -1) {

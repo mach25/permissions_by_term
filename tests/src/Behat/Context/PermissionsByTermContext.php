@@ -2,9 +2,6 @@
 
 namespace Drupal\Tests\permissions_by_term\Behat\Context;
 
-use Behat\Behat\Hook\Call\BeforeFeature;
-use Behat\Behat\Hook\Scope\AfterFeatureScope;
-use Behat\Behat\Hook\Scope\BeforeFeatureScope;
 use Behat\Gherkin\Node\TableNode;
 use Drupal\Driver\DrupalDriver;
 use Drupal\DrupalExtension\Context\RawDrupalContext;

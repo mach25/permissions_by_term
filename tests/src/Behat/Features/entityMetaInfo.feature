@@ -36,7 +36,7 @@ Feature: Entity Meta Info
       | Anonymous user can access      | Admin      | 1      | 2014-10-17 8:00am | Tag anonymous | anonymous             |
     Given Node access records are rebuild.
 
-#@TODO: Test needs to be fixed. Implement a method, which waits for HTML tags.
+#@TODO: Test needs to be fixed. Implement a method, which waits for HTML tags. Field ids has changed. Do not rely on fixed id's with numeric suffix.
 #  Scenario: Users see permissions tab in node edit form
 #    Given I am on "/"
 #    Given I am logged in as a user with the "administrator" role
@@ -75,9 +75,9 @@ Feature: Entity Meta Info
 #    And I open open Permissions By Term advanced info
 #    And I should see "Administrator" in the "#edit-permissions-by-term-info" element
 #    And I should see "Allowed Users: No user restrictions." in the "#edit-permissions-by-term-info" element
-#    And I scroll to element with id "edit-field-tags2-6"
-#    And I check checkbox with id "edit-field-tags2-6"
-#    And I uncheck checkbox with id "edit-field-tags2-6"
+#    And I scroll to element with id "edit-field-tags2"
+#    And I check checkbox with id "edit-field-tags2"
+#    And I uncheck checkbox with id "edit-field-tags2"
 #    And I scroll to element with id "edit-permissions-by-term-info"
 #    Then I should see "Allowed roles: Administrator" in the "#edit-permissions-by-term-info" element
 #    Then I fill in "edit-field-tags-target-id" with "Tag one (5), Tag two (6)"
