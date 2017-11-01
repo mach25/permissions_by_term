@@ -9,3 +9,49 @@ learn how to use this module.
 This modules will be merged into PbT soon.
 - [Permissions by Entity](https://www.drupal.org/project/permissions_by_entity)
 This module is now merged into PbT
+
+## Behat testing
+
+### composer.json config
+Make sure that the dependencies the PbT module are installed. Check your drupal's `composer.json` file
+for the following contents:
+
+    "require": {
+        "composer/installers": "^1.0.24",
+        "wikimedia/composer-merge-plugin": "~1.4"
+    },
+    
+    ...
+    
+    "merge-plugin": {
+        "include": [
+            "core/composer.json",
+            "modules/permissions_by_term/composer.json"
+        ],
+        "recurse": false,
+        "replace": false,
+        "merge-extra": false
+    },
+    
+    ...
+    
+    "autoload": {
+        "psr-4": {
+            "Drupal\\Core\\Composer\\": "core/lib/Drupal/Core/Composer",
+            "Drupal\\Tests\\permissions_by_term\\Behat\\Context\\": "modules/permissions_by_term/tests/src/Behat/Context"
+        }
+    },
+    
+### behat.yml file
+Use the file at `tests/src/Behat/behat.yml.dist` as a template for your needs. Copy and name it to `behat.yml` and change
+it's paths according to your needs.
+    
+### Chromedriver
+It is recommended to use the [Chromedriver](https://sites.google.com/a/chromium.org/chromedriver/) as the driver between
+your Google Chrome browser and Behat. Make sure, that the Chromedriver version matches your operating system and your
+Google Chrome browser version.
+
+### Quick testing with a SQlite database
+In permissions_by_term/tests/src/Behat/fixtures/db.sqlite` you can find a SQLite database to test from. It is a standard
+Drupal 8 installation with PbT module installed. That way each test run proceeds quicker, because it is 1 file
+instead an entire relational database.
