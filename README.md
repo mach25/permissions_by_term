@@ -55,3 +55,15 @@ Google Chrome browser version.
 In permissions_by_term/tests/src/Behat/fixtures/db.sqlite` you can find a SQLite database to test from. It is a standard
 Drupal 8 installation with PbT module installed. That way each test run proceeds quicker, because it is 1 file
 instead an entire relational database.
+
+Make sure that the path to the SQLite database is contained in your `settings.php` file. PbT awaits that the path is
+`/sites/default/db.sqlite`. E.g.:
+
+    $databases['default']['default'] = array (
+      'database' => '/Users/peter/Dev/mamp/permissions-by-term/sites/default/db.sqlite',
+      'prefix' => '',
+      'namespace' => 'Drupal\\Core\\Database\\Driver\\sqlite',
+      'driver' => 'sqlite',
+    );
+
+The database file location is fixed, because the DB gets wiped after each Behat test suite run.

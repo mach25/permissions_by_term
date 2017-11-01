@@ -2,6 +2,9 @@
 
 namespace Drupal\Tests\permissions_by_term\Behat\Context;
 
+use Behat\Behat\Hook\Call\BeforeFeature;
+use Behat\Behat\Hook\Scope\AfterFeatureScope;
+use Behat\Behat\Hook\Scope\BeforeFeatureScope;
 use Behat\Gherkin\Node\TableNode;
 use Drupal\Driver\DrupalDriver;
 use Drupal\DrupalExtension\Context\RawDrupalContext;
@@ -20,6 +23,18 @@ class PermissionsByTermContext extends RawDrupalContext {
 
     // Bootstrap Drupal.
     $driver->bootstrap();
+  }
+
+  /**
+   * @AfterSuite
+   */
+  public static function cleanDB() {
+    $module_path = \Drupal::service('module_handler')->getModule('permissions_by_term')->getPath();
+
+    $defaultSitesDirPath = \Drupal::service('stream_wrapper_manager')->getViaScheme(file_default_scheme())->realpath() . '/../';
+    unlink($defaultSitesDirPath . 'db.sqlite');
+    copy($module_path . '/tests/src/Behat/fixtures/db.sqlite', $defaultSitesDirPath . 'db.sqlite');
+    chmod($defaultSitesDirPath . '/db.sqlite', 0777);
   }
 
   /**
