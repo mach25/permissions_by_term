@@ -4,3 +4,5 @@ tests/phpunit.xml
 .idea
 js/node_modules
 npm-debug.log
+# Ignore Mac DS_Store files
+.DS_Store

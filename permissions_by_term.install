@@ -78,3 +78,10 @@ function permissions_by_term_uninstall() {
 function permissions_by_term_update_8113() {
   node_access_rebuild(TRUE);
 }
+
+/**
+ * Force a node access rebuild to fix node access grants.
+ */
+function permissions_by_term_update_8114() {
+  node_access_rebuild(TRUE);
+}

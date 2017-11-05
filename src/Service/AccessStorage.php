@@ -6,8 +6,6 @@ use Drupal\Core\Database\Connection;
 use Drupal\Component\Utility\Tags;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\permissions_by_term\Service\AccessCheck;
-use Drupal\user\Entity\Role;
 use Drupal\user\Entity\User;
 
 /**
@@ -529,7 +527,7 @@ class AccessStorage {
    */
   public function getTidsByNid($nid)
   {
-    $node = $this->entityTypeManager->getStorage('node')->load($nid);
+    $node = \Drupal::entityTypeManager()->getStorage('node')->load($nid);
     $tids = [];
 
     foreach ($node->getFields() as $field) {

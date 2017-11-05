@@ -276,65 +276,6 @@ class NodeAccess {
   }
 
   /**
-   * @param int          $nid
-   * @return string|bool $uid
-   */
-  public function insertNodeAccessRecord($nid) {
-    if (!$this->isAccessRecordExisting($nid)) {
-      if (empty($gid = $this->getIncreasedExistingGid())) {
-        $gid = 1;
-      }
-
-      $grant = $this->createGrant($nid, $gid);
-
-      $query = $this->database->insert('node_access');
-      $query->fields([
-        'nid',
-        'langcode',
-        'fallback',
-        'gid',
-        'realm',
-        'grant_view',
-        'grant_update',
-        'grant_delete'
-      ]);
-      $query->values([
-        $nid,
-        $grant->langcode,
-        1,
-        $grant->gid,
-        $grant->realm,
-        $grant->grant_view,
-        $grant->grant_update,
-        $grant->grant_delete
-      ]);
-
-      return $query->execute();
-    }
-  }
-
-  /**
-   * @return bool|int
-   */
-  public function getIncreasedExistingGid() {
-    $gidQuery = $this->database->select('node_access', 'na')
-      ->orderBy('gid', 'DESC')
-      ->fields('na', ['gid']);
-
-    $result = $gidQuery->execute()
-      ->fetchCol();
-
-    if (!empty($result)) {
-      $gid = intval($result[0]);
-      $gid++;
-
-      return $gid;
-    }
-
-    return false;
-  }
-
-  /**
    * @param int $nid
    *
    * @return bool

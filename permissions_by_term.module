@@ -287,16 +287,30 @@ function permissions_by_term_node_grants(\Drupal\Core\Session\AccountInterface $
  * Permissions can be rebuild at /admin/reports/status/rebuild.
  */
 function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $node) {
-  if (empty($gid = \Drupal::service('permissions_by_term.node_access')->getIncreasedExistingGid())) {
-    static $gid = 0;
-    $gid++;
+  // Do not return any grants for nodes that this module doesn't manage.
+  if (!$node->isPublished()) {
+    return;
+  }
+  $has_term_access_restrictions = FALSE;
+  /* @var \Drupal\permissions_by_term\Service\AccessStorage $access_storage */
+  $access_storage = \Drupal::service('permissions_by_term.access_storage');
+  foreach ($access_storage->getTidsByNid($node->id()) as $tid) {
+    /* @var \Drupal\permissions_by_term\Service\AccessCheck $access_check_service */
+    $access_check_service = \Drupal::service('permissions_by_term.access_check');
+    if ($access_check_service->isAnyPermissionSetForTerm($tid)) {
+      $has_term_access_restrictions = TRUE;
+      break;
+    }
+  }
+  if (!$has_term_access_restrictions) {
+    return;
   }
 
   /**
    * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
    */
   $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-  $grantObject = $nodeAccess->createGrant($node->id(), $gid);
+  $grantObject = $nodeAccess->createGrant($node->id(), $node->id());
 
   $grants[] = [
     'realm' => $grantObject->realm,
@@ -332,13 +346,7 @@ function permissions_by_term_user_update($user) {
  * Implements hook_node_insert().
  */
 function permissions_by_term_node_insert($node) {
-  /**
-   * @var \Drupal\permissions_by_term\Service\NodeAccess $nodeAccess
-   */
-  $nodeAccess = \Drupal::service('permissions_by_term.node_access');
-  if (!empty($nodeAccess->insertNodeAccessRecord($node->id()))) {
-    Cache::invalidateTags(['search_index:node_search']);
-  }
+  Cache::invalidateTags(['search_index:node_search']);
 }
 
 /**

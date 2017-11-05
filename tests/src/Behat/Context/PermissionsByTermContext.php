@@ -28,7 +28,7 @@ class PermissionsByTermContext extends RawDrupalContext {
   public static function cleanDB() {
     $module_path = \Drupal::service('module_handler')->getModule('permissions_by_term')->getPath();
 
-    $defaultSitesDirPath = \Drupal::service('stream_wrapper_manager')->getViaScheme(file_default_scheme())->realpath() . '/../';
+    $defaultSitesDirPath = \Drupal::service('stream_wrapper_manager')->getViaScheme(file_default_scheme())->realpath() . '/';
     unlink($defaultSitesDirPath . 'db.sqlite');
     copy($module_path . '/tests/src/Behat/fixtures/db.sqlite', $defaultSitesDirPath . 'db.sqlite');
     chmod($defaultSitesDirPath . '/db.sqlite', 0777);
