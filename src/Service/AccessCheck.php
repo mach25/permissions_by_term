@@ -50,6 +50,10 @@ class AccessCheck {
       ->query("SELECT tid FROM {taxonomy_index} WHERE nid = :nid",
       [':nid' => $nid])->fetchAll();
 
+    if (empty($terms)) {
+      return TRUE;
+    }
+
     foreach ($terms as $term) {
       $access_allowed = $this->isAccessAllowedByDatabase($term->tid, $uid);
       if (!$access_allowed) {

@@ -73,15 +73,20 @@ abstract class PBTKernelTestBase extends KernelTestBase {
     $this->accessStorage = $this->container->get('permissions_by_term.access_storage');
     $this->accessCheck = $this->container->get('permissions_by_term.access_check');
     \Drupal::configFactory()->getEditable('taxonomy.settings')->set('maintain_index_table', TRUE)->save();
-    $this->createTestVocabulary();
+    $this->createTestVocabularies();
     $this->createPageNodeType();
     $this->createCurrentUser();
   }
 
-  protected function createTestVocabulary() {
+  protected function createTestVocabularies() {
     Vocabulary::create([
       'name' => 'test',
       'vid' => 'test',
+    ])->save();
+
+    Vocabulary::create([
+      'name' => 'test2',
+      'vid' => 'test2',
     ])->save();
   }
 
@@ -99,8 +104,24 @@ abstract class PBTKernelTestBase extends KernelTestBase {
       'cardinality' => FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED,
     ])->save();
 
+    FieldStorageConfig::create([
+      'entity_type' => 'node',
+      'field_name' => 'field_tags2',
+      'type' => 'entity_reference',
+      'settings' => [
+        'target_type' => 'taxonomy_term',
+      ],
+      'cardinality' => FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED,
+    ])->save();
+
     FieldConfig::create([
       'field_name' => 'field_tags',
+      'entity_type' => 'node',
+      'bundle' => 'page',
+    ])->save();
+
+    FieldConfig::create([
+      'field_name' => 'field_tags2',
       'entity_type' => 'node',
       'bundle' => 'page',
     ])->save();
@@ -137,6 +158,13 @@ abstract class PBTKernelTestBase extends KernelTestBase {
     $term->save();
     $tids[] = $term->id();
 
+    $term = Term::create([
+      'name' => 'term3',
+      'vid' => 'test2',
+    ]);
+    $term->save();
+    $tids[] = $term->id();
+
     $this->accessStorage->addTermPermissionsByUserIds([99], $term->id());
 
     $node = Node::create([
@@ -149,6 +177,11 @@ abstract class PBTKernelTestBase extends KernelTestBase {
         [
           'target_id' => $tids[1]
         ],
+      ],
+      'field_tags2' => [
+        [
+          'target_id' => $tids[2]
+        ]
       ]
     ]);
     $node->save();

@@ -640,16 +640,16 @@ class AccessStorage {
   private function getNidsWithNoTidRestriction() {
     $queryNidsNoRestriction = $this->database->select('node', 'n')
       ->fields('n', ['nid']);
-
     $queryNidsNoRestriction->leftJoin('taxonomy_index', 'ti', 'n.nid = ti.nid');
-    $queryNidsNoRestriction->leftJoin('permissions_by_term_user', 'ptu', 'ptu.tid = ti.tid');
-    $queryNidsNoRestriction->condition('ptu.tid', NULL, 'IS');
-    $queryNidsNoRestriction->leftJoin('permissions_by_term_role', 'ptr', 'ptr.tid = ti.tid');
-    $queryNidsNoRestriction->condition('ptr.tid', NULL, 'IS');
 
-     return $queryNidsNoRestriction
-      ->execute()
-      ->fetchCol();
+    // Add the AND for both role and user term ids.
+    $andGroup = $queryNidsNoRestriction->andConditionGroup();
+    $andGroup->where('n.nid NOT IN (select CASE WHEN ti.tid IN (select tid from {permissions_by_term_role}) THEN ti.nid END as inlist FROM {taxonomy_index} ti GROUP BY tid HAVING inlist)');
+    $andGroup->where('n.nid NOT IN (select CASE WHEN ti.tid IN (select tid from {permissions_by_term_user}) THEN ti.nid END as inlist FROM {taxonomy_index} ti GROUP BY tid HAVING inlist)');
+
+    $queryNidsNoRestriction->condition($andGroup);
+
+    return $queryNidsNoRestriction->execute()->fetchCol();
   }
 
 
