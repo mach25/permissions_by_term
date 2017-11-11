@@ -644,8 +644,8 @@ class AccessStorage {
 
     // Add the AND for both role and user term ids.
     $andGroup = $queryNidsNoRestriction->andConditionGroup();
-    $andGroup->where('n.nid NOT IN (select CASE WHEN ti.tid IN (select tid from {permissions_by_term_role}) THEN ti.nid END as inlist FROM {taxonomy_index} ti GROUP BY tid HAVING inlist)');
-    $andGroup->where('n.nid NOT IN (select CASE WHEN ti.tid IN (select tid from {permissions_by_term_user}) THEN ti.nid END as inlist FROM {taxonomy_index} ti GROUP BY tid HAVING inlist)');
+    $andGroup->where('n.nid NOT IN (select CASE WHEN ti.tid IN (select tid from {permissions_by_term_role}) THEN ti.nid END as inlist FROM {taxonomy_index} ti GROUP BY tid, ti.nid HAVING inlist)');
+    $andGroup->where('n.nid NOT IN (select CASE WHEN ti.tid IN (select tid from {permissions_by_term_user}) THEN ti.nid END as inlist FROM {taxonomy_index} ti GROUP BY tid, ti.nid HAVING inlist)');
 
     $queryNidsNoRestriction->condition($andGroup);
 
