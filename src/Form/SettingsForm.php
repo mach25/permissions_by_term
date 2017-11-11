@@ -28,16 +28,11 @@ class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $config = $this->config('permissions_by_term.settings');
-
     $form = parent::buildForm($form, $form_state);
-
     $description = <<<EOT
-By default users have granted access to an node, as long they have access to a <strong>single</strong>
+By default users are granted access content, as long they have access to a <strong>single</strong>
 related taxonomy term. If the single term restriction option is checked, they must
-have access to <strong>all</strong> related taxonomy terms to access an node. Because as soon the
-specific node is related to a "single" non-permitted taxonomy term, the access will 
-be disallowed.
+have access to <strong>all</strong> related taxonomy terms to access an node.
 EOT;
 
     $form['single_term_restriction'] = [

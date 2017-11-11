@@ -7,7 +7,6 @@
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormState;
-use Drupal\permissions_by_term\Controller\PermissionsByTermController;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\NodeInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -118,10 +117,8 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
     $form['access'] = [
       '#type' => 'fieldset',
       '#title' => t('Permissions'),
-      '#description' => t('To limit access to this term by user or roles,
-      add users or roles to the following lists. Leave empty to allow
-      node access by single node view, node listing in views and taxonomy
-      term selection by all users.'),
+      '#description' => t('To limit access to this term by user id(s) or role(s),
+      select users or roles above. If left empty, all users will have access to content, related with this taxonomy term.'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
       '#attributes' => ['id' => 'fieldset_term_access'],
@@ -138,6 +135,11 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
       $sUserFormValue = NULL;
     }
 
+    $description = <<<EOT
+Enter a comma-seperated list of user names who will be able to access content,
+related with this taxonomy term.
+EOT;
+
     // Note that the autocomplete widget will only enable for users with the
     // 'access profiles' permission. Other users will have to specify the name
     // manually.
@@ -145,9 +147,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
       '#type' => 'entity_autocomplete',
       '#target_type' => 'user',
       '#title' => t('Allowed users'),
-      '#description' => t('Enter a comma-seperated list of user names to give') . ' ' .
-      t('them permission to use this term and access related nodes in single node view
-      and views listings.'),
+      '#description' => t($description),
       '#value' => $sUserFormValue,
       '#size' => 60,
       '#autocomplete_route_name' => 'permissions_by_term.autocomplete_multiple',
@@ -182,9 +182,7 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
     $form['access']['role'] = [
       '#type' => 'checkboxes',
       '#title' => t('Allowed roles'),
-      '#description' => t('Select a role to allow all members of this role to
-        use this term and access related nodes in single node view and views
-        listings.'),
+      '#description' => t('Select user roles that can access content related with this taxonomy term.'),
       '#default_value' => $aSetRoles,
       '#options' => $aTranslatedUserRoles,
       '#multiple' => FALSE,
