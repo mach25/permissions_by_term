@@ -78,10 +78,10 @@ class AccessCheckTest extends PBTKernelTestBase {
   public function testNoTermRestriction() {
     $database = $this->container->get('database');
     $database->truncate('node_access')->execute();
-    $this->createRelationNoTerms();
+    $this->createRelationWithoutRestriction();
 
     \Drupal::configFactory()->getEditable('permissions_by_term.settings.single_term_restriction')->set('value', FALSE)->save();
-    $this->assertTrue($this->accessCheck->canUserAccessByNodeId($this->getNidNoTerms()));
+    $this->assertTrue($this->accessCheck->canUserAccessByNodeId($this->getNidNoRestriction()));
 
     node_access_rebuild();
 
@@ -95,13 +95,13 @@ class AccessCheckTest extends PBTKernelTestBase {
       ->execute()
       ->fetchCol();
 
-    $this->assertCount(1, $permittedNids);
+    $this->assertCount(0, $permittedNids);
   }
 
   /**
    * @return void
    */
-  public function testEnabledSingleTermRestriction() {
+  public function testSingleTermRestrictionWithRestrictedTerms() {
     $database = $this->container->get('database');
     $database->truncate('node_access')->execute();
     $this->createRelationOneGrantedTerm();
@@ -123,6 +123,32 @@ class AccessCheckTest extends PBTKernelTestBase {
       ->fetchCol();
 
     $this->assertCount(1, $permittedNids);
+  }
+
+  /**
+   * @return void
+   */
+  public function testSingleTermRestrictionWithNoRestrictedTerms() {
+    $database = $this->container->get('database');
+    $database->truncate('node_access')->execute();
+    $this->createRelationWithoutRestriction();
+
+    \Drupal::configFactory()->getEditable('permissions_by_term.settings.single_term_restriction')->set('value', TRUE)->save();
+    $this->assertTrue($this->accessCheck->canUserAccessByNodeId($this->getNidOneGrantedTerm()));
+
+    node_access_rebuild();
+
+    $gids = $this->accessStorage->getGids(\Drupal::service('current_user'));
+
+    $nodeAccess = $database->select('node_access', 'na')
+      ->fields('na', ['nid'])
+      ->condition('na.gid', $gids['permissions_by_term'], 'IN')
+      ->condition('na.realm', AccessStorage::NODE_ACCESS_REALM);
+    $permittedNids = $nodeAccess
+      ->execute()
+      ->fetchCol();
+
+    $this->assertCount(0, $permittedNids);
   }
 
 }

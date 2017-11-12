@@ -39,7 +39,7 @@ abstract class PBTKernelTestBase extends KernelTestBase {
   /**
    * @var int
    */
-  protected $nidNoTerms;
+  protected $nidNoRestriction;
 
   /**
    * {@inheritdoc}
@@ -249,7 +249,7 @@ abstract class PBTKernelTestBase extends KernelTestBase {
     $this->setNidAllGrantedTerms($node->id());
   }
 
-  protected function createRelationNoTerms() {
+  protected function createRelationWithoutRestriction() {
     $term = Term::create([
       'name' => 'term1',
       'vid' => 'test',
@@ -257,16 +257,12 @@ abstract class PBTKernelTestBase extends KernelTestBase {
     $term->save();
     $tids[] = $term->id();
 
-    $this->accessStorage->addTermPermissionsByUserIds([\Drupal::service('current_user')->id()], $term->id());
-
     $term = Term::create([
       'name' => 'term2',
       'vid' => 'test',
     ]);
     $term->save();
     $tids[] = $term->id();
-
-    $this->accessStorage->addTermPermissionsByUserIds([\Drupal::service('current_user')->id()], $term->id());
 
     $node = Node::create([
       'type' => 'page',
@@ -281,7 +277,7 @@ abstract class PBTKernelTestBase extends KernelTestBase {
       ]
     ]);
     $node->save();
-    $this->setNidNoTerms($node->id());
+    $this->setNidNoRestriction($node->id());
   }
 
 
@@ -337,15 +333,15 @@ abstract class PBTKernelTestBase extends KernelTestBase {
   /**
    * @return int
    */
-  protected function getNidNoTerms() {
-    return $this->nidNoTerms;
+  protected function getNidNoRestriction() {
+    return $this->nidNoRestriction;
   }
 
   /**
-   * @param int $nidNoTerms
+   * @param int $nidNoRestiction
    */
-  protected function setNidNoTerms($nidNoTerms) {
-    $this->nidNoTerms = $nidNoTerms;
+  protected function setNidNoRestriction($nidNoRestiction) {
+    $this->nidNoRestriction = $nidNoRestiction;
   }
 
 }
