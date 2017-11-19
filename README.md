@@ -13,12 +13,20 @@ This module is now merged into PbT
 ## Behat testing
 
 ### composer.json config
-Make sure that the dependencies the PbT module are installed. Check your drupal's `composer.json` file
+Make sure that the dependencies for Behat testing are installed. Check your drupal's `composer.json` file
 for the following contents:
 
     "require": {
         "composer/installers": "^1.0.24",
-        "wikimedia/composer-merge-plugin": "~1.4"
+        "wikimedia/composer-merge-plugin": "~1.4",
+        "drupal/drupal-extension": "~3.0",
+        "guzzlehttp/guzzle" : "^6.0@dev",
+        "drupal/drupal-driver": "~1.0",
+        "behat/behat": "^3.1",
+        "behat/mink": "^1.7",
+        "behat/mink-extension": "^2.2",
+        "behat/mink-selenium2-driver": "^1.3",
+        "behat/mink-goutte-driver": "^1.2"
     },
     
     ...
