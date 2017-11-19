@@ -320,27 +320,13 @@ class AccessStorage {
       return [];
     }
 
-    $aRawUsers = explode('),', $sRawUsers);
+    $aRawUsers = Tags::explode($sRawUsers);
+
     $aUserIds = [];
     if (!empty($aRawUsers)) {
       foreach ($aRawUsers as $sRawUser) {
-        $aTempRawUser = explode(' (', $sRawUser);
-        // We check the user id by user name. If we get null back, the user might
-        // be the Anonymous user. In that case we get null back and then we use
-        // this id, which is 0.
-        if (!empty($aTempRawUser[1])) {
-          $fallback_user_id = str_replace(')', '', $aTempRawUser[1]);
-          $fallback_user_id = intval($fallback_user_id);
-        }
-
-        $sRawUser = trim($aTempRawUser['0']);
-        $uid = $this->getUserIdByName($sRawUser)['uid'];
-        if ($uid == NULL && $fallback_user_id == 0) {
-          // We might want to give access to the Anonymous user.
-          $aUserIds[] = 0;
-        }
-        else {
-          $aUserIds[] = $this->getUserIdByName($sRawUser)['uid'];
+        if (preg_match("/.+\s\(([^\)]+)\)/", $sRawUser, $matches)) {
+          $aUserIds[] = $matches[1];
         }
       }
     }
