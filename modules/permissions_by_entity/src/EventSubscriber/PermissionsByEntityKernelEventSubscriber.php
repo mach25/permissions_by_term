@@ -89,7 +89,7 @@ class PermissionsByEntityKernelEventSubscriber implements EventSubscriberInterfa
     }
 
     // If there is no entity abort here.
-    if (!$entity) {
+    if (!$entity instanceof ContentEntityInterface) {
       return;
     }
 
