@@ -4,5 +4,5 @@ dependencies:
   - taxonomy
 type: module
 core: '8.x'
-version: '8.x-1.33'
+version: '8.x-1.38'
 package: 'Permissions by Term'
