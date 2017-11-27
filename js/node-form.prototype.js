@@ -118,9 +118,9 @@ NodeForm.prototype.displayPermissionsByAutocomplete = function(fieldWrapperCSSCl
 
     var values = this.jQuery(fieldWrapperCSSClass + ' input').val();
 
-    if (values !== undefined && values.indexOf('(') !== -1 && values.indexOf(')')) {
+    this.resetData(fieldWrapperCSSClass);
 
-      this.resetData(fieldWrapperCSSClass);
+    if (values !== undefined && values.indexOf('(') !== -1 && values.indexOf(')')) {
 
       var tidsInBrackets = values.match(/\(\d+\)/g);
 
@@ -188,7 +188,7 @@ NodeForm.prototype.isAllowedRolesRestriction = function(permissionsToDisplay) {
 
 NodeForm.prototype.pushUserDisplayNames = function(tids, permissionsToDisplay, permissions) {
   for (var index = 0; index < tids.length; ++index) {
-    if (permissions['userDisplayNames'][tids[index]] !== undefined && permissions['userDisplayNames'][tids[index]] !== null &&
+    if (permissions.hasOwnProperty('userDisplayNames') && permissions['userDisplayNames'].hasOwnProperty(tids[index]) && permissions['userDisplayNames'][tids[index]] !== null &&
         permissionsToDisplay['permittedUsers'].indexOf(permissions['userDisplayNames'][tids[index]]) === -1) {
 
       var userDisplayNames = permissions['userDisplayNames'][tids[index]];
