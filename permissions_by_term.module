@@ -191,7 +191,7 @@ EOT;
     $form['access']['role'] = [
       '#type' => 'checkboxes',
       '#title' => t('Allowed roles'),
-      '#description' => $description,
+      '#description' => t($description),
       '#default_value' => $aSetRoles,
       '#options' => $aTranslatedUserRoles,
       '#multiple' => FALSE,
