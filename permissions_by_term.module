@@ -325,8 +325,6 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
     'grant_view' => $grantObject->grant_view,
     'grant_update' => $grantObject->grant_update,
     'grant_delete' => $grantObject->grant_delete,
-    'langcode' => $grantObject->langcode,
-    'fallback' => 1,
     'nid' => $node->id(),
   ];
 
