@@ -89,6 +89,6 @@ function permissions_by_term_update_8114() {
 /**
  * Force a node access rebuild to fix multilingual node access grants.
  */
-function permissions_by_term_update_8115() {
+function permissions_by_term_update_8142() {
   node_access_rebuild(TRUE);
 }
