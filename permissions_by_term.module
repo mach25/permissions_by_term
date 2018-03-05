@@ -5,15 +5,14 @@
  * Allows access to terms in a vocabulary to be limited by user or role.
  */
 
-use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\NodeInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\permissions_by_term\Event\PermissionsByTermDeniedEvent;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Cache\Cache;
+use Drupal\Core\Entity\EntityInterface;
 
 /**
  * Implements hook_help().
@@ -390,4 +389,15 @@ function permissions_by_term_user_cancel($edit, $account, $method) {
   /* @var \Drupal\permissions_by_term\Service\AccessStorage $access_storage */
   $access_storage = \Drupal::service('permissions_by_term.access_storage');
   $access_storage->deleteAllTermPermissionsByUserId($deleted_user_id);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete().
+ *
+ * Deletes all term permissions from storage when a term is deleted.
+ */
+function permissions_by_term_taxonomy_term_delete(EntityInterface $entity) {
+  /* @var \Drupal\permissions_by_term\Service\AccessStorage $access_storage */
+  $access_storage = \Drupal::service('permissions_by_term.access_storage');
+  $access_storage->deleteAllTermPermissionsByTid($entity->id());
 }
