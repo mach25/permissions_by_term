@@ -275,6 +275,22 @@ class AccessStorage {
   }
 
   /**
+   * Delete access storage when a term is removed.
+   *
+   * @param int $term_id
+   *   The term ID being deleted.
+   */
+  public function deleteAllTermPermissionsByTid($term_id) {
+    $this->database->delete('permissions_by_term_user')
+      ->condition('tid', $term_id, '=')
+      ->execute();
+
+    $this->database->delete('permissions_by_term_role')
+      ->condition('tid', $term_id, '=')
+      ->execute();
+  }
+
+  /**
    * @param array $aUserIdsGrantedAccess
    * @param int   $term_id
    *
