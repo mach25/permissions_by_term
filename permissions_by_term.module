@@ -114,8 +114,8 @@ function permissions_by_term_form_taxonomy_term_form_alter(&$form, FormStateInte
     $access_storage = \Drupal::service('permissions_by_term.access_storage');
 
     $description = <<<EOT
-To limit access to this term by user(s) or role(s), select users or roles above. 
-If left empty, all users will have access to content, related to this taxonomy term 
+To limit access to this term by user(s) or role(s), select users or roles above.
+If left empty, all users will have access to content, related to this taxonomy term
 and this taxonomy term itself.
 EOT;
 
@@ -140,7 +140,7 @@ EOT;
     }
 
     $description = <<<EOT
-Enter a comma-seperated list of user names who will be able to access content,
+Enter a comma-separated list of user names who will be able to access content,
 related to this taxonomy term.
 EOT;
 
