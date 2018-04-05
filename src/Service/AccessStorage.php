@@ -291,29 +291,31 @@ class AccessStorage {
   }
 
   /**
-   * @param array $aUserIdsGrantedAccess
-   * @param int   $term_id
+   * @param array       $aUserIdsGrantedAccess
+   * @param int         $term_id
+   * @param null|string $langcode
    *
    * @throws \Exception
    */
-  public function addTermPermissionsByUserIds($aUserIdsGrantedAccess, $term_id) {
+  public function addTermPermissionsByUserIds($aUserIdsGrantedAccess, $term_id, $langcode = NULL) {
     foreach ($aUserIdsGrantedAccess as $iUserIdGrantedAccess) {
       $this->database->insert('permissions_by_term_user')
-        ->fields(['tid', 'uid'], [$term_id, $iUserIdGrantedAccess])
+        ->fields(['tid', 'uid', 'langcode'], [$term_id, $iUserIdGrantedAccess, $langcode])
         ->execute();
     }
   }
 
   /**
-   * @param array $aRoleIdsGrantedAccess
-   * @param int   $term_id
+   * @param array       $aRoleIdsGrantedAccess
+   * @param int         $term_id
+   * @param null|string $langcode
    *
    * @throws \Exception
    */
-  public function addTermPermissionsByRoleIds($aRoleIdsGrantedAccess, $term_id) {
+  public function addTermPermissionsByRoleIds($aRoleIdsGrantedAccess, $term_id, $langcode = NULL) {
     foreach ($aRoleIdsGrantedAccess as $sRoleIdGrantedAccess) {
       $this->database->insert('permissions_by_term_role')
-        ->fields(['tid', 'rid'], [$term_id, $sRoleIdGrantedAccess])
+        ->fields(['tid', 'rid', 'langcode'], [$term_id, $sRoleIdGrantedAccess, $langcode])
         ->execute();
     }
   }

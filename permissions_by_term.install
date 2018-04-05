@@ -5,6 +5,8 @@
  * Install, update and uninstall functions for the permissions_by_term module.
  */
 
+use Drupal\Core\Database\Database;
+
 /**
  * Implements hook_schema().
  */
@@ -26,6 +28,12 @@ function permissions_by_term_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ],
+      'langcode' => [
+        'type' => 'varchar_ascii',
+        'length' => 12,
+        'not null' => TRUE,
+        'default' => '',
+      ],
     ],
     'primary key' => [
       'tid',
@@ -46,6 +54,12 @@ function permissions_by_term_schema() {
         'type' => 'varchar',
         'length' => 60,
         'not null' => TRUE,
+      ],
+      'langcode' => [
+        'type' => 'varchar_ascii',
+        'length' => 12,
+        'not null' => TRUE,
+        'default' => '',
       ],
     ],
     'primary key' => [
@@ -91,4 +105,21 @@ function permissions_by_term_update_8114() {
  */
 function permissions_by_term_update_8142() {
   node_access_rebuild(TRUE);
+}
+
+/**
+ * Add field for langcode in user and role permission tables.
+ */
+function permissions_by_term_update_8145() {
+  $database = \Drupal::database();
+  $schema = $database->schema();
+
+  $spec = [
+    'type'     => 'varchar_ascii',
+    'length'   => 12,
+    'not null' => TRUE,
+    'default'  => '',
+  ];
+  $schema->addField('permissions_by_term_role', 'langcode', $spec);
+  $schema->addField('permissions_by_term_user', 'langcode', $spec);
 }
