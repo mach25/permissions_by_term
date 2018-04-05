@@ -55,7 +55,8 @@ class AccessCheck {
     }
 
     foreach ($terms as $term) {
-      $access_allowed = $this->isAccessAllowedByDatabase($term->tid, $uid);
+      $termInfo = \Drupal\taxonomy\Entity\Term::load($term->tid);
+      $access_allowed = $this->isAccessAllowedByDatabase($term->tid, $uid, $termInfo->get('langcode')->getLangcode());
       if (!$access_allowed) {
         if ($singleTermRestriction) {
           return $access_allowed;
@@ -74,9 +75,10 @@ class AccessCheck {
   /**
    * @param int      $tid
    * @param bool|int $uid
+   * @param string   $langcode
    * @return array
    */
-  public function isAccessAllowedByDatabase($tid, $uid = FALSE) {
+  public function isAccessAllowedByDatabase($tid, $uid = FALSE, $langcode) {
 
     if ($uid === FALSE) {
       $user = \Drupal::currentUser();
@@ -102,7 +104,7 @@ class AccessCheck {
 
     foreach ($aUserRoles as $sUserRole) {
 
-      if ($this->isTermAllowedByUserRole($tid, $sUserRole)) {
+      if ($this->isTermAllowedByUserRole($tid, $sUserRole, $langcode)) {
         return TRUE;
       }
 
@@ -110,7 +112,7 @@ class AccessCheck {
 
     $iUid = intval($user->id());
 
-    if ($this->isTermAllowedByUserId($tid, $iUid)) {
+    if ($this->isTermAllowedByUserId($tid, $iUid, $langcode)) {
       return TRUE;
     }
 
@@ -119,14 +121,15 @@ class AccessCheck {
   }
 
   /**
-   * @param int $tid
-   * @param int $iUid
+   * @param int    $tid
+   * @param int    $iUid
+   * @param string $langcode
    *
    * @return bool
    */
-  private function isTermAllowedByUserId($tid, $iUid) {
-    $query_result = $this->database->query("SELECT uid FROM {permissions_by_term_user} WHERE tid = :tid AND uid = :uid",
-      [':tid' => $tid, ':uid' => $iUid])->fetchField();
+  private function isTermAllowedByUserId($tid, $iUid, $langcode) {
+    $query_result = $this->database->query("SELECT uid FROM {permissions_by_term_user} WHERE tid = :tid AND uid = :uid AND langcode = :langcode",
+      [':tid' => $tid, ':uid' => $iUid, ':langcode' => $langcode])->fetchField();
 
     if (!empty($query_result)) {
       return TRUE;
@@ -139,12 +142,13 @@ class AccessCheck {
   /**
    * @param int    $tid
    * @param string $sUserRole
+   * @param string $langcode
    *
    * @return bool
    */
-  public function isTermAllowedByUserRole($tid, $sUserRole) {
-    $query_result = $this->database->query("SELECT rid FROM {permissions_by_term_role} WHERE tid = :tid AND rid IN (:user_roles)",
-      [':tid' => $tid, ':user_roles' => $sUserRole])->fetchField();
+  public function isTermAllowedByUserRole($tid, $sUserRole, $langcode) {
+    $query_result = $this->database->query("SELECT rid FROM {permissions_by_term_role} WHERE tid = :tid AND rid IN (:user_roles) AND langcode = :langcode",
+      [':tid' => $tid, ':user_roles' => $sUserRole, ':langcode' => $langcode])->fetchField();
 
     if (!empty($query_result)) {
       return TRUE;
@@ -156,17 +160,18 @@ class AccessCheck {
   }
 
   /**
-   * @param int $tid
+   * @param int    $tid
+   * @param string $langcode
    *
    * @return bool
    */
-  public function isAnyPermissionSetForTerm($tid) {
+  public function isAnyPermissionSetForTerm($tid, $langcode) {
 
-    $iUserTableResults = intval($this->database->query("SELECT COUNT(1) FROM {permissions_by_term_user} WHERE tid = :tid",
-      [':tid' => $tid])->fetchField());
+    $iUserTableResults = intval($this->database->query("SELECT COUNT(1) FROM {permissions_by_term_user} WHERE tid = :tid AND langcode = :langcode",
+      [':tid' => $tid, ':langcode' => $langcode])->fetchField());
 
-    $iRoleTableResults = intval($this->database->query("SELECT COUNT(1) FROM {permissions_by_term_role} WHERE tid = :tid",
-      [':tid' => $tid])->fetchField());
+    $iRoleTableResults = intval($this->database->query("SELECT COUNT(1) FROM {permissions_by_term_role} WHERE tid = :tid AND langcode = :langcode",
+      [':tid' => $tid, ':langcode' => $langcode])->fetchField());
 
     if ($iUserTableResults > 0 ||
       $iRoleTableResults > 0) {
