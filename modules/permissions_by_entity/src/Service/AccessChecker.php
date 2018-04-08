@@ -3,10 +3,8 @@
 namespace Drupal\permissions_by_entity\Service;
 
 use Drupal\Core\Database\Connection;
-use Drupal\Core\Database\Database;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\permissions_by_entity\Event\EntityFieldValueAccessDeniedEvent;
 use Drupal\permissions_by_entity\Event\PermissionsByEntityEvents;
 use Drupal\permissions_by_term\Service\AccessCheck;

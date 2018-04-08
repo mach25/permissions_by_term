@@ -2,11 +2,12 @@
 
 namespace Drupal\permissions_by_term\Service;
 
+use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Database\Connection;
-use Drupal\user\Entity\User;
-use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
 use Drupal\permissions_by_term\Event\PermissionsByTermDeniedEvent;
+use Drupal\user\Entity\User;
+use Drupal\taxonomy\Entity\Term;
 
 /**
  * AccessCheckService class.
@@ -37,9 +38,13 @@ class AccessCheck {
   }
 
   /**
-   * @return bool
+   * @param int $nid
+   * @param bool $uid
+   * @param string $langcode
+   *
+   * @return array|bool
    */
-  public function canUserAccessByNodeId($nid, $uid = FALSE) {
+  public function canUserAccessByNodeId($nid, $uid = FALSE, $langcode = 'en') {
     if (!$singleTermRestriction = \Drupal::config('permissions_by_term.settings.single_term_restriction')->get('value')) {
       $access_allowed = TRUE;
     } else {
@@ -55,16 +60,19 @@ class AccessCheck {
     }
 
     foreach ($terms as $term) {
-      $termInfo = \Drupal\taxonomy\Entity\Term::load($term->tid);
-      $access_allowed = $this->isAccessAllowedByDatabase($term->tid, $uid, $termInfo->get('langcode')->getLangcode());
-      if (!$access_allowed) {
-        if ($singleTermRestriction) {
+      $termInfo = Term::load($term->tid);
+
+      if ($termInfo->get('langcode')->getLangcode() == $langcode) {
+        $access_allowed = $this->isAccessAllowedByDatabase($term->tid, $uid, $termInfo->get('langcode')->getLangcode());
+        if (!$access_allowed) {
+          if ($singleTermRestriction) {
+            return $access_allowed;
+          }
+        }
+
+        if ($access_allowed && !$singleTermRestriction) {
           return $access_allowed;
         }
-      }
-
-      if ($access_allowed && !$singleTermRestriction) {
-        return $access_allowed;
       }
 
     }
@@ -165,7 +173,7 @@ class AccessCheck {
    *
    * @return bool
    */
-  public function isAnyPermissionSetForTerm($tid, $langcode) {
+  public function isAnyPermissionSetForTerm($tid, $langcode = 'en') {
 
     $iUserTableResults = intval($this->database->query("SELECT COUNT(1) FROM {permissions_by_term_user} WHERE tid = :tid AND langcode = :langcode",
       [':tid' => $tid, ':langcode' => $langcode])->fetchField());

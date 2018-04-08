@@ -2,8 +2,8 @@
 
 namespace Drupal\permissions_by_term\Service;
 
-use Drupal\Core\Database\Connection;
 use Drupal\Component\Utility\Tags;
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\user\Entity\User;
