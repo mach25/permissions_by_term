@@ -101,7 +101,7 @@ class AccessCheck {
 
     $tid = intval($tid);
 
-    if (!$this->isAnyPermissionSetForTerm($tid)) {
+    if (!$this->isAnyPermissionSetForTerm($tid, $langcode)) {
       return TRUE;
     }
 
