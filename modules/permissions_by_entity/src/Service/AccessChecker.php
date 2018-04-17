@@ -85,7 +85,7 @@ class AccessChecker extends AccessCheck implements AccessCheckerInterface {
           // Let "Permissions By Term" do the actual check.
           if (
             !empty($item['target_id']) &&
-            !$this->isAccessAllowedByDatabase($item['target_id'], $uid)
+            !$this->isAccessAllowedByDatabase($item['target_id'], $uid, $entity->language()->getId())
           ) {
             // Return that the user is not allowed to access this entity.
             return FALSE;

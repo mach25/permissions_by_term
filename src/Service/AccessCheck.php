@@ -84,9 +84,9 @@ class AccessCheck {
    * @param int      $tid
    * @param bool|int $uid
    * @param string   $langcode
-   * @return array
+   * @return bool
    */
-  public function isAccessAllowedByDatabase($tid, $uid = FALSE, $langcode) {
+  public function isAccessAllowedByDatabase($tid, $uid = FALSE, $langcode = 'en') {
 
     if ($uid === FALSE) {
       $user = \Drupal::currentUser();
@@ -174,7 +174,6 @@ class AccessCheck {
    * @return bool
    */
   public function isAnyPermissionSetForTerm($tid, $langcode = 'en') {
-
     $iUserTableResults = intval($this->database->query("SELECT COUNT(1) FROM {permissions_by_term_user} WHERE tid = :tid AND langcode = :langcode",
       [':tid' => $tid, ':langcode' => $langcode])->fetchField());
 
@@ -189,10 +188,13 @@ class AccessCheck {
   }
 
   /**
+   * @param string $nodeId
+   * @param string $langcode
+   *
    * @return AccessResult
    */
-  public function handleNode($nodeId) {
-    if ($this->canUserAccessByNodeId($nodeId) === TRUE) {
+  public function handleNode($nodeId, $langcode) {
+    if ($this->canUserAccessByNodeId($nodeId, $langcode) === TRUE) {
       return AccessResult::neutral();
     }
     else {

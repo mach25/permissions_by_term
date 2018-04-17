@@ -258,7 +258,7 @@ function permissions_by_term_node_access(NodeInterface $node, $op, AccountInterf
   /* @var \Drupal\permissions_by_term\Service\AccessCheck $accessCheck */
   $accessCheck = \Drupal::service('permissions_by_term.access_check');
 
-  return $accessCheck->handleNode($node->id());
+  return $accessCheck->handleNode($node->id(), $node->language()->getId());
 }
 
 /**
@@ -293,7 +293,7 @@ function permissions_by_term_node_access_records(\Drupal\node\NodeInterface $nod
   foreach ($access_storage->getTidsByNid($node->id()) as $tid) {
     /* @var \Drupal\permissions_by_term\Service\AccessCheck $access_check_service */
     $access_check_service = \Drupal::service('permissions_by_term.access_check');
-    if ($access_check_service->isAnyPermissionSetForTerm($tid)) {
+    if ($access_check_service->isAnyPermissionSetForTerm($tid, $node->language()->getId())) {
       $has_term_access_restrictions = TRUE;
       break;
     }

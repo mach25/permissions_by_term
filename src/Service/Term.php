@@ -3,6 +3,7 @@
 namespace Drupal\permissions_by_term\Service;
 
 use Drupal\Core\Database\Connection;
+use Drupal\taxonomy\Entity\Term as TermEntity;
 
 /**
  * Class Term
@@ -17,6 +18,11 @@ class Term {
    * @var Connection
    */
   private $database;
+
+  /**
+   * @var TermEntity
+   */
+  private $term;
 
   /**
    * Term constructor.
@@ -73,6 +79,12 @@ class Term {
     $aTermId = \Drupal::entityQuery('taxonomy_term')
       ->condition('name', $sTermName)
       ->execute();
+
+    $term = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->load(key($aTermId));
+    if ($term instanceof TermEntity) {
+      $this->setTerm($term);
+    }
+
     return key($aTermId);
   }
 
@@ -86,6 +98,17 @@ class Term {
       ->condition('id', $term_id)
       ->execute();
     return key($term_name);
+  }
+
+  public function setTerm(TermEntity $term) {
+    $this->term = $term;
+  }
+
+  /**
+   * @return TermEntity
+   */
+  public function getTerm() {
+    return $this->term;
   }
 
 }
