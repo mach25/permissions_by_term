@@ -3,6 +3,7 @@
 namespace Drupal\Tests\permissions_by_term\Kernel;
 
 use Drupal\permissions_by_term\Service\AccessStorage;
+use Drupal\taxonomy\Entity\Term;
 
 /**
  * Class AccessCheckTest
@@ -149,6 +150,16 @@ class AccessCheckTest extends PBTKernelTestBase {
       ->fetchCol();
 
     $this->assertCount(0, $permittedNids);
+  }
+
+  public function testCheckAccessAsGuest() {
+    $term = Term::create([
+      'name' => 'term1',
+      'vid' => 'test',
+    ]);
+    $term->save();
+
+    $this->accessCheck->isAccessAllowedByDatabase($term->id(), 0);
   }
 
 }

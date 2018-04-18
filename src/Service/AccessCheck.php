@@ -88,7 +88,7 @@ class AccessCheck {
    */
   public function isAccessAllowedByDatabase($tid, $uid = FALSE, $langcode = 'en') {
 
-    if ($uid === FALSE) {
+    if ($uid === FALSE || intval($uid) == 0) {
       $user = \Drupal::currentUser();
     } elseif (is_numeric($uid)) {
       $user = User::load($uid);
