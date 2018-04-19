@@ -10,7 +10,9 @@ use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\taxonomy\Tests\TaxonomyTestTrait;
 use Drupal\user\Entity\User;
 
-
+/**
+ * @group permissions_by_term
+ */
 class MultilingualTest extends PBTKernelTestBase {
 
   use TaxonomyTestTrait;
