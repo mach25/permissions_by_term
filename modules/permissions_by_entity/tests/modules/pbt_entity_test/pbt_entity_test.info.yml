@@ -1,0 +1,5 @@
+name: 'pbt_entity_test'
+type: module
+description: 'Permissions by term - Entity test module'
+core: 8.x
+package: Testing

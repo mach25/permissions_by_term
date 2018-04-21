@@ -61,10 +61,15 @@ class PermissionsByEntityKernelEventSubscriber implements EventSubscriberInterfa
 
   /**
    * {@inheritdoc}
+   *
+   * @see DynamicPageCacheSubscriber
+   *
+   * This is required to run before the DynamicPageCacheSubscriber as otherwise
+   * the response would be cached which can lead to false access.
    */
   public static function getSubscribedEvents() {
     return [
-      KernelEvents::REQUEST => ['onKernelRequest', 5],
+      KernelEvents::REQUEST => ['onKernelRequest', 28],
     ];
   }
 
@@ -97,10 +102,9 @@ class PermissionsByEntityKernelEventSubscriber implements EventSubscriberInterfa
     if ($this->checkedEntityCache->isChecked($entity)) {
       return;
     }
-    else {
-      // Add this entity to the cache.
-      $this->checkedEntityCache->add($entity);
-    }
+
+    // Add this entity to the cache.
+    $this->checkedEntityCache->add($entity);
 
     // Check if the current user is allowed to access this entity.
     if (

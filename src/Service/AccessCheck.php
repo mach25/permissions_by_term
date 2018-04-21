@@ -88,18 +88,13 @@ class AccessCheck {
    */
   public function isAccessAllowedByDatabase($tid, $uid = FALSE, $langcode = 'en') {
 
-    if ($uid === FALSE || intval($uid) == 0) {
+    if ($uid === FALSE || (int) $uid === 0) {
       $user = \Drupal::currentUser();
     } elseif (is_numeric($uid)) {
       $user = User::load($uid);
     }
 
-    // Admin can access everything (user id "1").
-    if ($user->id() == 1) {
-      return TRUE;
-    }
-
-    $tid = intval($tid);
+    $tid = (int) $tid;
 
     if (!$this->isAnyPermissionSetForTerm($tid, $langcode)) {
       return TRUE;
