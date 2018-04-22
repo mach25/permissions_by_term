@@ -60,6 +60,22 @@ class MultilingualTest extends PBTKernelTestBase {
   }
 
   public function testCanNotAccess() {
+    list($termDe, $nodeDe, $term, $node, $user) = $this->setupEntities();
+
+    $this->accessStorage->addTermPermissionsByUserIds([\Drupal::service('current_user')->id()], $term->id(), 'en');
+    $this->accessStorage->addTermPermissionsByUserIds([$user->id()], $termDe->id(), 'de');
+
+    /**
+     * @var User $user
+     */
+    $user = user_load_by_name('some_username123');
+
+    $this->assertTrue($this->accessCheck->canUserAccessByNodeId($node->id(), \Drupal::service('current_user')->id()));
+    $this->assertFalse($this->accessCheck->canUserAccessByNodeId($nodeDe->id(), \Drupal::service('current_user')->id(), 'de'));
+    $this->assertTrue($this->accessCheck->canUserAccessByNodeId($nodeDe->id(), $user->id(), 'de'));
+  }
+
+  private function setupEntities() {
     $i = 0;
     foreach (['de'] as $langcode) {
       $language = ConfigurableLanguage::createFromLangcode($langcode);
@@ -87,8 +103,8 @@ class MultilingualTest extends PBTKernelTestBase {
     $term->save();
 
     $node = Node::create([
-      'type' => 'page',
-      'title' => 'test_title',
+      'type'       => 'page',
+      'title'      => 'test_title',
       'field_tags' => [
         [
           'target_id' => $term->id()
@@ -114,22 +130,12 @@ class MultilingualTest extends PBTKernelTestBase {
     $nodeDe->save();
 
     $user = User::create([
-      'name' => 'some_username123',
+      'name'   => 'some_username123',
       'status' => 1,
     ]);
     $user->save();
 
-    $this->accessStorage->addTermPermissionsByUserIds([\Drupal::service('current_user')->id()], $term->id(), 'en');
-    $this->accessStorage->addTermPermissionsByUserIds([$user->id()], $termDe->id(), 'de');
-
-    /**
-     * @var User $user
-     */
-    $user = user_load_by_name('some_username123');
-
-    $this->assertTrue($this->accessCheck->canUserAccessByNodeId($node->id(), \Drupal::service('current_user')->id()));
-    $this->assertFalse($this->accessCheck->canUserAccessByNodeId($nodeDe->id(), \Drupal::service('current_user')->id(), 'de'));
-    $this->assertTrue($this->accessCheck->canUserAccessByNodeId($nodeDe->id(), $user->id(), 'de'));
+    return [$termDe, $nodeDe, $term, $node, $user];
   }
 
 }
