@@ -54,12 +54,14 @@ function permissions_by_term_validate($form, FormState $oFormState) {
       $not_allowed_term_names = [];
       if (!empty($terms)) {
         foreach ($terms as $term) {
-          $term_id = $term['target_id'];
-          /* @var \Drupal\permissions_by_term\Service\AccessCheck $access_check_service */
-          $access_check_service = \Drupal::service('permissions_by_term.access_check');
-          if (!$access_check_service->isAccessAllowedByDatabase($term_id)) {
-            $term = Term::load($term_id);
-            $not_allowed_term_names[] = $term->getName();
+          if (!empty($term['target_id'])) {
+            $term_id = $term['target_id'];
+            /* @var \Drupal\permissions_by_term\Service\AccessCheck $access_check_service */
+            $access_check_service = \Drupal::service('permissions_by_term.access_check');
+            if (!$access_check_service->isAccessAllowedByDatabase($term_id)) {
+              $term = Term::load($term_id);
+              $not_allowed_term_names[] = $term->getName();
+            }
           }
         }
       }

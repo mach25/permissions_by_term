@@ -81,7 +81,7 @@ class KernelEventListener implements EventSubscriberInterface
       $term = $this->term->getTerm();
       $termLangcode = 'en';
       if ($term instanceof \Drupal\taxonomy\Entity\Term) {
-        $termLangcode = $term->getTerm()->language()->getId();
+        $termLangcode = $term->language()->getId();
       }
 
       if (!$this->accessCheckService->isAccessAllowedByDatabase($tid, \Drupal::currentUser()->id(), $termLangcode)) {
