@@ -1,7 +1,9 @@
 name: 'Permissions by Term'
 description: 'Restricts access to nodes and taxonomy terms via user to term relations.'
 dependencies:
-  - taxonomy
+  - 'drupal:system'
+  - 'drupal:field'
+  - 'drupal:entity_reference'
 type: module
 core: '8.x'
 version: '8.x-1.42'
