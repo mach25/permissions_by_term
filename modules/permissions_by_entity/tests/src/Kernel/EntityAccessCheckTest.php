@@ -88,9 +88,9 @@ class EntityAccessCheckTest extends KernelTestBase {
   }
 
   /**
-   * Tests basic access controll.
+   * Tests basic access control.
    */
-  public function testBaseAccessControll() {
+  public function testBaseAccessControl() {
     self::assertTrue($this->accessChecker->isAccessAllowed($this->nodes['test_entity_term_a'], $this->terms['term_user_a']['user']->id()));
     self::assertTrue($this->accessChecker->isAccessAllowed($this->nodes['test_entity_term_b'], $this->terms['term_user_b']['user']->id()));
 
@@ -99,7 +99,7 @@ class EntityAccessCheckTest extends KernelTestBase {
   }
 
   /**
-   * Tests even listener based access controll.
+   * Tests even listener based access control.
    */
   public function testAnonymousAccessDeniedUsingKernel() {
     $dispatcher = $this->getPopulatedDispatcher();
@@ -109,7 +109,7 @@ class EntityAccessCheckTest extends KernelTestBase {
   }
 
   /**
-   * Tests even listener based access controll.
+   * Tests even listener based access control.
    */
   public function testAuthenticatedAccessUsingKernel() {
     $dispatcher = $this->getPopulatedDispatcher();
@@ -119,7 +119,7 @@ class EntityAccessCheckTest extends KernelTestBase {
   }
 
   /**
-   * Tests even listener based access controll.
+   * Tests even listener based access control.
    */
   public function testAuthenticatedDeniedOnCachedAccessUsingKernel() {
     $dispatcher = $this->getPopulatedDispatcher();

@@ -2,7 +2,7 @@
 
 namespace Drupal\permissions_by_entity\EventSubscriber;
 
-use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\StringTranslation\TranslationInterface;
 use Drupal\permissions_by_entity\Service\AccessCheckerInterface;
 use Drupal\permissions_by_entity\Service\CheckedEntityCache;
@@ -84,7 +84,7 @@ class PermissionsByEntityKernelEventSubscriber implements EventSubscriberInterfa
     $request = $event->getRequest();
 
     // Get the entity.
-    /** @var \Drupal\Core\Entity\ContentEntityInterface $entity */
+    /** @var \Drupal\Core\Entity\FieldableEntityInterface $entity */
     $entity = NULL;
     if ($request->attributes->has('node')) {
       $entity = $request->attributes->get('node');
@@ -94,7 +94,7 @@ class PermissionsByEntityKernelEventSubscriber implements EventSubscriberInterfa
     }
 
     // If there is no entity abort here.
-    if (!$entity instanceof ContentEntityInterface) {
+    if (!$entity instanceof FieldableEntityInterface) {
       return;
     }
 
@@ -108,7 +108,7 @@ class PermissionsByEntityKernelEventSubscriber implements EventSubscriberInterfa
 
     // Check if the current user is allowed to access this entity.
     if (
-      $entity && $entity instanceof ContentEntityInterface &&
+      $entity && $entity instanceof FieldableEntityInterface &&
       !$this->accessChecker->isAccessAllowed($entity)
     ) {
 
