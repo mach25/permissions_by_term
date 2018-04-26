@@ -126,9 +126,9 @@ function permissions_by_term_update_8145() {
 }
 
 /**
- * Add langcode to each permission restriction dataset.
+ * Add langcode to each permission restriction dataset. Cleanup dangling datasets, with no relation to any taxonomy term.
  */
-function permissions_by_term_update_8147() {
+function permissions_by_term_update_8150() {
   /**
    * @var Connection $database
    */
@@ -143,6 +143,10 @@ function permissions_by_term_update_8147() {
         ':langcode' => $termLangcode,
         ':tid'      => $roleTerm->tid,
       ])->execute();
+    } else {
+      $database->query("DELETE FROM {permissions_by_term_role} WHERE tid = :tid", [
+        ':tid' => $roleTerm->tid,
+      ])->execute();
     }
   }
 
@@ -152,6 +156,10 @@ function permissions_by_term_update_8147() {
       $database->query("UPDATE {permissions_by_term_user} SET langcode = :langcode WHERE tid = :tid", [
         ':langcode' => $termLangcode,
         ':tid'      => $userTerm->tid
+      ])->execute();
+    } else {
+      $database->query("DELETE FROM {permissions_by_term_user} WHERE tid = :tid", [
+        ':tid' => $userTerm->tid,
       ])->execute();
     }
   }
