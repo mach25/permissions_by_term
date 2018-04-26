@@ -137,12 +137,22 @@ function permissions_by_term_update_8147() {
   $roleTerms = $database->query("SELECT tid FROM {permissions_by_term_role} WHERE langcode = '' OR langcode IS NULL")->fetchAll();
 
   foreach ($roleTerms as $roleTerm) {
-    $termLangcode = Term::load($roleTerm->tid)->get('langcode')->getLangcode();
-    $database->query("UPDATE {permissions_by_term_role} SET langcode = :langcode WHERE tid = :tid", [':langcode' => $termLangcode, ':tid' => $roleTerm->tid])->execute();
+    if (!empty($term = Term::load($roleTerm->tid))) {
+      $termLangcode = $term->get('langcode')->getLangcode();
+      $database->query("UPDATE {permissions_by_term_role} SET langcode = :langcode WHERE tid = :tid", [
+        ':langcode' => $termLangcode,
+        ':tid'      => $roleTerm->tid,
+      ])->execute();
+    }
   }
 
   foreach ($userTerms as $userTerm) {
-    $termLangcode = Term::load($userTerm->tid)->get('langcode')->getLangcode();
-    $database->query("UPDATE {permissions_by_term_user} SET langcode = :langcode WHERE tid = :tid", [':langcode' => $termLangcode, ':tid' => $userTerm->tid])->execute();
+    if (!empty($term = Term::load($userTerm->tid))) {
+      $termLangcode = $term->get('langcode')->getLangcode();
+      $database->query("UPDATE {permissions_by_term_user} SET langcode = :langcode WHERE tid = :tid", [
+        ':langcode' => $termLangcode,
+        ':tid'      => $userTerm->tid
+      ])->execute();
+    }
   }
 }
