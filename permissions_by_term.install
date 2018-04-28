@@ -128,7 +128,7 @@ function permissions_by_term_update_8145() {
 /**
  * Add langcode to each permission restriction dataset. Cleanup dangling datasets, with no relation to any taxonomy term.
  */
-function permissions_by_term_update_8150() {
+function permissions_by_term_update_8151() {
   /**
    * @var Connection $database
    */
@@ -139,10 +139,12 @@ function permissions_by_term_update_8150() {
   foreach ($roleTerms as $roleTerm) {
     if (!empty($term = Term::load($roleTerm->tid))) {
       $termLangcode = $term->get('langcode')->getLangcode();
-      $database->query("UPDATE {permissions_by_term_role} SET langcode = :langcode WHERE tid = :tid", [
-        ':langcode' => $termLangcode,
-        ':tid'      => $roleTerm->tid,
-      ])->execute();
+      if (!empty($termLangcode)) {
+        $database->query("UPDATE {permissions_by_term_role} SET langcode = :langcode WHERE tid = :tid", [
+          ':langcode' => $termLangcode,
+          ':tid'      => $roleTerm->tid,
+        ])->execute();
+      }
     } else {
       $database->query("DELETE FROM {permissions_by_term_role} WHERE tid = :tid", [
         ':tid' => $roleTerm->tid,
@@ -153,10 +155,12 @@ function permissions_by_term_update_8150() {
   foreach ($userTerms as $userTerm) {
     if (!empty($term = Term::load($userTerm->tid))) {
       $termLangcode = $term->get('langcode')->getLangcode();
-      $database->query("UPDATE {permissions_by_term_user} SET langcode = :langcode WHERE tid = :tid", [
-        ':langcode' => $termLangcode,
-        ':tid'      => $userTerm->tid
-      ])->execute();
+      if (!empty($termLangcode)) {
+        $database->query("UPDATE {permissions_by_term_user} SET langcode = :langcode WHERE tid = :tid", [
+          ':langcode' => $termLangcode,
+          ':tid'      => $userTerm->tid
+        ])->execute();
+      }
     } else {
       $database->query("DELETE FROM {permissions_by_term_user} WHERE tid = :tid", [
         ':tid' => $userTerm->tid,
