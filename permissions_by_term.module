@@ -354,23 +354,18 @@ function permissions_by_term_options_list_alter(array &$options, array $context)
     foreach ($options as $id => $names) {
       if ($id !== '_none') {
         /**
-         * @var \Drupal\permissions_by_term\Service\Term $term
-         */
-        $term = \Drupal::service('permissions_by_term.term');
-
-        /**
          * @var \Drupal\permissions_by_term\Service\AccessCheck $accessCheck
          */
         $accessCheck = \Drupal::service('permissions_by_term.access_check');
 
         if (is_array($names)) {
-          foreach ($names as $name) {
-            if (!$accessCheck->isAccessAllowedByDatabase($term->getTermIdByName($name))) {
+          foreach ($names as $group_id => $name) {
+            if (!$accessCheck->isAccessAllowedByDatabase($group_id)) {
               unset($options[$id]);
             }
           }
         } elseif(is_string($names)) {
-          if (!$accessCheck->isAccessAllowedByDatabase($term->getTermIdByName($names))) {
+          if (!$accessCheck->isAccessAllowedByDatabase($id)) {
             unset($options[$id]);
           }
         }
