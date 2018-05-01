@@ -4,6 +4,7 @@ namespace Drupal\permissions_by_term\Service;
 
 use Drupal\Core\Database\Connection;
 use Drupal\taxonomy\Entity\Term as TermEntity;
+use Drupal\Component\Utility\Html;
 
 /**
  * Class Term
@@ -76,6 +77,7 @@ class Term {
    * @return int
    */
   public function getTermIdByName($sTermName) {
+    $sTermName = Html::decodeEntities($sTermName);
     $aTermId = \Drupal::entityQuery('taxonomy_term')
       ->condition('name', $sTermName)
       ->execute();
