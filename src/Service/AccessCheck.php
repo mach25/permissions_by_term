@@ -189,7 +189,7 @@ class AccessCheck {
    * @return AccessResult
    */
   public function handleNode($nodeId, $langcode) {
-    if ($this->canUserAccessByNodeId($nodeId, $langcode) === TRUE) {
+    if ($this->canUserAccessByNodeId($nodeId, false, $langcode) === TRUE) {
       return AccessResult::neutral();
     }
     else {
